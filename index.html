@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F5D50">
+<meta name="robots" content="noindex">
+<title>LXL Projetos | Peças em impressão 3D</title>
+<meta name="description" content="LXL Projetos: peças sob medida, presentes e decoração feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp.">
+<style>
+  :root{
+    --musgo:#2F5D50; --musgo-d:#1F4036; --terracota:#D9734E; --areia:#E6D5B8; --marfim:#FAF8F3; --cafe:#1E1E1C; --muted:#6a645a;
+  }
+  [hidden]{display:none!important}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--cafe);background:var(--marfim);line-height:1.5;overflow-x:hidden}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0}
+  a{color:inherit}
+  img{max-width:100%}
+
+  .hero{background:linear-gradient(160deg,var(--musgo) 0%,var(--musgo-d) 100%);color:var(--marfim);text-align:center;padding:36px 18px 44px}
+  .hero .logo{display:block;width:150px;height:auto;margin:0 auto 18px}
+  .hero h1{font-size:clamp(1.9rem,8vw,2.8rem);line-height:1.1;margin:0 0 10px}
+  .hero p{margin:0 auto;max-width:32rem;font-size:1.02rem;color:var(--areia)}
+
+  main{max-width:960px;margin:0 auto;padding:30px 16px 20px}
+  .sec-head{text-align:center;margin-bottom:20px}
+  .sec-head h2{font-size:1.6rem;color:var(--musgo)}
+  .sec-head p{margin:6px 0 0;color:var(--muted)}
+
+  .cats{display:grid;grid-template-columns:1fr;gap:16px}
+  .cat{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid #eadfcb;border-radius:16px;overflow:hidden;text-decoration:none;box-shadow:0 2px 10px rgba(30,30,28,.06)}
+  .cat .foto{position:relative;aspect-ratio:16/10;background:var(--areia);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cat .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .cat .foto .ico{font-family:Georgia,serif;font-size:2.4rem;font-weight:700;color:var(--musgo);opacity:.35}
+  .cat .info{padding:14px 16px 16px}
+  .cat h3{font-size:1.25rem;color:var(--musgo);margin-bottom:4px}
+  .cat p{margin:0;color:var(--muted);font-size:.95rem}
+  .cat .go{display:inline-flex;margin-top:12px;background:var(--terracota);color:var(--cafe);font-weight:800;padding:10px 18px;border-radius:999px;font-size:.95rem}
+  .cat.ativo:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(30,30,28,.12)}
+  .cat{transition:transform .15s,box-shadow .15s}
+  .selo{position:absolute;top:10px;left:10px;z-index:2;background:var(--terracota);color:var(--cafe);font-size:.7rem;font-weight:800;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+  .cat.breve{opacity:.8}
+  .cat.breve .selo{background:var(--cafe);color:var(--marfim)}
+  .cat.breve .go{background:transparent;border:1.5px dashed var(--muted);color:var(--muted);font-weight:700}
+
+  .contato{text-align:center;background:var(--areia);border-radius:16px;padding:26px 18px;margin:30px 0 10px}
+  .contato h2{font-size:1.4rem;color:var(--musgo);margin-bottom:6px}
+  .contato p{margin:0 0 14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 24px}
+  .btn-wpp{background:#25D366;color:#073b1b}
+  .redes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .btn-rede{background:var(--musgo);color:var(--marfim);min-height:42px;padding:8px 20px}
+
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:18px 16px 30px}
+
+  .cat.breve .foto{aspect-ratio:16/5}
+  @media (min-width:700px){
+    .cat.breve .foto{aspect-ratio:16/10}
+    .cats{grid-template-columns:repeat(2,1fr)}
+    .hero{padding:48px 20px 56px}
+    .hero .logo{width:190px}
+  }
+  @media (min-width:960px){
+    .cats{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="logo" src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
+  <h1>Peças em impressão 3D</h1>
+  <p>Presentes, decoração e peças sob medida, feitos linha por linha. Escolha um catálogo e peça direto pelo WhatsApp.</p>
+</header>
+
+<main>
+  <div class="sec-head">
+    <h2>Nossos catálogos</h2>
+    <p>Toque em um catálogo para ver as peças e os valores.</p>
+  </div>
+
+  <div class="cats">
+    <a class="cat ativo" href="natal/">
+      <div class="foto"><span class="selo">Novo</span><img src="natal/imagens/PRE-007.jpg" alt="Catálogo de Natal 2026" onerror="this.remove()"></div>
+      <div class="info">
+        <h3>Catálogo de Natal 2026</h3>
+        <p>Presépios, Papais Noel, decorações de mesa, bomboniere e mais, com preços especiais de novembro.</p>
+        <span class="go">Ver catálogo</span>
+      </div>
+    </a>
+
+    <div class="cat breve">
+      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
+      <div class="info"><h3>Chaveiros</h3><p>Chaveiros personalizados com nome, logo e desenhos.</p><span class="go">Em breve</span></div>
+    </div>
+
+    <div class="cat breve">
+      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
+      <div class="info"><h3>Brinquedos</h3><p>Bonecos e brinquedos articulados para presentear.</p><span class="go">Em breve</span></div>
+    </div>
+
+    <div class="cat breve">
+      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
+      <div class="info"><h3>Decoração</h3><p>Peças para casa, escritório e presentes o ano todo.</p><span class="go">Em breve</span></div>
+    </div>
+
+    <div class="cat breve">
+      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
+      <div class="info"><h3>Peças personalizadas</h3><p>Brindes e peças sob medida para empresas e eventos.</p><span class="go">Em breve</span></div>
+    </div>
+  </div>
+
+  <section class="contato">
+    <h2>Quer algo diferente?</h2>
+    <p>Conte para a gente o que você precisa e vamos fazer um orçamento.</p>
+    <a class="btn btn-wpp" id="cta" target="_blank" rel="noopener" href="#">Chamar no WhatsApp</a>
+    <div class="redes">
+      <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a>
+      <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
+    </div>
+  </section>
+</main>
+
+<footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro.</footer>
+
+<script>
+  document.getElementById("cta").href = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
+</script>
+</body>
+</html>

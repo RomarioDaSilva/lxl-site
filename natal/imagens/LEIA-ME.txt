@@ -1,0 +1,28 @@
+Coloque aqui as fotos reais das peças, uma por produto.
+
+O nome do arquivo precisa ser o código do produto, em .jpg:
+  PRE-001.jpg
+  PRE-002.jpg
+  PRE-003.jpg
+  PRE-004.jpg
+  PRE-005.jpg
+  PRE-006.jpg
+  PRE-007.jpg
+  PRE-008.jpg
+  PRE-009.jpg
+  PRE-010.jpg
+  ARV-001.jpg
+  ARV-002.jpg
+  ARV-003.jpg
+  ARV-004.jpg a ARV-009.jpg
+  FEL-001.jpg a FEL-005.jpg
+
+PAP-001.jpg a PAP-005.jpg  mini papais noel
+DEC-001.jpg a DEC-012.jpg  decorações de mesa
+BOM-001.jpg a BOM-012.jpg  bombonieri e lembrancinhas
+ENF-001.jpg, ENF-001-2.jpg, ENF-001-3.jpg, ENF-001-4.jpg  decoração de árvore (4 fotos do mesmo kit)
+
+Prefixos: PRE presépio, ARV árvore, PAP Papai Noel, FEL Feliz Natal, KIT kits, BOM bombonieri, DEC decorações de mesa, ENF decoração de árvore.
+
+Dica: foto QUADRADA (1:1, ideal 1200 x 1200 px), com a peça no centro, boa luz e fundo limpo.
+Enquanto a foto não existir, o site mostra "Foto em breve".
