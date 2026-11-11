@@ -313,6 +313,12 @@
   .res-sug button{border:1px solid #eadfcb;background:var(--cream);color:var(--green-d);font:inherit;font-weight:600;font-size:.92rem;padding:8px 14px;border-radius:999px;cursor:pointer}
   .nav a.nav-busca{background:var(--green);color:#fff;border-color:var(--green);padding:0 20px;min-height:44px;font-size:1rem;font-weight:700;box-shadow:0 4px 12px rgba(20,61,42,.25)}
   .nav a.nav-busca svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+  .limite{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#FDE9EA;color:var(--red-d)}
+  .limite svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .link-faq{display:inline-flex;margin-top:10px;font-weight:700;color:var(--green-d)}
+  footer .links-uteis{margin:14px 0 4px}
+  footer .links-uteis a{color:#fff;font-weight:700;text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -355,6 +361,7 @@
       <div class="passo"><b>4</b><h3>Prazo de entrega</h3><p>Cada peça mostra o seu prazo: pronta entrega ou feita sob encomenda. A entrega é combinada com você no pedido.</p></div>
     </div>
     <p class="nota"><b>Os preços especiais deste catálogo são válidos para novembro de 2026.</b> Em dezembro os valores mudam. Os valores são calculados para impressão em PLA, em cor simples. Peças com várias cores ou em outros materiais podem ter valor diferente. Confirme sempre no WhatsApp.</p>
+    <a class="link-faq" href="../faq/">Ficou com dúvida? Veja as perguntas frequentes &rarr;</a>
   </section>
 </main>
 
@@ -371,6 +378,7 @@
     <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
   </div>
   <p>Aceitamos Pix, cartão e dinheiro.</p>
+  <p class="links-uteis"><a href="../faq/">Perguntas frequentes</a></p>
   <p class="peq">Feito com carinho para o seu Natal. LXL Projetos.</p>
 </footer>
 
@@ -399,6 +407,7 @@ const CONFIG = {
   whatsapp: "5538992214206",   /* número com DDI e DDD, só dígitos */
   instagram: "lxlprojetos",
   prazo: "",                   /* Ex.: "Pedidos até 15/12". Deixe vazio para não mostrar */
+  limitePedido: {ate:"2026-12-15", texto:"Pedidos até 15/12"},   /* aparece no card e na página de cada peça; some sozinho depois da data. Para desligar, apague esta linha */
   mes: "novembro de 2026"              /* Mês de validade dos preços. Em dezembro troque para "dezembro" ou deixe vazio para esconder o aviso */
 };
 
@@ -522,6 +531,11 @@ function precoHTML(p){
     ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+(CONFIG.mes?'<span class="mes">Preço especial '+CONFIG.mes+'</span>':'')+'</div>'
     : '<div class="preco consulte">Consulte o valor</div>';
 }
+function limiteHTML(){
+  var L=CONFIG.limitePedido; if(!L||!L.ate) return "";
+  var f=new Date(L.ate+"T23:59:59"); if(new Date()>f) return "";
+  return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
+}
 function entregaHTML(p){
   return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>':'';
 }
@@ -531,7 +545,7 @@ function cardHTML(p){
   const temPreco = typeof p.preco==="number";
   return '<a class="card-link" href="#/p/'+p.sku+'">'+
     '<div class="foto">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fotosDe(p)[0],p.nome,true)+'</div>'+
-    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p)+precoHTML(p)+'</div></a>'+
+    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+'</div></a>'+
     '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>';
 }
 
@@ -561,7 +575,7 @@ function montar(){
     });
     cont.appendChild(sec);
   });
-  nav.insertAdjacentHTML("beforeend",'<a href="#como-pedir">Como pedir</a>');
+  nav.insertAdjacentHTML("beforeend",'<a href="#como-pedir">Como pedir</a><a href="../faq/">Dúvidas</a>');
 
   ["cta-rodape"].forEach(id=>{
     const a = document.getElementById(id);
@@ -593,7 +607,7 @@ function detalheHTML(p){
       (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+
-      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+precoHTML(p)+
+      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+
       '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>'+
       '<button type="button" class="btn btn-comp" data-comp="'+p.sku+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar</button>'+
       '<a class="link-wpp" target="_blank" rel="noopener" href="'+wppLink(msgProduto(p))+'">'+(temPreco?'Pedir só este pelo WhatsApp':'Perguntar o valor pelo WhatsApp')+'</a>'+
@@ -880,5 +894,6 @@ document.addEventListener("click", e=>{
   }
 })();
 </script>
+<script src="/analytics.js" defer></script>
 </body>
 </html>

@@ -142,6 +142,11 @@
   .h-vazio p{margin:0 0 14px;color:var(--muted)}
   @media(min-width:780px){.h-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
 
+
+  .mais{text-align:center;margin:22px 0 0}
+  .btn-claro{border:1.5px solid #d9cdb3;background:#fff;color:var(--musgo-d);min-height:46px;padding:8px 24px}
+  footer a{color:#e6d5b8;text-underline-offset:3px}
+
   /* ===== Entrada suave ===== */
   @keyframes subir{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
   .hero > *{animation:subir .8s ease backwards}
@@ -229,6 +234,7 @@
       <div class="passo rev"><h3>Envie pelo WhatsApp</h3><p>O pedido já vai pronto na conversa. É só enviar.</p></div>
       <div class="passo rev"><h3>Combine e receba</h3><p>A gente confirma valor, prazo e forma de entrega com você.</p></div>
     </div>
+    <p class="mais rev"><a class="btn btn-claro" href="faq/">Ver perguntas frequentes</a></p>
   </section>
 
 </main>
@@ -243,7 +249,7 @@
   </div>
 </section>
 
-<footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro.</footer>
+<footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro. &middot; <a href="faq/">Perguntas frequentes</a></footer>
 
 <script>
   var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
@@ -319,5 +325,6 @@
   });
 })();
 </script>
+<script src="/analytics.js" defer></script>
 </body>
 </html>
