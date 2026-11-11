@@ -3,130 +3,205 @@
 <head>
 <meta charset="utf-8"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2F5D50">
+<meta name="theme-color" content="#1F4036">
 <meta name="robots" content="noindex">
 <title>LXL Projetos | Peças em impressão 3D</title>
 <meta name="description" content="LXL Projetos: peças sob medida, presentes e decoração feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp.">
 <style>
   :root{
-    --musgo:#2F5D50; --musgo-d:#1F4036; --terracota:#D9734E; --areia:#E6D5B8; --marfim:#FAF8F3; --cafe:#1E1E1C; --muted:#6a645a;
+    --musgo:#2F5D50; --musgo-d:#1F4036; --musgo-dd:#142B24; --terracota:#D9734E; --terracota-d:#B85A38;
+    --areia:#E6D5B8; --marfim:#FAF8F3; --cafe:#1E1E1C; --muted:#6a645a; --linha:#E9E1D1;
   }
   [hidden]{display:none!important}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--cafe);background:var(--marfim);line-height:1.5;overflow-x:hidden}
-  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--cafe);background:var(--marfim);line-height:1.55;overflow-x:clip}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0;font-weight:700}
   a{color:inherit}
   img{max-width:100%}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
 
-  .hero{background:linear-gradient(160deg,var(--musgo) 0%,var(--musgo-d) 100%);color:var(--marfim);text-align:center;padding:36px 18px 44px}
-  .hero .logo{display:block;width:150px;height:auto;margin:0 auto 18px}
-  .hero h1{font-size:clamp(1.9rem,8vw,2.8rem);line-height:1.1;margin:0 0 10px}
-  .hero p{margin:0 auto;max-width:32rem;font-size:1.02rem;color:var(--areia)}
-
-  main{max-width:960px;margin:0 auto;padding:30px 16px 20px}
-  .sec-head{text-align:center;margin-bottom:20px}
-  .sec-head h2{font-size:1.6rem;color:var(--musgo)}
-  .sec-head p{margin:6px 0 0;color:var(--muted)}
-
-  .cats{display:grid;grid-template-columns:1fr;gap:16px}
-  .cat{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid #eadfcb;border-radius:16px;overflow:hidden;text-decoration:none;box-shadow:0 2px 10px rgba(30,30,28,.06)}
-  .cat .foto{position:relative;aspect-ratio:16/10;background:var(--areia);display:flex;align-items:center;justify-content:center;overflow:hidden}
-  .cat .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .cat .foto .ico{font-family:Georgia,serif;font-size:2.4rem;font-weight:700;color:var(--musgo);opacity:.35}
-  .cat .info{padding:14px 16px 16px}
-  .cat h3{font-size:1.25rem;color:var(--musgo);margin-bottom:4px}
-  .cat p{margin:0;color:var(--muted);font-size:.95rem}
-  .cat .go{display:inline-flex;margin-top:12px;background:var(--terracota);color:var(--cafe);font-weight:800;padding:10px 18px;border-radius:999px;font-size:.95rem}
-  .cat.ativo:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(30,30,28,.12)}
-  .cat{transition:transform .15s,box-shadow .15s}
-  .selo{position:absolute;top:10px;left:10px;z-index:2;background:var(--terracota);color:var(--cafe);font-size:.7rem;font-weight:800;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
-  .cat.breve{opacity:.8}
-  .cat.breve .selo{background:var(--cafe);color:var(--marfim)}
-  .cat.breve .go{background:transparent;border:1.5px dashed var(--muted);color:var(--muted);font-weight:700}
-
-  .contato{text-align:center;background:var(--areia);border-radius:16px;padding:26px 18px;margin:30px 0 10px}
-  .contato h2{font-size:1.4rem;color:var(--musgo);margin-bottom:6px}
-  .contato p{margin:0 0 14px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 24px}
+  /* ===== Topo ===== */
+  .hero{position:relative;overflow:hidden;color:var(--marfim);text-align:center;padding:34px 18px 96px;
+    background:
+      radial-gradient(520px 320px at 85% 10%,rgba(217,115,78,.28),transparent 70%),
+      radial-gradient(600px 360px at 8% 95%,rgba(230,213,184,.12),transparent 70%),
+      linear-gradient(165deg,var(--musgo) 0%,var(--musgo-d) 70%,var(--musgo-dd) 100%)}
+  /* camadas de impressão 3D */
+  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 7px);
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(180deg,transparent,#000 35%,#000 65%,transparent)}
+  .hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:44px;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 44' preserveAspectRatio='none'%3E%3Cpath d='M0 44V26C150 4 300 4 450 22s300 24 450 6 200-22 300-10V44z' fill='%23FAF8F3'/%3E%3C/svg%3E") center bottom/100% 100% no-repeat}
+  .hero > *{position:relative;z-index:1}
+  .hero .logo{display:block;width:140px;height:auto;margin:0 auto 38px}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--areia);font-weight:600}
+  .eyebrow::before,.eyebrow::after{content:"";width:28px;height:1px;background:var(--terracota)}
+  .hero h1{font-size:clamp(2.1rem,9vw,3.6rem);line-height:1.08;margin:16px auto 14px;max-width:16ch}
+  .hero h1 em{font-style:italic;color:#F2B79F}
+  .hero p.lead{margin:0 auto;max-width:34rem;font-size:1.05rem;color:#E9DFCB}
+  .acoes{display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:28px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 26px;transition:transform .15s,box-shadow .2s,filter .2s}
+  .btn-main{background:var(--terracota);color:#fff;box-shadow:0 8px 22px rgba(217,115,78,.35)}
+  .btn-ghost{border:1.5px solid rgba(250,248,243,.45);color:var(--marfim)}
   .btn-wpp{background:#25D366;color:#073b1b}
-  .redes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-  .btn-rede{background:var(--musgo);color:var(--marfim);min-height:42px;padding:8px 20px}
+  @media(hover:hover){.btn:hover{transform:translateY(-2px)}.btn-main:hover{filter:brightness(1.06);box-shadow:0 12px 28px rgba(217,115,78,.45)}.btn-ghost:hover{background:rgba(250,248,243,.1)}}
 
-  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:18px 16px 30px}
+  /* ===== Títulos de seção ===== */
+  .sec{padding:54px 0 0}
+  .sec-head{text-align:center;margin-bottom:26px}
+  .sec-head .eyebrow{color:var(--terracota-d)}
+  .sec-head h2{font-size:clamp(1.55rem,5vw,2.1rem);color:var(--musgo);margin-top:10px}
+  .sec-head p{margin:8px auto 0;max-width:34rem;color:var(--muted)}
 
-  .cat.breve .foto{aspect-ratio:16/5}
-  @media (min-width:700px){
-    .cat.breve .foto{aspect-ratio:16/10}
-    .cats{grid-template-columns:repeat(2,1fr)}
-    .hero{padding:48px 20px 56px}
-    .hero .logo{width:190px}
+  /* ===== Destaque: catálogo de Natal ===== */
+  .destaque{display:grid;grid-template-columns:1fr;background:#fff;border:1px solid var(--linha);border-radius:22px;overflow:hidden;text-decoration:none;
+    box-shadow:0 10px 34px rgba(30,30,28,.08);transition:transform .3s,box-shadow .3s}
+  .destaque .foto{position:relative;aspect-ratio:16/11;overflow:hidden;background:var(--areia)}
+  .destaque .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s ease}
+  .destaque .foto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,43,36,.35))}
+  .selo{position:absolute;top:14px;left:14px;z-index:2;background:var(--terracota);color:#fff;font-size:.7rem;font-weight:800;padding:5px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.08em}
+  .destaque .info{padding:24px 22px 26px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+  .destaque .tag{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--terracota-d);font-weight:700}
+  .destaque h3{font-size:1.7rem;color:var(--musgo);line-height:1.15}
+  .destaque p{margin:0;color:var(--muted)}
+  .destaque .go{align-self:flex-start;margin-top:8px;background:var(--musgo);color:#fff;font-weight:700;padding:12px 22px;border-radius:999px;display:inline-flex;gap:8px;align-items:center;transition:background .2s,gap .2s}
+  @media(hover:hover){.destaque:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(30,30,28,.14)}.destaque:hover .foto img{transform:scale(1.06)}.destaque:hover .go{background:var(--terracota);gap:12px}}
+  @media(min-width:780px){
+    .destaque{grid-template-columns:1.15fr 1fr}
+    .destaque .foto{aspect-ratio:auto;min-height:340px}
+    .destaque .info{padding:34px 36px}
+    .destaque h3{font-size:2.1rem}
   }
-  @media (min-width:960px){
-    .cats{grid-template-columns:repeat(3,1fr)}
-  }
+
+  /* ===== Em breve ===== */
+  .breve{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .cat{position:relative;background:#fff;border:1px dashed #d9cfb9;border-radius:18px;padding:18px 16px 18px;text-align:left}
+  .cat svg{width:34px;height:34px;stroke:var(--musgo);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+  .cat h3{font-size:1.05rem;color:var(--musgo);margin-bottom:4px}
+  .cat p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.4}
+  .cat .em{display:inline-block;margin-top:10px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--terracota-d);background:#FBEDE6;padding:3px 10px;border-radius:999px}
+  @media(min-width:780px){.breve{grid-template-columns:repeat(4,1fr);gap:16px}.cat{padding:22px 20px}}
+
+  /* ===== Como funciona ===== */
+  .passos{display:grid;grid-template-columns:1fr;gap:14px;counter-reset:p}
+  .passo{position:relative;background:#fff;border:1px solid var(--linha);border-radius:18px;padding:22px 20px 20px 74px;counter-increment:p}
+  .passo::before{content:counter(p);position:absolute;left:20px;top:20px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:Georgia,serif;font-weight:700;font-size:1.15rem;color:#fff;background:linear-gradient(135deg,var(--musgo),var(--musgo-d))}
+  .passo h3{font-size:1.08rem;color:var(--musgo);margin-bottom:3px}
+  .passo p{margin:0;color:var(--muted);font-size:.95rem}
+  @media(min-width:780px){.passos{grid-template-columns:repeat(3,1fr)}.passo{padding:78px 22px 24px}.passo::before{left:22px;top:22px}}
+
+  /* ===== Contato ===== */
+  .contato{position:relative;overflow:hidden;margin-top:56px;text-align:center;color:var(--marfim);padding:46px 18px 50px;
+    background:
+      radial-gradient(420px 260px at 90% 0,rgba(217,115,78,.28),transparent 70%),
+      linear-gradient(165deg,var(--musgo-d),var(--musgo-dd))}
+  .contato::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 7px)}
+  .contato > *{position:relative}
+  .contato h2{font-size:clamp(1.6rem,6vw,2.2rem);margin-bottom:8px}
+  .contato p{margin:0 auto 22px;max-width:30rem;color:#E9DFCB}
+  .redes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .btn-rede{border:1.5px solid rgba(250,248,243,.35);color:var(--marfim);min-height:44px;padding:8px 22px}
+  @media(hover:hover){.btn-rede:hover{background:rgba(250,248,243,.1)}}
+
+  footer{text-align:center;color:#b9b19f;background:var(--musgo-dd);font-size:.85rem;padding:18px 16px 28px}
+
+  /* ===== Entrada suave ===== */
+  @keyframes subir{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .hero > *{animation:subir .8s ease backwards}
+  .hero > *:nth-child(2){animation-delay:.08s}.hero > *:nth-child(3){animation-delay:.16s}.hero > *:nth-child(4){animation-delay:.24s}.hero > *:nth-child(5){animation-delay:.32s}
+  .rev{animation:subir .7s ease backwards}
+  @media (prefers-reduced-motion:reduce){.hero > *,.rev{animation:none!important}*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <header class="hero">
   <img class="logo" src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
-  <h1>Peças em impressão 3D</h1>
-  <p>Presentes, decoração e peças sob medida, feitos linha por linha. Escolha um catálogo e peça direto pelo WhatsApp.</p>
+  <span class="eyebrow">Impressão 3D</span>
+  <h1>Peças feitas <em>camada por camada</em></h1>
+  <p class="lead">Presentes, decoração e peças sob medida. Escolha um catálogo e peça direto pelo WhatsApp.</p>
+  <div class="acoes">
+    <a class="btn btn-main" href="natal/">Ver catálogo de Natal</a>
+    <a class="btn btn-ghost" id="cta-topo" target="_blank" rel="noopener" href="#">Falar no WhatsApp</a>
+  </div>
 </header>
 
-<main>
-  <div class="sec-head">
-    <h2>Nossos catálogos</h2>
-    <p>Toque em um catálogo para ver as peças e os valores.</p>
-  </div>
+<main class="wrap">
 
-  <div class="cats">
-    <a class="cat ativo" href="natal/">
+  <section class="sec" id="catalogos">
+    <div class="sec-head rev">
+      <span class="eyebrow">Catálogos</span>
+      <h2>Escolha por onde começar</h2>
+      <p>Toque no catálogo para ver as peças e os valores.</p>
+    </div>
+    <a class="destaque rev" href="natal/">
       <div class="foto"><span class="selo">Novo</span><img src="natal/imagens/PRE-007.jpg" alt="Catálogo de Natal 2026" onerror="this.remove()"></div>
       <div class="info">
-        <h3>Catálogo de Natal 2026</h3>
-        <p>Presépios, Papais Noel, decorações de mesa, bomboniere e mais, com preços especiais de novembro.</p>
-        <span class="go">Ver catálogo</span>
+        <span class="tag">Edição 2026</span>
+        <h3>Catálogo de Natal</h3>
+        <p>Presépios, Papais Noel, decorações de mesa, bomboniere e muito mais, com preços especiais de novembro.</p>
+        <span class="go">Ver catálogo <span aria-hidden="true">→</span></span>
       </div>
     </a>
+  </section>
 
-    <div class="cat breve">
-      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
-      <div class="info"><h3>Chaveiros</h3><p>Chaveiros personalizados com nome, logo e desenhos.</p><span class="go">Em breve</span></div>
+  <section class="sec">
+    <div class="sec-head rev">
+      <span class="eyebrow">Em breve</span>
+      <h2>Vem mais por aí</h2>
     </div>
-
-    <div class="cat breve">
-      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
-      <div class="info"><h3>Brinquedos</h3><p>Bonecos e brinquedos articulados para presentear.</p><span class="go">Em breve</span></div>
-    </div>
-
-    <div class="cat breve">
-      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
-      <div class="info"><h3>Decoração</h3><p>Peças para casa, escritório e presentes o ano todo.</p><span class="go">Em breve</span></div>
-    </div>
-
-    <div class="cat breve">
-      <div class="foto"><span class="selo">Em breve</span><span class="ico">LXL</span></div>
-      <div class="info"><h3>Peças personalizadas</h3><p>Brindes e peças sob medida para empresas e eventos.</p><span class="go">Em breve</span></div>
-    </div>
-  </div>
-
-  <section class="contato">
-    <h2>Quer algo diferente?</h2>
-    <p>Conte para a gente o que você precisa e vamos fazer um orçamento.</p>
-    <a class="btn btn-wpp" id="cta" target="_blank" rel="noopener" href="#">Chamar no WhatsApp</a>
-    <div class="redes">
-      <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a>
-      <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
+    <div class="breve">
+      <div class="cat rev">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="11" r="6"/><circle cx="11" cy="11" r="2"/><path d="M16 15l10 10M22 21l3-3M25 24l3-3"/></svg>
+        <h3>Chaveiros</h3><p>Com nome, logo e desenhos.</p><span class="em">Em breve</span>
+      </div>
+      <div class="cat rev">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="15" width="11" height="11" rx="2"/><rect x="17" y="15" width="11" height="11" rx="2"/><rect x="10.5" y="4" width="11" height="11" rx="2"/></svg>
+        <h3>Brinquedos</h3><p>Bonecos e peças articuladas.</p><span class="em">Em breve</span>
+      </div>
+      <div class="cat rev">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 5h8M13 5v4c-4 2-6 5-6 9a9 9 0 0018 0c0-4-2-7-6-9V5"/><path d="M9 18h14"/></svg>
+        <h3>Decoração</h3><p>Para casa e escritório o ano todo.</p><span class="em">Em breve</span>
+      </div>
+      <div class="cat rev">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27l4-1 16-16-3-3L6 23z"/><path d="M19 9l3 3M16 27h11"/></svg>
+        <h3>Sob medida</h3><p>Brindes e peças para empresas.</p><span class="em">Em breve</span>
+      </div>
     </div>
   </section>
+
+  <section class="sec">
+    <div class="sec-head rev">
+      <span class="eyebrow">Como pedir</span>
+      <h2>Simples e direto</h2>
+    </div>
+    <div class="passos">
+      <div class="passo rev"><h3>Escolha as peças</h3><p>Navegue pelo catálogo e adicione ao pedido o que você gostar.</p></div>
+      <div class="passo rev"><h3>Envie pelo WhatsApp</h3><p>O pedido já vai pronto na conversa. É só enviar.</p></div>
+      <div class="passo rev"><h3>Combine e receba</h3><p>A gente confirma valor, prazo e forma de entrega com você.</p></div>
+    </div>
+  </section>
+
 </main>
+
+<section class="contato">
+  <h2>Quer algo diferente?</h2>
+  <p>Conte o que você precisa e a gente faz um orçamento sob medida.</p>
+  <a class="btn btn-wpp" id="cta" target="_blank" rel="noopener" href="#">Chamar no WhatsApp</a>
+  <div class="redes">
+    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a>
+    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
+  </div>
+</section>
 
 <footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro.</footer>
 
 <script>
-  document.getElementById("cta").href = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
+  var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
+  document.getElementById("cta").href = wa;
+  document.getElementById("cta-topo").href = wa;
 </script>
 </body>
 </html>
