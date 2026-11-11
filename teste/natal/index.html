@@ -285,13 +285,8 @@
   @media(hover:hover){.logo-link:hover .logo{opacity:1;transform:scale(1.05)}}
 
   /* ===== Busca ===== */
-  .busca{position:relative;max-width:640px;margin:26px auto 4px;scroll-margin-top:60px}
-  .abrir-busca{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto;min-height:58px;padding:0 34px;border:0;border-radius:999px;cursor:pointer;
-    background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;font:inherit;font-size:1.12rem;font-weight:700;letter-spacing:.01em;
-    box-shadow:0 10px 24px rgba(20,61,42,.28);transition:transform .15s,box-shadow .2s}
-  .abrir-busca svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
-  @media(hover:hover){.abrir-busca:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,61,42,.34)}}
-  .abrir-busca:active{transform:scale(.98)}
+  .busca{position:relative;max-width:640px;margin:0 auto;scroll-margin-top:60px}
+  .busca.aberta{margin:24px auto 4px}
   .busca-campo{display:flex;align-items:center;gap:8px}
   .busca-campo[hidden]{display:none}
   .busca-input{position:relative;flex:1;min-width:0}
@@ -314,8 +309,8 @@
   .res-vazio p{margin:0 0 14px;color:var(--muted)}
   .res-sug{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
   .res-sug button{border:1px solid #eadfcb;background:var(--cream);color:var(--green-d);font:inherit;font-weight:600;font-size:.92rem;padding:8px 14px;border-radius:999px;cursor:pointer}
-  .nav a.nav-busca{background:var(--green);color:#fff;border-color:var(--green);padding:0 14px}
-  .nav a.nav-busca svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+  .nav a.nav-busca{background:var(--green);color:#fff;border-color:var(--green);padding:0 20px;min-height:44px;font-size:1rem;font-weight:700;box-shadow:0 4px 12px rgba(20,61,42,.25)}
+  .nav a.nav-busca svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
 </style>
 </head>
 <body>
@@ -337,9 +332,6 @@
 
 <main>
   <div class="busca" id="busca" role="search">
-    <button type="button" class="abrir-busca" id="abrir-busca" aria-controls="busca-campo" aria-expanded="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Buscar peça</span>
-    </button>
     <div class="busca-campo" id="busca-campo" hidden>
       <div class="busca-input">
         <label for="q" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></label>
@@ -859,16 +851,15 @@ document.addEventListener("click", e=>{
   var t;
   q.addEventListener("input",function(){ clearTimeout(t); t=setTimeout(render,120); });
   q.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); q.blur(); } });
-  var area=document.getElementById("busca"), campo=document.getElementById("busca-campo"), abrir=document.getElementById("abrir-busca"), fechar=document.getElementById("fechar-busca");
+  var area=document.getElementById("busca"), campo=document.getElementById("busca-campo"), fechar=document.getElementById("fechar-busca");
   function abrirBusca(){
-    abrir.hidden=true; abrir.setAttribute("aria-expanded","true"); campo.hidden=false;
+    area.classList.add("aberta"); campo.hidden=false;
     q.focus();   /* no mesmo toque: abre o teclado no celular e o cursor no computador */
     area.scrollIntoView({behavior:"smooth",block:"center"});
   }
   function fecharBusca(){
-    q.value=""; render(); campo.hidden=true; abrir.hidden=false; abrir.setAttribute("aria-expanded","false"); abrir.focus({preventScroll:true});
+    q.value=""; render(); campo.hidden=true; area.classList.remove("aberta");
   }
-  abrir.addEventListener("click",abrirBusca);
   fechar.addEventListener("click",fecharBusca);
   limpar.addEventListener("click",function(){ q.value=""; render(); q.focus(); });
   q.addEventListener("keydown",function(e){ if(e.key==="Escape"){ if(q.value){ q.value=""; render(); } else fecharBusca(); } });
