@@ -221,9 +221,11 @@
   @keyframes pisca{from{opacity:.4}to{opacity:1}}
 
   .bola{display:none;position:absolute;top:0;z-index:1;transform-origin:50% 0;animation:balanca 3.6s ease-in-out infinite alternate;pointer-events:none}
-  .bola.b1{left:22%}.bola.b2{right:22%;animation-delay:-1.8s}
+  .bola.b2{animation-delay:-1.8s}
   @keyframes balanca{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
-  @media(min-width:780px){.bola{display:block}}
+  .bola{display:block;width:24px;height:auto}
+  .bola.b1{left:24%}.bola.b2{right:24%}
+  @media(min-width:780px){.bola{width:34px}.bola.b1{left:22%}.bola.b2{right:22%}}
 
   .selo-mes{animation:pulsa 2.6s ease-in-out infinite}
   @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
