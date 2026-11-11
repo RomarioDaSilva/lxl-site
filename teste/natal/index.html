@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F5B3F">
+<meta name="robots" content="noindex">
+<title>Natal 3D | LXL Projetos</title>
+<meta name="description" content="Presépios e peças de Natal para encher a sua casa de carinho, fé e tradição. Peça pelo WhatsApp.">
+<style>
+  :root{
+    --red:#B3202A; --red-d:#8C1720;
+    --green:#1F5B3F; --green-d:#143D2A;
+    --gold:#C9A227;
+    --cream:#FFF8EC; --paper:#FFFFFF; --ink:#2A1A14; --muted:#6B5A50;
+    --foto-ratio:1/1;            /* fotos quadradas (1200 x 1200) */
+  }
+  [hidden]{display:none!important}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--ink);background:var(--cream);line-height:1.5;overflow-x:hidden}
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0}
+  a{color:inherit}
+  img{max-width:100%}
+
+  /* Topo */
+  .hero{
+    background:
+      radial-gradient(circle at 12% 20%,rgba(255,255,255,.35) 0 2px,transparent 3px),
+      radial-gradient(circle at 78% 12%,rgba(255,255,255,.3) 0 2px,transparent 3px),
+      radial-gradient(circle at 40% 70%,rgba(255,255,255,.25) 0 2px,transparent 3px),
+      radial-gradient(circle at 90% 65%,rgba(255,255,255,.3) 0 2px,transparent 3px),
+      radial-gradient(circle at 25% 90%,rgba(255,255,255,.25) 0 2px,transparent 3px),
+      linear-gradient(160deg,var(--green) 0%,var(--green-d) 100%);
+    color:#fff;text-align:center;padding:46px 18px 34px;position:relative;
+  }
+  .hero .logo{position:absolute;top:10px;left:12px;width:58px;height:auto;opacity:.95}
+  .hero .ano{position:absolute;top:12px;right:14px;font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:1.25rem;letter-spacing:.08em;line-height:1;color:var(--gold)}
+  footer .logo{display:block;width:64px;height:auto;margin:0 auto 12px;opacity:.9}
+  .hero h1{font-size:clamp(2.5rem,13vw,4rem);line-height:1.05;margin:4px 0 10px;color:#fff}
+  .hero h1 span{color:var(--gold)}
+  .hero p{margin:0 auto;max-width:30rem;font-size:1.02rem;opacity:.95}
+  .prazo{display:inline-block;margin-top:16px;background:var(--red);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.95rem}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 22px;text-align:center}
+  .btn-wpp{background:#25D366;color:#073b1b}
+  .btn-wpp:active{filter:brightness(.92)}
+
+  /* Navegação (faixa que acompanha a rolagem) */
+  .nav{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid #eadfcb;display:flex;gap:8px;overflow-x:auto;padding:8px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{flex:0 0 auto;display:inline-flex;align-items:center;min-height:40px;text-decoration:none;font-size:.92rem;font-weight:600;padding:0 15px;border-radius:999px;background:var(--cream);border:1px solid #eadfcb;color:var(--green-d)}
+  @media (min-width:900px){.nav{justify-content:center;flex-wrap:wrap;overflow-x:visible}}
+  .nav a:active{background:var(--green);color:#fff;border-color:var(--green)}
+
+  main{max-width:1000px;margin:0 auto;padding:0 14px 28px}
+  section{padding-top:28px;scroll-margin-top:56px}
+  .sec-head h2{font-size:1.55rem;line-height:1.2;color:var(--red-d)}
+  .sec-head p{margin:6px 0 16px;color:var(--muted);font-size:.98rem}
+
+  /* Como pedir: no celular os 4 passos ficam em lista compacta */
+  .passos{display:grid;gap:10px;grid-template-columns:1fr;margin-top:14px}
+  .passo{display:grid;grid-template-columns:36px 1fr;column-gap:12px;align-items:start;background:var(--paper);border-radius:14px;padding:14px;border:1px solid #eadfcb}
+  .passo b{grid-row:1 / span 2;display:flex;width:36px;height:36px;align-items:center;justify-content:center;border-radius:50%;background:var(--red);color:#fff}
+  .passo h3{font-size:1.05rem;margin:0 0 2px}
+  .passo p{margin:0;color:var(--muted);font-size:.93rem}
+
+  /* Produtos: 2 por linha no celular, cards enxutos */
+  .grid{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{background:var(--paper);border-radius:14px;overflow:hidden;border:1px solid #eadfcb;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(80,40,20,.06)}
+  .card-link{display:flex;flex-direction:column;text-decoration:none;color:inherit;flex:1}
+  .foto{position:relative;aspect-ratio:var(--foto-ratio);background:linear-gradient(135deg,#f6ecd8,#efe0c2);display:flex;align-items:center;justify-content:center;color:#a8946f;font-size:.8rem;text-align:center;padding:6px;overflow:hidden}
+  .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .gal .foto img{cursor:zoom-in}
+  .tag{position:absolute;top:6px;left:6px;z-index:2;background:var(--red);color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;pointer-events:none}
+  .tag.top{top:auto;bottom:8px;left:8px;background:var(--gold);color:var(--ink);font-size:.7rem;padding:4px 10px;box-shadow:0 1px 5px rgba(0,0,0,.3)}
+  .info{padding:8px 9px 4px;display:flex;flex-direction:column;gap:3px;flex:1}
+  .cod{font-size:.66rem;color:var(--muted);letter-spacing:.06em}
+  .info h3{font-size:.9rem;line-height:1.22}
+  .entrega{display:inline-block;align-self:flex-start;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#f3e6cc;color:#6b4a12}
+  .entrega.pronta{background:#dff1e6;color:var(--green-d)}
+  .preco{margin-top:auto;padding-top:3px;font-size:1.12rem;font-weight:800;color:var(--red-d)}
+  .preco s{font-size:.8rem;font-weight:500;color:var(--muted);margin-right:6px}
+  .preco .mes{display:block;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--green-d);margin-top:1px}
+  .det-info .preco .mes{font-size:.8rem}
+  .selo-mes{display:inline-block;margin-top:16px;background:var(--gold);color:var(--ink);font-weight:800;font-size:.98rem;padding:9px 18px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .aviso-mes{display:flex;gap:8px;align-items:center;background:#fff3cf;border:1px solid var(--gold);color:var(--ink);font-weight:700;font-size:.9rem;padding:9px 12px;border-radius:10px;margin:2px 0 12px}
+  .preco.consulte{font-size:.84rem;font-weight:700;color:var(--green-d)}
+  .card .btn{margin:4px 9px 9px;min-height:36px;padding:6px 8px;font-size:.78rem;width:auto}
+
+  /* Página do produto */
+  .voltar{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:10px 0 4px;padding:0 16px 0 12px;border:1px solid #eadfcb;background:var(--paper);color:var(--green-d);font:inherit;font-weight:700;border-radius:999px;cursor:pointer}
+  .det{display:grid;gap:16px;padding-top:4px}
+  .gal .foto{border-radius:16px;border:1px solid #eadfcb;cursor:zoom-in}
+  .thumbs{display:flex;gap:8px;margin-top:8px}
+  .thumbs button{width:64px;height:64px;padding:0;border:2px solid #eadfcb;border-radius:10px;overflow:hidden;background:var(--paper);cursor:pointer}
+  .thumbs button.on{border-color:var(--red)}
+  .thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+  .det-info h1{font-size:1.55rem;line-height:1.2;color:var(--red-d);margin:2px 0 8px}
+  .det-info .preco{font-size:1.7rem;margin:10px 0 4px;padding:0}
+  .det-info .preco.consulte{font-size:1.15rem}
+  .det-info .btn{width:100%;margin:10px 0 4px}
+  .bloco{margin-top:18px}
+  .bloco h2{font-size:1.1rem;margin-bottom:6px;color:var(--green-d)}
+  .bloco p{margin:0;color:var(--ink)}
+  .ficha{margin:0;background:var(--paper);border:1px solid #eadfcb;border-radius:14px;overflow:hidden}
+  .ficha div{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:10px 12px;border-top:1px solid #f1e8d6}
+  .ficha div:first-child{border-top:0}
+  .ficha dt{font-weight:700;color:var(--green-d);font-size:.9rem}
+  .ficha dd{margin:0;font-size:.93rem}
+  .nota{margin:12px 0 0;padding:10px 12px;background:#fff3d6;border:1px solid #ecd9a3;border-radius:12px;font-size:.87rem;color:#5b4310}
+  .relac{margin-top:26px}
+  .relac h2{font-size:1.2rem;color:var(--red-d);margin-bottom:10px}
+
+  /* Rodapé */
+  footer{background:var(--green-d);color:#fff;text-align:center;padding:30px 18px calc(150px + env(safe-area-inset-bottom));margin-top:14px}
+  footer h2{font-size:1.45rem;margin-bottom:6px}
+  footer p{margin:4px 0;opacity:.92}
+  footer .btn{margin:14px 0;width:100%;max-width:320px}
+  footer .seguir{margin-top:18px}
+  .redes{display:flex;gap:10px;justify-content:center;max-width:320px;margin:10px auto 18px}
+  footer .btn-rede{flex:1;width:auto;margin:0;background:transparent;color:#fff;border:2px solid rgba(255,255,255,.75)}
+  footer .btn-rede:active{background:rgba(255,255,255,.15)}
+  .peq{font-size:.8rem;opacity:.7;margin-top:18px}
+
+
+
+  /* Pedido (carrinho) */
+  button.btn{border:0;font-family:inherit;cursor:pointer}
+  .btn-comp{background:#fff;color:var(--green-d);border:2px solid var(--green)!important;gap:8px}
+  .btn-comp svg{width:18px;height:18px;flex:none}
+  .link-wpp{display:block;text-align:center;font-weight:700;color:var(--green-d);padding:10px 8px;text-decoration:underline}
+  .barra-pedido{position:fixed;left:12px;right:12px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:560px;margin:0 auto;background:var(--green-d);color:#fff;border:0;border-radius:16px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .barra-pedido .qtd{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:999px;background:var(--gold);color:var(--ink);font-size:.9rem;padding:0 8px}
+  .barra-pedido .ver{background:#25D366;color:#073b1b;border-radius:999px;padding:8px 14px;font-size:.9rem}
+  .barra-pedido .tot{font-weight:700;opacity:.95;font-size:.95rem}
+  body.tem-pedido footer{padding-bottom:150px}
+  .toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;font-weight:700;font-size:.9rem;padding:10px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:90vw;text-align:center}
+  .ped-fundo{position:fixed;inset:0;z-index:70;background:rgba(20,12,8,.6);display:flex;align-items:flex-end;justify-content:center}
+  .ped{background:var(--paper);width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0}
+  .ped-topo{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eadfcb}
+  .ped-topo h2{font-size:1.25rem;color:var(--green-d)}
+  .ped-fechar{border:0;background:var(--cream);width:40px;height:40px;border-radius:999px;font-size:1.3rem;cursor:pointer;color:var(--ink)}
+  .ped-corpo{overflow-y:auto;padding:6px 16px 4px;-webkit-overflow-scrolling:touch}
+  .ped-item{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 0;border-bottom:1px solid #f0e6d3}
+  .ped-item b{display:block;font-size:.98rem}
+  .ped-item small{display:block;color:var(--muted);font-size:.8rem}
+  .ped-item .sub{font-weight:800;color:var(--red-d);text-align:right;white-space:nowrap}
+  .ped-item .sub.combinar{font-size:.78rem;color:var(--green-d)}
+  .ped-qtd{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .ped-qtd button{width:34px;height:34px;border-radius:999px;border:1px solid #d9cdb6;background:var(--cream);font-size:1.2rem;font-weight:800;cursor:pointer;color:var(--ink);line-height:1}
+  .ped-qtd span{min-width:26px;text-align:center;font-weight:800}
+  .ped-qtd .ped-rem{width:auto;height:auto;border:0;border-radius:0;background:none;padding:0;line-height:1.2}
+  .ped-rem{border:0;background:none;color:var(--red-d);font:inherit;font-size:.8rem;font-weight:700;text-decoration:underline;cursor:pointer;margin-left:8px}
+  .ped-total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 4px;font-weight:800;font-size:1.15rem}
+  .ped-total span:last-child{color:var(--red-d)}
+  .ped-aviso{font-size:.8rem;color:var(--muted);margin:2px 0 10px}
+  .ped label{display:block;font-weight:700;font-size:.85rem;margin:10px 0 4px;color:var(--green-d)}
+  .ped input,.ped textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid #d9cdb6;border-radius:10px;background:#fff;color:var(--ink)}
+  .ped textarea{min-height:64px;resize:vertical}
+  .ped-pe{padding:12px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #eadfcb;display:grid;gap:8px}
+  .ped-pe .btn{width:100%;margin:0}
+  .ped-limpar{border:0;background:none;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer;padding:4px}
+  .ped-vazio{padding:28px 8px;text-align:center;color:var(--muted)}
+  @media (min-width:700px){.ped-fundo{align-items:center}.ped{border-radius:20px}}
+
+  /* Foto em tela cheia ao tocar */
+  .zoom{position:fixed;inset:0;z-index:50;background:rgba(20,12,8,.92);display:flex;align-items:center;justify-content:center;padding:14px;flex-direction:column;gap:12px}
+  .zoom img{max-width:100%;max-height:82vh;border-radius:12px;object-fit:contain}
+  .zoom span{color:#fff;font-size:.92rem;opacity:.85}
+
+  /* Telas maiores (tablet e computador) */
+  @media(min-width:640px){
+    .hero{padding:50px 20px 54px}
+    .hero .logo{width:72px;top:14px;left:18px}
+    .hero .ano{top:18px;right:22px;font-size:1.7rem}
+    .passos{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+    .info{padding:10px 12px 4px}
+    .det{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+    .relac{grid-column:1 / -1}
+  }
+  @media(min-width:960px){
+    .passos{grid-template-columns:repeat(4,1fr)}
+    .passo{display:block}
+    .passo b{margin-bottom:8px}
+    footer{padding-bottom:150px}
+  }
+
+  /* ===== Camada de Natal: brilho, neve e movimento leves ===== */
+  .hero{overflow:hidden;padding:56px 18px 52px;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,240,200,.20),transparent 70%),
+      radial-gradient(circle at 12% 20%,rgba(255,255,255,.35) 0 2px,transparent 3px),
+      radial-gradient(circle at 78% 12%,rgba(255,255,255,.3) 0 2px,transparent 3px),
+      radial-gradient(circle at 40% 70%,rgba(255,255,255,.25) 0 2px,transparent 3px),
+      radial-gradient(circle at 90% 65%,rgba(255,255,255,.3) 0 2px,transparent 3px),
+      radial-gradient(circle at 25% 90%,rgba(255,255,255,.25) 0 2px,transparent 3px),
+      linear-gradient(160deg,#256B49 0%,var(--green-d) 100%)}
+  .hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;pointer-events:none;z-index:1;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 28' preserveAspectRatio='none'%3E%3Cpath d='M0 28V15C100 3 200 3 300 13s200 14 300 6 200-16 300-8 200 14 300 4V28z' fill='%23FFF8EC'/%3E%3C/svg%3E") center bottom/100% 100% no-repeat}
+  .hero h1,.hero p,.hero #prazo,.hero #selo-mes{position:relative;z-index:1}
+  .hero .logo,.hero .ano{z-index:2;top:26px}
+  .hero h1{text-shadow:0 2px 14px rgba(0,0,0,.25)}
+  .hero h1 span{background:linear-gradient(100deg,#C9A227 20%,#FFEFB0 45%,#C9A227 70%);background-size:220% 100%;
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:brilho 4.5s linear infinite}
+  @keyframes brilho{from{background-position:120% 0}to{background-position:-120% 0}}
+
+  .neve{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+  .neve i{position:absolute;top:-12px;width:var(--s);height:var(--s);border-radius:50%;background:#fff;
+    animation:cair var(--d) linear var(--a) infinite;will-change:transform}
+  @keyframes cair{to{transform:translate3d(var(--x),480px,0)}}
+
+  .luzes{position:absolute;top:0;left:0;right:0;height:30px;display:flex;justify-content:space-around;pointer-events:none;z-index:2}
+  .luzes::before{content:"";position:absolute;left:0;right:0;top:3px;height:2px;background:rgba(0,0,0,.35)}
+  .luzes i{position:relative;margin-top:4px;width:9px;height:13px;border-radius:50% 50% 50% 50%/45% 45% 55% 55%;
+    background:currentColor;color:#ff5a5f;box-shadow:0 0 10px 1px currentColor;animation:pisca 1.9s ease-in-out var(--a) infinite alternate}
+  .luzes i:nth-child(even){margin-top:9px}
+  .luzes i:nth-child(4n+2){color:#ffd166}
+  .luzes i:nth-child(4n+3){color:#7bd88f}
+  .luzes i:nth-child(4n){color:#8ecbff}
+  @keyframes pisca{from{opacity:.4}to{opacity:1}}
+
+  .bola{display:none;position:absolute;top:0;z-index:1;transform-origin:50% 0;animation:balanca 3.6s ease-in-out infinite alternate;pointer-events:none}
+  .bola.b1{left:22%}.bola.b2{right:22%;animation-delay:-1.8s}
+  @keyframes balanca{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+  @media(min-width:780px){.bola{display:block}}
+
+  .selo-mes{animation:pulsa 2.6s ease-in-out infinite}
+  @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+
+  body{background:radial-gradient(900px 420px at 50% 0,#fff 0,transparent 75%),var(--cream)}
+  .nav{background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .nav a{transition:background .2s,color .2s,transform .2s}
+  @media(hover:hover){.nav a:hover{background:var(--green);color:#fff;border-color:var(--green);transform:translateY(-1px)}}
+
+  .sec-head h2::before{content:"\2726";color:var(--gold);font-size:.7em;margin-right:8px;vertical-align:.12em}
+  .sec-head h2::after{content:"";display:block;width:64px;height:3px;border-radius:3px;margin-top:8px;background:linear-gradient(90deg,var(--gold),rgba(201,162,39,0))}
+  section:nth-of-type(even) .sec-head h2::before{content:"\2744"}
+
+  .card{border-radius:18px;transition:transform .28s ease,box-shadow .28s ease;box-shadow:0 3px 12px rgba(80,40,20,.08)}
+  .foto img{transition:transform .6s ease}
+  @media(hover:hover){
+    .card:hover{transform:translateY(-5px);box-shadow:0 14px 28px rgba(80,40,20,.16)}
+    .card:hover .foto img{transform:scale(1.06)}
+  }
+  .tag.top{background:linear-gradient(110deg,#C9A227 25%,#FFEFB0 50%,#C9A227 75%);background-size:220% 100%;animation:brilho 3.2s linear infinite}
+  .btn{transition:transform .15s ease,filter .2s ease,box-shadow .2s ease}
+  @media(hover:hover){.btn-wpp:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,211,102,.35)}}
+  .passo{transition:transform .25s ease,box-shadow .25s ease}
+  @media(hover:hover){.passo:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(80,40,20,.10)}}
+
+  /* os cards entram suavemente; onde o navegador permite, acompanham a rolagem */
+  @keyframes subir{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .card,.passo{animation:subir .6s ease backwards}
+  @supports (animation-timeline:view()){
+    .card,.passo{animation:subir linear backwards;animation-timeline:view();animation-range:entry 0% entry 45%}
+  }
+
+  footer{position:relative;margin-top:44px;background:linear-gradient(180deg,var(--green-d),#0F2E20)}
+  footer::before{content:"";position:absolute;left:0;right:0;top:-25px;height:26px;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 28' preserveAspectRatio='none'%3E%3Cpath d='M0 28V13C100 1 200 1 300 11s200 14 300 6 200-16 300-8 200 14 300 4V28z' fill='%23143D2A'/%3E%3C/svg%3E") center bottom/100% 100% no-repeat}
+
+  @media(min-width:640px){
+    .hero{padding:66px 20px 66px}
+    .hero .logo,.hero .ano{top:32px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .neve{display:none}
+    .luzes i,.bola,.hero h1 span,.tag.top,.selo-mes,.card,.passo{animation:none!important}
+    .card,.passo{opacity:1!important;transform:none!important}
+  }
+
+  /* faixas de cor suaves por seção */
+  html,body{overflow-x:clip}
+  main > #secoes > section{position:relative;margin-top:0;padding:30px 0 34px;background:var(--tint,transparent);
+    box-shadow:0 0 0 100vmax var(--tint,transparent);clip-path:inset(0 -100vmax)}
+  main > #secoes > section::before{content:"";position:absolute;top:0;left:-100vmax;right:-100vmax;height:3px;
+    background:linear-gradient(90deg,transparent,var(--acc,var(--gold)) 20%,var(--acc,var(--gold)) 80%,transparent);opacity:.75}
+  main > #secoes > section .sec-head h2::before{color:var(--acc,var(--gold))}
+  main > #secoes > section .sec-head h2::after{background:linear-gradient(90deg,var(--acc,var(--gold)),transparent)}
+  main > #secoes > section .card{border-color:rgba(0,0,0,.06)}
+  #como-pedir{position:relative;padding:30px 0 10px;box-shadow:0 0 0 100vmax #FFFDF7;clip-path:inset(0 -100vmax);background:#FFFDF7}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="neve" id="neve" aria-hidden="true"></div>
+  <div class="luzes" id="luzes" aria-hidden="true"></div>
+  <svg class="bola b1" width="34" height="86" viewBox="0 0 40 90" aria-hidden="true"><line x1="20" y1="0" x2="20" y2="38" stroke="#E6D5B8" stroke-width="1.5"/><rect x="16" y="36" width="8" height="6" rx="2" fill="#C9A227"/><circle cx="20" cy="62" r="20" fill="#B3202A"/><ellipse cx="13" cy="54" rx="4.5" ry="8" fill="#fff" opacity=".28" transform="rotate(25 13 54)"/></svg>
+  <svg class="bola b2" width="34" height="86" viewBox="0 0 40 90" aria-hidden="true"><line x1="20" y1="0" x2="20" y2="38" stroke="#E6D5B8" stroke-width="1.5"/><rect x="16" y="36" width="8" height="6" rx="2" fill="#B3202A"/><circle cx="20" cy="62" r="20" fill="#C9A227"/><ellipse cx="13" cy="54" rx="4.5" ry="8" fill="#fff" opacity=".35" transform="rotate(25 13 54)"/></svg>
+  <img class="logo" src="imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
+  <span class="ano">2026</span>
+  <h1>Natal <span>3D</span></h1>
+  <p>Presépios e peças de Natal para encher a sua casa de carinho, fé e tradição. Escolha a sua e peça direto pelo WhatsApp.</p>
+  <div id="prazo"></div>
+  <div id="selo-mes"></div>
+</header>
+
+<nav class="nav" id="nav"></nav>
+
+<main>
+  <div id="secoes"></div>
+
+  <section id="como-pedir">
+    <div class="sec-head"><h2>Pedir é simples</h2></div>
+    <div class="passos">
+      <div class="passo"><b>1</b><h3>Escolha</h3><p>Veja as peças acima e anote o código do que você gostou (ex.: PRE-002).</p></div>
+      <div class="passo"><b>2</b><h3>Monte o seu pedido</h3><p>Toque em "Adicionar ao pedido" nas peças que quiser, ajuste as quantidades e envie tudo de uma vez pelo WhatsApp. Ou tire um print da peça e mande para a gente.</p></div>
+      <div class="passo"><b>3</b><h3>Pague do seu jeito</h3><p>Aceitamos Pix, cartão e dinheiro.</p></div>
+      <div class="passo"><b>4</b><h3>Prazo de entrega</h3><p>Cada peça mostra o seu prazo: pronta entrega ou feita sob encomenda. A entrega é combinada com você no pedido.</p></div>
+    </div>
+    <p class="nota"><b>Os preços especiais deste catálogo são válidos para novembro de 2026.</b> Em dezembro os valores mudam. Os valores são calculados para impressão em PLA, em cor simples. Peças com várias cores ou em outros materiais podem ter valor diferente. Confirme sempre no WhatsApp.</p>
+  </section>
+</main>
+
+<main id="detalhe" hidden></main>
+
+<footer>
+  <img class="logo" src="imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278" loading="lazy">
+  <h2>Garanta a decoração do seu Natal</h2>
+  <p id="rodape-prazo"></p>
+  <a id="cta-rodape" class="btn btn-wpp" href="#">Chamar no WhatsApp</a>
+  <p class="seguir">Siga a LXL Projetos e acompanhe as novidades:</p>
+  <div class="redes">
+    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a>
+    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
+  </div>
+  <p>Aceitamos Pix, cartão e dinheiro.</p>
+  <p class="peq">Feito com carinho para o seu Natal. LXL Projetos.</p>
+</footer>
+
+<button type="button" id="barra-pedido" class="barra-pedido" hidden aria-label="Ver meu pedido"></button>
+<div id="ped-fundo" class="ped-fundo" hidden></div>
+
+
+<script>
+/* enfeites do topo: neve e pisca-pisca (leves, só no cabeçalho) */
+(function(){
+  var n=document.getElementById("neve"),l=document.getElementById("luzes");
+  if(!n||!l)return;
+  var cel=window.matchMedia&&matchMedia("(max-width:639px)").matches,q=cel?12:22,h="",i;
+  for(i=0;i<q;i++){
+    h+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;--s:'+(2+Math.random()*4).toFixed(1)+'px;--d:'+(7+Math.random()*7).toFixed(1)+'s;--a:-'+(Math.random()*12).toFixed(1)+'s;--x:'+((Math.random()*60-30)|0)+'px;opacity:'+(.45+Math.random()*.45).toFixed(2)+'"></i>';
+  }
+  n.innerHTML=h;
+  var c=cel?10:20,g="";
+  for(i=0;i<c;i++)g+='<i style="--a:-'+(i*.37).toFixed(2)+'s"></i>';
+  l.innerHTML=g;
+})();
+</script>
+<script>
+/* ===== CONFIGURAÇÃO: edite só esta parte ===== */
+const CONFIG = {
+  whatsapp: "5538992214206",   /* número com DDI e DDD, só dígitos */
+  instagram: "lxlprojetos",
+  prazo: "",                   /* Ex.: "Pedidos até 15/12". Deixe vazio para não mostrar */
+  mes: "novembro de 2026"              /* Mês de validade dos preços. Em dezembro troque para "dezembro" ou deixe vazio para esconder o aviso */
+};
+
+/* Seções na ordem em que aparecem. Só aparecem as que tiverem produtos. */
+const SECOES = [
+  {id:"presepio",    titulo:"Presépio",                sub:"Celebre o nascimento de Jesus em família. Peças delicadas para montar o seu presépio e preparar o coração para o Natal."},
+  {id:"arvores",     titulo:"Árvores de Natal",        sub:"Para mesa, balcão e estante."},
+  {id:"enfeites-arvore", titulo:"Decoração de árvore", sub:"Enfeites para pendurar e deixar a árvore de Natal ainda mais bonita."},
+  {id:"papai-noel",  titulo:"Mini Papais Noel",        sub:"Pequenos, charmosos e feitos para decorar qualquer cantinho."},
+  {id:"decoracoes-mesa", titulo:"Decorações de mesa",  sub:"Rena, boneco de neve, gnomo e mais para enfeitar mesa, aparador e estante."},
+  {id:"feliz-natal", titulo:"Feliz Natal",             sub:"Letreiros e placas para decorar e presentear."},
+  {id:"bombonieri",  titulo:"Bombonieri e lembrancinhas", sub:"Para ceia de empresa, igreja, escola e família. Quanto mais unidades, melhor o valor."},
+  {id:"kits",        titulo:"Kits de Natal",           sub:"Peças que combinam entre si. No kit você paga menos do que comprando separado."}
+];
+
+/* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/PRE-001.jpg).
+   Códigos: PRE presépio, ARV árvore, PAP Papai Noel, FEL Feliz Natal, KIT kits, BOM bombonieri.
+   preco: deixe de fora para mostrar "Consulte o valor".
+   entrega: "Pronta entrega" ou "Sob encomenda" (pode escrever o prazo, ex.: "Sob encomenda, 3 dias").
+   Campos opcionais: tag (etiqueta), antes (preço separado, usado nos kits). */
+const PRODUTOS = [
+  {sku:"PRE-001", secao:"presepio", nome:"Presépio Sagrada Família Tricô",
+   desc:"Sagrada Família com textura de tricô, um presépio aconchegante e diferente.", cor:"Branco", medidas:"7 x 6 x 8 cm", preco:14.90, entrega:"Sob encomenda"},
+  {sku:"PRE-002", secao:"presepio", nome:"Presépio Estábulo de Luz",
+   desc:"Maria, José e o Menino Jesus sob o estábulo, com a estrela no alto.", cor:"Branco", medidas:"11 x 3 x 12 cm", preco:9.90, entrega:"Sob encomenda"},
+  {sku:"PRE-003", top:true, secao:"presepio", nome:"Presépio Estrela Guia",
+   desc:"Presépio completo sob o arco, com a estrela guia, os Reis Magos e os animais.", cor:"Branco", medidas:"18 x 8 x 15 cm", preco:29.90, tag:"Peça completa", entrega:"Sob encomenda"},
+  {sku:"PRE-004", secao:"presepio", nome:"Presépio Sagrada Família Serenidade",
+   desc:"Kit com 3 peças: Maria, José e o Menino Jesus em figuras suaves e delicadas.", cor:"Branco", medidas:"14 x 5 x 11 cm", preco:14.90, entrega:"Sob encomenda"},
+  {sku:"PRE-005", secao:"presepio", nome:"Presépio Adoração dos Reis",
+   desc:"Sagrada Família, os três Reis Magos e os animais sob um grande arco, uma peça de destaque para a mesa de Natal.", cor:"Branco", medidas:"16,7 x 15,1 x 14,8 cm", preco:47.90, tag:"Peça de destaque", entrega:"Sob encomenda"},
+  {sku:"PRE-006", top:true, secao:"presepio", nome:"Presépio Sagrada Família Acolhida",
+   desc:"José e Maria com o Menino Jesus nos braços, em um abraço de fé e ternura.", cor:"Branco", medidas:"8,4 x 8,0 x 11,5 cm", preco:15.90, entrega:"Sob encomenda"},
+  {sku:"PRE-007", top:true, secao:"presepio", nome:"Presépio Gruta de Belém",
+   desc:"Sagrada Família e os adoradores reunidos sob a gruta, com a estrela de Belém no alto.", cor:"Branco", medidas:"16,3 x 16,4 x 11,6 cm", preco:48.90, tag:"Peça de destaque", entrega:"Sob encomenda"},
+  {sku:"PRE-008", secao:"presepio", nome:"Presépio Sagrada Família Ternura",
+   desc:"José protege Maria e o Menino Jesus em um abraço cheio de ternura.", cor:"Branco", medidas:"9,2 x 11,8 x 15,0 cm", preco:32.90, entrega:"Sob encomenda"},
+  {sku:"PRE-009", secao:"presepio", nome:"Presépio Arco da Estrela",
+   desc:"Maria, José e o Menino Jesus sob um arco elegante, com a estrela de Belém no alto.", cor:"Branco", medidas:"14,1 x 10,7 x 14,5 cm", preco:20.90, entrega:"Sob encomenda"},
+  {sku:"PRE-010", secao:"presepio", nome:"Presépio Estrela Entalhada",
+   desc:"Maria, José e o Menino Jesus dentro de uma estrela com folhagens delicadas, ótima para qualquer cantinho.", medidas:"9,4 x 4,0 x 9,7 cm", preco:9.90, entrega:"Sob encomenda"},
+  {sku:"ARV-001", fotos:["ARV-001","ARV-002"], secao:"arvores", nome:"Árvore de Natal Plissada", preco:13.90,
+   desc:"Árvore em camadas plissadas, com a estrela no alto e a base em detalhe. Um enfeite elegante para mesa, balcão ou estante. Disponível em verde e em tom claro.", cor:"Verde ou tom claro", entrega:"Sob encomenda"},
+  {sku:"ARV-003", top:true, secao:"arvores", nome:"Árvore de Natal Drapeada Vermelha",
+   desc:"Árvore de formas suaves e onduladas, com a estrela no alto. Um toque moderno e delicado para a decoração de Natal.", cor:"Vermelho", medidas:"8,7 x 8,8 x 13,0 cm", preco:9.90, entrega:"Sob encomenda"},
+  {sku:"ARV-004", top:true, secao:"arvores", nome:"Árvore de Natal Cone Canelado", cor:"Verde e dourado", preco:11.90,
+   desc:"Árvore em camadas de linhas finas e uniformes, com a estrela dourada no alto. Visual limpo e elegante.", entrega:"Sob encomenda"},
+  {sku:"ARV-005", secao:"arvores", nome:"Árvore de Natal Estrelas Vazadas", cor:"Branco", preco:13.90,
+   desc:"Árvore com estrelinhas vazadas, que ganha um brilho especial com uma luz por dentro.", entrega:"Sob encomenda"},
+  {sku:"ARV-006", secao:"arvores", nome:"Árvore de Natal Espiral", cor:"Bege", preco:35.90,
+   desc:"Árvore de curvas em espiral, moderna e delicada, uma peça de decoração diferente.", entrega:"Sob encomenda"},
+  {sku:"ARV-007", secao:"arvores", nome:"Árvore de Natal Luminária da Rena", cor:"Branco", preco:20.90,
+   desc:"Árvore vazada com fita de estrelas, uma rena e pinheirinhos na base. Encanta com uma luz por dentro.", entrega:"Sob encomenda"},
+  {sku:"ARV-008", secao:"arvores", nome:"Árvore de Natal Tricô", cor:"Branco", preco:15.90,
+   desc:"Árvore com textura de tricô em camadas, aconchegante e cheia de carinho. Linda com uma luz por dentro.", entrega:"Sob encomenda"},
+  {sku:"ARV-009", secao:"arvores", nome:"Árvore de Natal Rendada", cor:"Branco", preco:11.90,
+   desc:"Árvore em formato de cone com desenho vazado e estrela dourada no alto, leve e sofisticada.", entrega:"Sob encomenda"},
+  {sku:"ENF-001", fotos:["ENF-001","ENF-001-2","ENF-001-3","ENF-001-4"], secao:"enfeites-arvore", nome:"Decoração para Árvore de Natal (10 peças)", tag:"Kit com 10 peças",
+   desc:"Kit com 10 enfeites vazados para pendurar na árvore: estrela, floco de neve, bola, árvore, rena, sino, anjo, coração, meia e estrela de oito pontas. Cada peça tem cerca de 6 x 5 cm. Disponível em branco, verde e vermelho. O valor é do kit com as 10 peças.", cor:"Branco, verde e vermelho", medidas:"Cada peça tem cerca de 6 x 5 cm", preco:10.00, entrega:"Sob encomenda"},
+  {sku:"FEL-001", secao:"feliz-natal", nome:"Feliz Natal Gorro do Papai Noel",
+   desc:"Letreiro com NATAL em vermelho e Feliz em branco, com um gorrinho de Papai Noel no alto.", preco:14.90, entrega:"Sob encomenda"},
+  {sku:"FEL-002", secao:"feliz-natal", nome:"Feliz Natal Floco de Neve", medidas:"17,0 x 10,3 x 1,5 cm", preco:9.90,
+   desc:"Letreiro vermelho com um grande floco de neve branco e base reta para apoiar em qualquer lugar.", entrega:"Sob encomenda"},
+  {sku:"FEL-003", top:true, secao:"feliz-natal", nome:"Feliz Natal Árvore e Estrela", medidas:"16,6 x 16,7 x 1,5 cm", preco:9.90,
+   desc:"Letreiro de letras em curvas, com árvore, estrela e bolinha de Natal nas pontas.", entrega:"Sob encomenda"},
+  {sku:"FEL-004", secao:"feliz-natal", nome:"Feliz Natal Rena", medidas:"16,0 x 11,7 x 1,5 cm", cor:"Branco, vermelho e verde", preco:14.90,
+   desc:"Letreiro colorido em vermelho e verde com uma rena de cachecol, ótimo para presentear.", entrega:"Sob encomenda"},
+  {sku:"FEL-005", secao:"feliz-natal", nome:"Feliz Natal Neve Vermelha", medidas:"8,5 x 9,1 x 1,3 cm", preco:9.90,
+   desc:"Letreiro em relevo com um floco de neve vazado no alto, em vermelho clássico de Natal.", entrega:"Sob encomenda"},
+
+  /* ---- Mini Papais Noel ---- */
+  {sku:"PAP-001", secao:"papai-noel", nome:"Mini Papai Noel Barbudo", medidas:"4,5 x 3,9 x 7,0 cm", cor:"Pintado à mão", preco:14.90, desc:"Papai Noel de corpo arredondado, barba grande com frisos e gorro vermelho com pompom.", entrega:"Sob encomenda"},
+  {sku:"PAP-002", top:true, secao:"papai-noel", nome:"Mini Papai Noel Tricô Sentadinho", cor:"Vermelho, branco, preto e pele", preco:9.90, desc:"Papai Noel sentadinho com textura de tricô no gorro, na barba e na roupa.", entrega:"Sob encomenda"},
+  {sku:"PAP-003", secao:"papai-noel", nome:"Mini Papai Noel Sentadinho com Cinto", cor:"Vermelho, branco, preto e pele", preco:19.90, desc:"Papai Noel sentadinho com cinto preto, sorriso e gorro com pompom.", entrega:"Sob encomenda"},
+  {sku:"PAP-004", secao:"papai-noel", nome:"Mini Papai Noel com Saco de Presentes", medidas:"4,7 x 4,4 x 7,0 cm", preco:9.90, desc:"Papai Noel em pé, de cinto com fivela dourada e saco de presentes nas costas.", entrega:"Sob encomenda"},
+  {sku:"PAP-005", secao:"papai-noel", nome:"Mini Papai Noel Gnomo com Presente", medidas:"5,1 x 4,4 x 8,0 cm", cor:"Pintado à mão", preco:9.90, desc:"Papai Noel de gorro longo, barba volumosa e um presente com laço nas mãos.", entrega:"Sob encomenda"},
+
+  /* ---- Decorações de mesa ---- */
+  {sku:"DEC-001", secao:"decoracoes-mesa", nome:"Casal de Renas Tricô e Liso", desc:"Duas renas em pé: uma com textura de tricô e outra de acabamento liso, no mesmo tom claro. Casal R$ 19,90. Também vendemos avulsas: rena tricô R$ 10,90 e rena lisa R$ 9,90.", medidas:"12 cm de altura (cada rena)", cor:"Branco", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"DEC-002", secao:"decoracoes-mesa", nome:"Gatinho de Gorro de Natal", desc:"Gatinho branco de textura fofa, olhos pretos e gorro vermelho de Papai Noel.", cor:"Branco, vermelho e preto", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"DEC-003", secao:"decoracoes-mesa", nome:"Corças com Laço", desc:"Corças deitadas com laço na orelha, uma com textura de tricô e outra lisa. O valor é de 1 unidade (cada corça).", cor:"Bege", preco:9.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-004", secao:"decoracoes-mesa", nome:"Papai Noel e Boneco de Neve Tricô", desc:"Dupla de bonecos com textura de tricô e gorro vermelho de pompom.", cor:"Vermelho, branco, preto e detalhes", preco:24.90, entrega:"Sob encomenda"},
+  {sku:"DEC-005", secao:"decoracoes-mesa", nome:"Renas Listradas", desc:"Renas com relevo em listras verticais, em tamanhos diferentes e cores à escolha. O valor é de 1 unidade (cada rena).", cor:"Bege e vinho", preco:11.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-006", top:true, secao:"decoracoes-mesa", nome:"Trio Gnomo, Boneco de Neve e Rena", desc:"Trio de bonecos com relevo canelado: gnomo vermelho, boneco de neve e rena.", cor:"Vermelho, branco e bege", preco:21.90, entrega:"Sob encomenda"},
+  {sku:"DEC-007", secao:"decoracoes-mesa", nome:"Trio de Renas Sentadinhas", desc:"Três renas sentadinhas com cachecol vermelho: uma com protetor de orelha, uma com gorro e uma com pompom. O valor é de 1 unidade (cada rena).", cor:"Marrom, branco e vermelho", preco:21.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-008", secao:"decoracoes-mesa", nome:"Renas Geométricas", desc:"Renas em estilo geométrico, em pé, em várias cores. Ótimas para aparador e lareira.", cor:"À escolha: vermelho, verde, branco ou dourado", preco:9.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-009", top:true, secao:"decoracoes-mesa", nome:"Par de Renas Elegantes", desc:"Rena em pé e rena deitada de linhas suaves e acabamento delicado. O valor é de 1 unidade (cada rena).", cor:"Branco", preco:9.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-010", secao:"decoracoes-mesa", nome:"Boneco de Neve Tricô Marrom", desc:"Boneco de neve sorridente com gorro, cachecol e botões em tom marrom.", cor:"Branco e marrom", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"DEC-011", secao:"decoracoes-mesa", nome:"Renas Fofinhas", desc:"Renas de corpo arredondado e acabamento liso, em branco ou cinza. O valor é de 1 unidade (cada rena).", cor:"Branco ou cinza", preco:9.90, tag:"Preço de 1 unidade", entrega:"Sob encomenda"},
+  {sku:"DEC-012", secao:"decoracoes-mesa", nome:"Boneco de Neve Tricô Grande", desc:"Boneco de neve com textura de tricô grosso, protetor de orelha, cachecol e coração vermelho.", cor:"Branco, vermelho, preto e laranja", preco:77.90, tag:"Peça de destaque", entrega:"Sob encomenda"},
+
+  /* ---- Bombonieri e lembrancinhas ---- */
+  {sku:"BOM-001", secao:"bombonieri", nome:"Potinho Cinto do Papai Noel", cor:"Vermelho, branco, preto e amarelo", preco:65.90, desc:"Potinho vermelho com a faixa preta e a fivela dourada do Papai Noel. Ótimo para chocolates e doces.", entrega:"Sob encomenda"},
+  {sku:"BOM-002", secao:"bombonieri", nome:"Caixa Chaminé do Papai Noel", medidas:"13 x 13 x 16 cm (aproximadas)", cor:"Vermelho, branco, preto e amarelo", preco:81.90, desc:"Caixa em formato de chaminé de tijolinhos com o Papai Noel descendo. Surpresa certa na ceia.", entrega:"Sob encomenda"},
+  {sku:"BOM-003", secao:"bombonieri", nome:"Papai Noel e o Trenó de Doces", desc:"Trenó vermelho com o Papai Noel, pronto para ser recheado de balas e doces.", medidas:"14,2 x 6,5 x 7,2 cm", cor:"Vermelho e branco", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"BOM-004", secao:"bombonieri", nome:"Bandeja Árvore de Natal", cor:"Verde", preco:36.90, desc:"Bandeja em formato de árvore de Natal para servir doces, biscoitos e lembrancinhas.", entrega:"Sob encomenda"},
+  {sku:"BOM-005", secao:"bombonieri", nome:"Porta Panetone Cinto do Papai Noel", cor:"Vermelho, preto, branco e amarelo", preco:64.90, desc:"Cesto redondo com o cinto do Papai Noel, feito para apresentar panetones e cestas de Natal.", entrega:"Sob encomenda"},
+  {sku:"BOM-006", secao:"bombonieri", nome:"Caixa Vila de Natal com Tampa de Floco de Neve", cor:"Vermelho e branco", preco:83.90, desc:"Caixa redonda vermelha com a vila de Natal em relevo e tampa branca com floco de neve.", entrega:"Sob encomenda"},
+  {sku:"BOM-007", secao:"bombonieri", nome:"Cesto Cinto Tricô do Papai Noel", cor:"Vermelho, branco, preto e amarelo", preco:33.90, desc:"Cesto com textura de tricô e o cinto do Papai Noel. Para doces, pães e presentes.", entrega:"Sob encomenda"},
+  {sku:"BOM-008", secao:"bombonieri", nome:"Potinho Calça do Papai Noel", desc:"Potinho vermelho com borda branca de tricô, inspirado na calça do Papai Noel.", cor:"Vermelho, preto, branco e amarelo", preco:28.90, entrega:"Sob encomenda"},
+  {sku:"BOM-009", top:true, secao:"bombonieri", nome:"Cestinha Rena com Alça", desc:"Cestinha com a carinha da rena e alça para carregar. Lembrancinha fofa para as crianças.", cor:"Vermelho", preco:14.90, entrega:"Sob encomenda"},
+  {sku:"BOM-010", secao:"bombonieri", nome:"Potinho Rosto do Papai Noel", desc:"Potinho com o rosto sorridente do Papai Noel, de barba e gorro.", cor:"Branco", preco:39.90, entrega:"Sob encomenda"},
+  {sku:"BOM-011", top:true, secao:"bombonieri", nome:"Potinho Papai Noel com Botas", desc:"Potinho com borda branca ondulada e as botas do Papai Noel. Combina com biscoitos e doces.", cor:"Vermelho, branco, amarelo e preto", preco:33.90, entrega:"Sob encomenda"},
+  {sku:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"}
+];
+/* ===== FIM DA CONFIGURAÇÃO ===== */
+
+const brl = v => v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const wppLink = msg => "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg);
+const msgGeral = "Olá! Vi o catálogo de Natal da LXL Projetos e quero saber mais.";
+
+const porSku = k => PRODUTOS.find(p=>p.sku===k);
+const fotosDe = p => p.fotos || [p.sku];
+const foto = (k,nome,lazy) => '<img src="imagens/'+k+'.jpg" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
+const msgProduto = p => typeof p.preco==="number"
+  ? "Olá! Vi o catálogo de Natal e quero o "+p.nome+" ("+p.sku+"). Pode me passar os detalhes?"
+  : "Olá! Vi o catálogo de Natal e quero saber o valor do "+p.nome+" ("+p.sku+").";
+
+function precoHTML(p){
+  return typeof p.preco==="number"
+    ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+(CONFIG.mes?'<span class="mes">Preço especial '+CONFIG.mes+'</span>':'')+'</div>'
+    : '<div class="preco consulte">Consulte o valor</div>';
+}
+function entregaHTML(p){
+  return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>':'';
+}
+
+/* Card da lista: só código, título, prazo, valor e botão. Tocar no card abre a página do produto. */
+function cardHTML(p){
+  const temPreco = typeof p.preco==="number";
+  return '<a class="card-link" href="#/p/'+p.sku+'">'+
+    '<div class="foto">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fotosDe(p)[0],p.nome,true)+'</div>'+
+    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p)+precoHTML(p)+'</div></a>'+
+    '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>';
+}
+
+let lastY = 0, veioDaLista = false;
+
+function montar(){
+  const nav = document.getElementById("nav");
+  const cont = document.getElementById("secoes");
+  nav.innerHTML = "";
+
+  const CORES=[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
+  let _ci=0;
+  SECOES.forEach(s=>{
+    const itens = PRODUTOS.filter(p=>p.secao===s.id);
+    if(!itens.length) return;
+    nav.insertAdjacentHTML("beforeend",'<a href="#'+s.id+'">'+s.titulo+'</a>');
+    const sec = document.createElement("section");
+    sec.id = s.id;
+    const cc=CORES[_ci++%CORES.length]; sec.style.setProperty("--tint",cc[0]); sec.style.setProperty("--acc",cc[1]);
+    sec.innerHTML = '<div class="sec-head"><h2>'+s.titulo+'</h2><p>'+s.sub+'</p></div><div class="grid"></div>';
+    const grid = sec.querySelector(".grid");
+    itens.forEach(p=>{
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = cardHTML(p);
+      grid.appendChild(card);
+    });
+    cont.appendChild(sec);
+  });
+  nav.insertAdjacentHTML("beforeend",'<a href="#como-pedir">Como pedir</a>');
+
+  ["cta-rodape"].forEach(id=>{
+    const a = document.getElementById(id);
+    a.href = wppLink(msgGeral);
+    a.target = "_blank";
+    a.rel = "noopener";
+  });
+
+  if(CONFIG.mes){
+    document.getElementById("selo-mes").innerHTML = '<span class="selo-mes">Preços especiais de '+CONFIG.mes+'</span>';
+  }
+  if(CONFIG.prazo){
+    document.getElementById("prazo").innerHTML = '<span class="prazo">'+CONFIG.prazo+'</span>';
+    document.getElementById("rodape-prazo").textContent = CONFIG.prazo;
+  }
+}
+
+/* Página do produto (endereço #/p/CODIGO) */
+function detalheHTML(p){
+  const fs = fotosDe(p);
+  const temPreco = typeof p.preco==="number";
+  const cores = p.cor ? p.cor+'. Outras cores sob consulta.' : 'Consulte as cores disponíveis.';
+  const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : 'Consulte as medidas no WhatsApp.';
+  const rel = PRODUTOS.filter(x=>x.secao===p.secao && x.sku!==p.sku).slice(0,4);
+  return '<button class="voltar" type="button" id="voltar">&larr; Voltar</button>'+
+  '<div class="det">'+
+    '<div class="gal">'+
+      '<div class="foto" id="foto-grande">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fs[0],p.nome,false)+'</div>'+
+      (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
+    '</div>'+
+    '<div class="det-info">'+
+      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+precoHTML(p)+
+      '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>'+
+      '<button type="button" class="btn btn-comp" data-comp="'+p.sku+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar</button>'+
+      '<a class="link-wpp" target="_blank" rel="noopener" href="'+wppLink(msgProduto(p))+'">'+(temPreco?'Pedir só este pelo WhatsApp':'Perguntar o valor pelo WhatsApp')+'</a>'+
+      (temPreco&&CONFIG.mes?'<div class="aviso-mes">Preço especial válido para '+CONFIG.mes+'. Em dezembro os valores mudam.</div>':'')+
+      '<div class="bloco"><h2>Sobre a peça</h2><p>'+p.desc+'</p></div>'+
+      '<div class="bloco"><h2>Detalhes</h2><dl class="ficha">'+
+        '<div><dt>Medidas</dt><dd>'+medidas+'</dd></div>'+
+        '<div><dt>Material</dt><dd>'+(p.material||'Impressão 3D em PLA. Outros materiais sob consulta.')+'</dd></div>'+
+        '<div><dt>Cores</dt><dd>'+cores+'</dd></div>'+
+        '<div><dt>Prazo</dt><dd>'+(p.entrega||'Combinado no pedido')+(CONFIG.prazo?'. '+CONFIG.prazo:'')+'</dd></div>'+
+        '<div><dt>Pagamento</dt><dd>Pix, cartão e dinheiro</dd></div>'+
+      '</dl></div>'+
+      '<p class="nota">'+(temPreco?'Valor para impressão em PLA, em cor simples. ':'')+'Peças com várias cores ou em outros materiais podem ter valor diferente. Confirme no WhatsApp.</p>'+
+    '</div>'+
+    (rel.length?'<div class="relac"><h2>Veja também</h2><div class="grid">'+rel.map(x=>'<article class="card">'+cardHTML(x)+'</article>').join('')+'</div></div>':'')+
+  '</div>';
+}
+
+function rota(){
+  const m = location.hash.match(/^#\/p\/([\w-]+)/);
+  const lista = [document.querySelector(".hero"),document.getElementById("nav"),document.querySelector("main:not(#detalhe)")];
+  const det = document.getElementById("detalhe");
+  const p = m && porSku(m[1]);
+  if(p){
+    lista.forEach(e=>e.hidden=true);
+    det.hidden=false;
+    det.innerHTML = detalheHTML(p);
+    document.title = p.nome+" | LXL Projetos";
+    window.scrollTo(0,0);
+  }else{
+    const estava = !det.hidden;
+    det.hidden=true; det.innerHTML="";
+    lista.forEach(e=>e.hidden=false);
+    document.title = "Natal 3D | LXL Projetos";
+    if(estava) window.scrollTo(0,lastY);
+    else if(location.hash.length>1){ const alvo=document.querySelector(location.hash); if(alvo) alvo.scrollIntoView(); }
+  }
+}
+/* ===== Pedido (carrinho) ===== */
+const CHAVE = "lxl_natal_pedido_v1";
+let pedido = {};      /* {SKU: quantidade} */
+let dadosCliente = {nome:"", obs:""};
+try{
+  const salvo = JSON.parse(localStorage.getItem(CHAVE)||"{}");
+  Object.keys(salvo.itens||{}).forEach(k=>{ if(porSku(k) && salvo.itens[k]>0) pedido[k]=Math.min(99,salvo.itens[k]|0); });
+  if(salvo.cliente) dadosCliente = {nome:String(salvo.cliente.nome||""), obs:String(salvo.cliente.obs||"")};
+}catch(e){}
+function salvarPedido(){ try{ localStorage.setItem(CHAVE, JSON.stringify({itens:pedido,cliente:dadosCliente})); }catch(e){} }
+const itensPedido = () => Object.keys(pedido).map(k=>({p:porSku(k),q:pedido[k]})).filter(x=>x.p);
+const qtdTotal = () => itensPedido().reduce((a,x)=>a+x.q,0);
+function totais(){
+  let total=0, combinar=0;
+  itensPedido().forEach(({p,q})=>{ if(typeof p.preco==="number") total+=p.preco*q; else combinar++; });
+  return {total,combinar};
+}
+function atualizarBarra(){
+  const b = document.getElementById("barra-pedido");
+  const n = qtdTotal();
+  document.body.classList.toggle("tem-pedido", n>0);
+  if(!n){ b.hidden=true; return; }
+  const t = totais();
+  b.innerHTML = '<span><span class="qtd">'+n+'</span> <span class="tot">'+(n===1?'item':'itens')+(t.total>0?' · '+brl(t.total):'')+'</span></span><span class="ver">Ver meu pedido</span>';
+  b.hidden=false;
+}
+function toast(msg){
+  document.querySelector(".toast")?.remove();
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),1800);
+}
+function adicionar(sku){
+  const p = porSku(sku); if(!p) return;
+  pedido[sku] = Math.min(99,(pedido[sku]||0)+1);
+  salvarPedido(); atualizarBarra();
+  toast("Adicionado ao pedido: "+p.nome);
+}
+function mensagemPedido(){
+  const linhas = itensPedido().map(({p,q},i)=>{
+    const tem = typeof p.preco==="number";
+    return (i+1)+") "+q+"x "+p.nome+" ("+p.sku+"): "+(tem ? brl(p.preco)+" cada = "+brl(p.preco*q) : "valor a combinar");
+  });
+  const t = totais();
+  let m = "Olá! Quero fazer um pedido do Catálogo de Natal 2026:\n\n"+linhas.join("\n")+"\n\n";
+  m += "Total: "+brl(t.total)+(t.combinar?" (mais "+t.combinar+(t.combinar>1?" itens":" item")+" com valor a combinar)":"")+"\n";
+  if(dadosCliente.nome.trim()) m += "Nome: "+dadosCliente.nome.trim()+"\n";
+  if(dadosCliente.obs.trim()) m += "Observações: "+dadosCliente.obs.trim()+"\n";
+  m += "\nPode confirmar a disponibilidade e o prazo?";
+  return m;
+}
+const esc2 = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+function abrirPedido(){
+  const f = document.getElementById("ped-fundo");
+  const its = itensPedido();
+  let corpo;
+  if(!its.length){
+    corpo = '<div class="ped-vazio">Seu pedido está vazio.<br>Toque em "Adicionar ao pedido" nas peças que você quiser.</div>';
+  }else{
+    const t = totais();
+    corpo = its.map(({p,q})=>{
+      const tem = typeof p.preco==="number";
+      return '<div class="ped-item"><div><b>'+esc2(p.nome)+'</b><small>'+p.sku+(tem?' · '+brl(p.preco)+' cada':' · valor a combinar')+'</small>'+
+        '<div class="ped-qtd"><button type="button" data-menos="'+p.sku+'" aria-label="Diminuir">−</button><span>'+q+'</span><button type="button" data-mais="'+p.sku+'" aria-label="Aumentar">+</button><button type="button" class="ped-rem" data-rem="'+p.sku+'">Remover</button></div></div>'+
+        '<div class="sub'+(tem?'':' combinar')+'">'+(tem?brl(p.preco*q):'A combinar')+'</div></div>';
+    }).join('') +
+    '<div class="ped-total"><span>Total</span><span>'+brl(t.total)+'</span></div>'+
+    (t.combinar?'<p class="ped-aviso">'+t.combinar+(t.combinar>1?' itens estão':' item está')+' com valor a combinar e não entra'+(t.combinar>1?'m':'')+' no total.</p>':'')+
+    '<p class="ped-aviso">Preços especiais de '+(CONFIG.mes||'novembro')+'. O valor final e o prazo são confirmados no WhatsApp.</p>'+
+    '<label for="ped-nome">Seu nome (opcional)</label><input id="ped-nome" type="text" autocomplete="name" value="'+esc2(dadosCliente.nome)+'">'+
+    '<label for="ped-obs">Observações (opcional)</label><textarea id="ped-obs" placeholder="Cores, quantidade para lembrancinhas, data de entrega...">'+esc2(dadosCliente.obs)+'</textarea>';
+  }
+  f.innerHTML = '<div class="ped" role="dialog" aria-modal="true" aria-label="Meu pedido"><div class="ped-topo"><h2>Meu pedido</h2><button type="button" class="ped-fechar" data-fechar aria-label="Fechar">&times;</button></div>'+
+    '<div class="ped-corpo">'+corpo+'</div>'+
+    '<div class="ped-pe">'+(its.length?'<a class="btn btn-wpp" id="ped-enviar" target="_blank" rel="noopener" href="'+wppLink(mensagemPedido())+'">Enviar pedido pelo WhatsApp</a><button type="button" class="ped-limpar" data-limpar>Limpar pedido</button>':'<button type="button" class="btn btn-wpp" data-fechar>Escolher peças</button>')+'</div></div>';
+  f.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+function fecharPedido(){
+  const f = document.getElementById("ped-fundo");
+  f.hidden = true; f.innerHTML = ""; document.body.style.overflow = "";
+}
+function mudar(sku,delta){
+  const q = (pedido[sku]||0)+delta;
+  if(q<=0) delete pedido[sku]; else pedido[sku]=Math.min(99,q);
+  salvarPedido(); atualizarBarra(); abrirPedido();
+}
+document.addEventListener("click", e=>{
+  const add = e.target.closest("[data-add]");
+  if(add){ adicionar(add.dataset.add); return; }
+  if(e.target.closest("#barra-pedido")){ abrirPedido(); return; }
+  if(e.target.closest("[data-fechar]") || e.target===document.getElementById("ped-fundo")){ fecharPedido(); return; }
+  const mais=e.target.closest("[data-mais]"); if(mais){ mudar(mais.dataset.mais,1); return; }
+  const menos=e.target.closest("[data-menos]"); if(menos){ mudar(menos.dataset.menos,-1); return; }
+  const rem=e.target.closest("[data-rem]"); if(rem){ delete pedido[rem.dataset.rem]; salvarPedido(); atualizarBarra(); abrirPedido(); return; }
+  if(e.target.closest("[data-limpar]")){ if(confirm("Limpar todo o pedido?")){ pedido={}; salvarPedido(); atualizarBarra(); fecharPedido(); } return; }
+});
+document.addEventListener("input", e=>{
+  if(e.target.id==="ped-nome" || e.target.id==="ped-obs"){
+    dadosCliente.nome = document.getElementById("ped-nome").value;
+    dadosCliente.obs = document.getElementById("ped-obs").value;
+    salvarPedido();
+    const a = document.getElementById("ped-enviar"); if(a) a.href = wppLink(mensagemPedido());
+  }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !document.getElementById("ped-fundo").hidden) fecharPedido(); });
+atualizarBarra();
+
+/* ===== Compartilhar produto ===== */
+function linkProduto(sku){
+  return new URL("p/"+sku+"/", location.href.split("#")[0]).href;
+}
+async function copiar(texto){
+  try{ await navigator.clipboard.writeText(texto); return true; }catch(e){}
+  try{
+    const t=document.createElement("textarea"); t.value=texto; t.style.cssText="position:fixed;opacity:0"; document.body.appendChild(t);
+    t.select(); const ok=document.execCommand("copy"); t.remove(); return ok;
+  }catch(e){ return false; }
+}
+async function compartilhar(sku){
+  const p = porSku(sku); if(!p) return;
+  const url = linkProduto(sku);
+  const texto = p.nome;
+  if(navigator.share){
+    try{ await navigator.share({title:p.nome, text:texto, url}); return; }
+    catch(e){ if(e && e.name==="AbortError") return; }
+  }
+  if(await copiar(url)) toast("Link copiado! Cole na conversa para enviar.");
+  else window.prompt("Copie o link do produto:", url);
+}
+document.addEventListener("click", e=>{
+  const c = e.target.closest("[data-comp]");
+  if(c) compartilhar(c.dataset.comp);
+});
+
+montar();
+window.addEventListener("hashchange", rota);
+rota();
+
+document.addEventListener("click", e=>{
+  /* guarda a posição da lista para voltar no mesmo ponto */
+  if(e.target.closest(".card-link") && document.getElementById("detalhe").hidden) { lastY = window.scrollY; veioDaLista = true; }
+
+  if(e.target.closest("#voltar")){
+    if(veioDaLista){ veioDaLista=false; history.back(); } else location.hash="";
+    return;
+  }
+  const th = e.target.closest(".thumbs button");
+  if(th){
+    document.querySelectorAll(".thumbs button").forEach(b=>b.classList.toggle("on",b===th));
+    const f = document.getElementById("foto-grande");
+    f.querySelector("img")?.remove();
+    f.insertAdjacentHTML("beforeend", foto(th.dataset.foto, "", false));
+    return;
+  }
+  /* Tocar na foto grande da página abre em tela cheia. Tocar de novo fecha. */
+  const img = e.target.closest("#foto-grande img");
+  if(!img) return;
+  const z = document.createElement("div");
+  z.className = "zoom";
+  z.innerHTML = '<img src="'+img.src+'" alt="'+(img.alt||"")+'"><span>Toque para fechar</span>';
+  const fechar = ()=>{ z.remove(); document.removeEventListener("keydown", esc); };
+  const esc = ev=>{ if(ev.key==="Escape") fechar(); };
+  z.addEventListener("click", fechar);
+  document.addEventListener("keydown", esc);
+  document.body.appendChild(z);
+});
+</script>
+</body>
+</html>
