@@ -111,6 +111,32 @@ async function telaPedidos() {
 }
 
 /* ---------- produtos (cache) ---------- */
+let catalogo = null;
+async function carregarCatalogo() {
+  if (catalogo) return catalogo;
+  catalogo = { porCodigo: {}, secoes: [] };
+  try {
+    const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
+    d.forEach(x => {
+      const c = String(x.sku || '').toUpperCase();
+      catalogo.porCodigo[c] = { secao: x.secao || '' };
+      if (x.secao && !catalogo.secoes.includes(x.secao)) catalogo.secoes.push(x.secao);
+    });
+  } catch (e) { /* sem catálogo: painel funciona sem fotos e sem seções */ }
+  return catalogo;
+}
+const secaoDe = p => (catalogo && catalogo.porCodigo[p.codigo]) ? catalogo.porCodigo[p.codigo].secao : '';
+function thumb(p) {
+  if (!catalogo || !catalogo.porCodigo[p.codigo]) return '<span class="th sem">&#128230;</span>';
+  return '<img class="th" loading="lazy" decoding="async" alt="" data-c="' + esc(p.codigo) + '" src="/natal/imagens/mini/' + encodeURIComponent(p.codigo) + '.jpg">';
+}
+document.addEventListener('error', e => {
+  const i = e.target;
+  if (!i || i.tagName !== 'IMG' || !i.classList.contains('th')) return;
+  if (!i.dataset.tent) { i.dataset.tent = '1'; i.src = '/natal/imagens/' + encodeURIComponent(i.dataset.c) + '.jpg'; }
+  else { const s = document.createElement('span'); s.className = 'th sem'; s.innerHTML = '&#128230;'; i.replaceWith(s); }
+}, true);
+
 async function carregarProdutos(forcar) {
   if (!produtos || forcar) produtos = (await api('produtos')).produtos;
   return produtos;
@@ -127,7 +153,7 @@ const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Num
 async function telaPedidoForm(id) {
   quadro(id ? '' : 'novo', '<p class="carregando">Carregando...</p>');
   try {
-    await carregarProdutos();
+    await Promise.all([carregarProdutos(), carregarCatalogo()]);
     if (id) { P = (await api('pedido', null, '&id=' + id)).pedido; }
     else if (!P || P.id) P = pedidoVazio();
   } catch (e) { return toast(e.message); }
@@ -190,7 +216,7 @@ function abrirPicker() {
     const q = $('#pq', m).value.toLowerCase().trim();
     const l = produtos.filter(p => p.ativo && (!q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q))).slice(0, 60);
     $('#pl', m).innerHTML = l.length ? l.map(p =>
-      '<div class="prod" data-id="' + p.id + '"><div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + p.estoque : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div><b>' + brl(p.preco) + '</b></div>').join('')
+      '<div class="prod" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + p.estoque : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div></div><b>' + brl(p.preco) + '</b></div>').join('')
       : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item avulso".</div>';
     m.querySelectorAll('.prod').forEach(el => el.onclick = () => {
       const p = produtos.find(x => x.id === +el.dataset.id);
@@ -299,14 +325,17 @@ async function telaNota(id) {
 }
 
 /* ---------- estoque ---------- */
-let fEst = 'todos', bEst = '';
+let fEst = 'todos', bEst = '', sEst = '';
 async function telaEstoque() {
   quadro('estoque', '<p class="carregando">Carregando...</p>');
-  try { await carregarProdutos(true); } catch (e) { return toast(e.message); }
+  try { await Promise.all([carregarProdutos(true), carregarCatalogo()]); } catch (e) { return toast(e.message); }
   $('.wrap').innerHTML =
     '<h1>Estoque</h1><div class="barra"><button class="btn o" id="novo" type="button">Novo produto</button><button class="btn l" id="imp" type="button">Importar do catálogo</button></div>' +
     '<div class="chips">' + [['todos', 'Todos'], ['pronta', 'Pronta entrega'], ['encomenda', 'Sob encomenda'], ['inativos', 'Inativos']].map(([k, t]) => '<button class="chip ' + (fEst === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('') + '</div>' +
-    '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"><div class="card" style="margin-top:12px" id="lista"></div>';
+    '<div class="l2"><select id="sec"><option value="">Todas as seções</option>' +
+    catalogo.secoes.map(s => '<option value="' + esc(s) + '"' + (sEst === s ? ' selected' : '') + '>' + esc(s) + ' (' + produtos.filter(p => p.ativo && secaoDe(p) === s).length + ')</option>').join('') +
+    '<option value="__outros"' + (sEst === '__outros' ? ' selected' : '') + '>Fora do catálogo (' + produtos.filter(p => p.ativo && !secaoDe(p)).length + ')</option></select>' +
+    '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div><div class="card" style="margin-top:12px" id="lista"></div>';
   const desenha = () => {
     const q = bEst.toLowerCase().trim();
     const l = produtos.filter(p => {
@@ -314,10 +343,11 @@ async function telaEstoque() {
       if (fEst === 'encomenda' && !(!p.controla && p.ativo)) return false;
       if (fEst === 'inativos' && p.ativo) return false;
       if (fEst === 'todos' && !p.ativo) return false;
+      if (sEst === '__outros' ? secaoDe(p) : (sEst && secaoDe(p) !== sEst)) return false;
       return !q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q);
     });
     $('#lista').innerHTML = l.length ? l.map(p =>
-      '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div></div>' +
+      '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div></div></div>' +
       (p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
       : '<div class="vazio">Nenhum produto aqui. Toque em "Novo produto" ou "Importar do catálogo".</div>';
     $('#lista').querySelectorAll('.prod').forEach(el => el.onclick = ev => {
@@ -330,6 +360,7 @@ async function telaEstoque() {
   };
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fEst = b.dataset.f; telaEstoque(); });
   $('#q').oninput = e => { bEst = e.target.value; desenha(); };
+  $('#sec').onchange = e => { sEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;
   desenha();
