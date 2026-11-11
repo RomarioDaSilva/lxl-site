@@ -283,6 +283,34 @@
   .logo-link{display:contents}
   .logo-link .logo{cursor:pointer;transition:opacity .2s,transform .2s}
   @media(hover:hover){.logo-link:hover .logo{opacity:1;transform:scale(1.05)}}
+
+  /* ===== Busca ===== */
+  .busca{position:relative;max-width:640px;margin:0 auto;scroll-margin-top:60px}
+  .busca.aberta{margin:24px auto 4px}
+  .busca-campo{display:flex;align-items:center;gap:8px}
+  .busca-campo[hidden]{display:none}
+  .busca-input{position:relative;flex:1;min-width:0}
+  .voltar-busca{flex:0 0 auto;min-height:54px;padding:0 15px;border:1.5px solid #e0d3b8;border-radius:999px;background:#fff;color:var(--green-d);font:inherit;font-weight:700;cursor:pointer}
+  .voltar-busca:hover{background:#f6efdf}
+  .busca label{position:absolute;left:18px;top:50%;transform:translateY(-50%);display:flex;color:var(--green);pointer-events:none}
+  .busca svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+  .busca input{width:100%;height:54px;border-radius:999px;border:1.5px solid #e0d3b8;background:#fff;padding:0 14px 0 46px;font:inherit;font-size:16px;color:var(--ink);
+    box-shadow:0 6px 18px rgba(80,40,20,.08);transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+  .busca input:not(:placeholder-shown){padding-right:50px}
+  .busca label{left:16px}
+  .busca input::placeholder{color:#9a8b7d}
+  .busca input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(31,91,63,.15),0 6px 18px rgba(80,40,20,.08)}
+  .busca input::-webkit-search-cancel-button{display:none}
+  .busca .limpar{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:50%;background:#f1e8d6;color:var(--ink);font-size:1.2rem;line-height:1;cursor:pointer}
+  .busca .limpar:hover{background:#e7dcc3}
+  #resultados{padding:22px 0 34px}
+  #resultados .sec-head h2::before{content:"\1F50D";font-size:.7em}
+  .res-vazio{background:#fff;border:1px dashed #d9c9a8;border-radius:18px;padding:26px 20px;text-align:center}
+  .res-vazio p{margin:0 0 14px;color:var(--muted)}
+  .res-sug{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+  .res-sug button{border:1px solid #eadfcb;background:var(--cream);color:var(--green-d);font:inherit;font-weight:600;font-size:.92rem;padding:8px 14px;border-radius:999px;cursor:pointer}
+  .nav a.nav-busca{background:var(--green);color:#fff;border-color:var(--green);padding:0 20px;min-height:44px;font-size:1rem;font-weight:700;box-shadow:0 4px 12px rgba(20,61,42,.25)}
+  .nav a.nav-busca svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
 </style>
 </head>
 <body>
@@ -303,6 +331,17 @@
 <nav class="nav" id="nav"></nav>
 
 <main>
+  <div class="busca" id="busca" role="search">
+    <div class="busca-campo" id="busca-campo" hidden>
+      <div class="busca-input">
+        <label for="q" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></label>
+        <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar pelo nome ou código" aria-label="Buscar pelo nome ou código">
+        <button type="button" class="limpar" id="q-limpar" aria-label="Apagar o texto" hidden>&times;</button>
+      </div>
+      <button type="button" class="voltar-busca" id="fechar-busca">Voltar</button>
+    </div>
+  </div>
+  <section id="resultados" hidden aria-live="polite"></section>
   <div id="secoes"></div>
 
   <section id="como-pedir">
@@ -757,6 +796,87 @@ document.addEventListener("click", e=>{
   document.addEventListener("keydown", esc);
   document.body.appendChild(z);
 });
+</script>
+<script>
+/* ===== Busca de peças ===== */
+(function(){
+  var q=document.getElementById("q"), limpar=document.getElementById("q-limpar"),
+      res=document.getElementById("resultados"), secoes=document.getElementById("secoes"),
+      como=document.getElementById("como-pedir");
+  if(!q||!res) return;
+  function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function tituloSecao(id){ for(var i=0;i<SECOES.length;i++) if(SECOES[i].id===id) return SECOES[i].titulo; return ""; }
+  var indice=PRODUTOS.map(function(p){
+    return {p:p,
+      hn:" "+norm([p.sku,p.nome,p.tag,tituloSecao(p.secao),p.top?"mais vendido":""].join(" "))+" ",
+      hd:" "+norm([p.desc,p.cor].join(" "))+" "};
+  });
+  function termos(v){
+    return norm(v).split(" ").filter(Boolean).map(function(t){ return t.length>3 && /s$/.test(t) ? t.slice(0,-1) : t; });
+  }
+  /* no nome/código vale o começo da palavra (digitando "arv" já acha "árvore"); na descrição só a palavra inteira */
+  function noNome(it,t){ return it.hn.indexOf(" "+t)>-1; }
+  function naDesc(it,t){ return it.hd.indexOf(" "+t+" ")>-1 || it.hd.indexOf(" "+t+"s ")>-1 || it.hd.indexOf(" "+t+"es ")>-1; }
+  function buscar(v){
+    var ts=termos(v); if(!ts.length) return [];
+    var out=[];
+    indice.forEach(function(it,i){
+      var ok=ts.every(function(t){ return noNome(it,t)||naDesc(it,t); });
+      if(ok) out.push({p:it.p,i:i,w:ts.every(function(t){return noNome(it,t);})?0:1});
+    });
+    return out.sort(function(a,b){return a.w-b.w||a.i-b.i;}).map(function(x){return x.p;});
+  }
+  function mostrarListas(sim){ secoes.hidden=!sim; if(como) como.hidden=!sim; res.hidden=sim; }
+  function render(){
+    var v=q.value, tem=norm(v).length>0;
+    limpar.hidden=!v.length;
+    if(!tem){ mostrarListas(true); res.innerHTML=""; return; }
+    var achou=buscar(v);
+    mostrarListas(false);
+    var tit='<div class="sec-head"><h2>'+(achou.length? achou.length+(achou.length===1?" peça encontrada":" peças encontradas") : "Nada encontrado")+'</h2><p>Busca por &ldquo;'+esc(v.trim())+'&rdquo;</p></div>';
+    if(achou.length){
+      res.innerHTML=tit+'<div class="grid"></div>';
+      var g=res.querySelector(".grid");
+      achou.forEach(function(p){ var c=document.createElement("article"); c.className="card"; c.innerHTML=cardHTML(p); g.appendChild(c); });
+    }else{
+      var msg="Olá! Procurei "+v.trim()+" no catálogo de Natal da LXL Projetos e não encontrei. Vocês fazem?";
+      var link="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(msg);
+      var sug=SECOES.filter(function(s){return PRODUTOS.some(function(p){return p.secao===s.id;});}).map(function(s){return '<button type="button" data-sec="'+s.id+'">'+esc(s.titulo)+'</button>';}).join("");
+      res.innerHTML=tit+'<div class="res-vazio"><p>Não achamos essa peça no catálogo. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p>'+
+        '<a class="btn btn-wpp" target="_blank" rel="noopener" href="'+link+'">Perguntar no WhatsApp</a>'+
+        '<div class="res-sug">'+sug+'</div></div>';
+    }
+  }
+  var t;
+  q.addEventListener("input",function(){ clearTimeout(t); t=setTimeout(render,120); });
+  q.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); q.blur(); } });
+  var area=document.getElementById("busca"), campo=document.getElementById("busca-campo"), fechar=document.getElementById("fechar-busca");
+  function abrirBusca(){
+    area.classList.add("aberta"); campo.hidden=false;
+    q.focus();   /* no mesmo toque: abre o teclado no celular e o cursor no computador */
+    area.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+  function fecharBusca(){
+    q.value=""; render(); campo.hidden=true; area.classList.remove("aberta");
+  }
+  fechar.addEventListener("click",fecharBusca);
+  limpar.addEventListener("click",function(){ q.value=""; render(); q.focus(); });
+  q.addEventListener("keydown",function(e){ if(e.key==="Escape"){ if(q.value){ q.value=""; render(); } else fecharBusca(); } });
+  res.addEventListener("click",function(e){
+    var b=e.target.closest("[data-sec]"); if(!b) return;
+    fecharBusca();
+    var alvo=document.getElementById(b.dataset.sec); if(alvo) alvo.scrollIntoView({behavior:"smooth"});
+  });
+  /* atalho "Buscar" na barra de navegação */
+  var nav=document.getElementById("nav");
+  if(nav){
+    nav.insertAdjacentHTML("afterbegin",'<a href="#busca" class="nav-busca" aria-label="Buscar peça"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>&nbsp;Buscar</a>');
+    nav.addEventListener("click",function(e){
+      if(e.target.closest(".nav-busca")){ e.preventDefault(); abrirBusca(); }
+    });
+  }
+})();
 </script>
 </body>
 </html>
