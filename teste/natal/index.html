@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1F5B3F">
 <meta name="robots" content="noindex">
@@ -286,10 +286,23 @@
 
   /* ===== Busca ===== */
   .busca{position:relative;max-width:640px;margin:26px auto 4px;scroll-margin-top:60px}
+  .abrir-busca{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto;min-height:58px;padding:0 34px;border:0;border-radius:999px;cursor:pointer;
+    background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;font:inherit;font-size:1.12rem;font-weight:700;letter-spacing:.01em;
+    box-shadow:0 10px 24px rgba(20,61,42,.28);transition:transform .15s,box-shadow .2s}
+  .abrir-busca svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+  @media(hover:hover){.abrir-busca:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,61,42,.34)}}
+  .abrir-busca:active{transform:scale(.98)}
+  .busca-campo{display:flex;align-items:center;gap:8px}
+  .busca-campo[hidden]{display:none}
+  .busca-input{position:relative;flex:1;min-width:0}
+  .voltar-busca{flex:0 0 auto;min-height:54px;padding:0 15px;border:1.5px solid #e0d3b8;border-radius:999px;background:#fff;color:var(--green-d);font:inherit;font-weight:700;cursor:pointer}
+  .voltar-busca:hover{background:#f6efdf}
   .busca label{position:absolute;left:18px;top:50%;transform:translateY(-50%);display:flex;color:var(--green);pointer-events:none}
   .busca svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-  .busca input{width:100%;height:54px;border-radius:999px;border:1.5px solid #e0d3b8;background:#fff;padding:0 50px 0 50px;font:inherit;font-size:16px;color:var(--ink);
+  .busca input{width:100%;height:54px;border-radius:999px;border:1.5px solid #e0d3b8;background:#fff;padding:0 14px 0 46px;font:inherit;font-size:16px;color:var(--ink);
     box-shadow:0 6px 18px rgba(80,40,20,.08);transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+  .busca input:not(:placeholder-shown){padding-right:50px}
+  .busca label{left:16px}
   .busca input::placeholder{color:#9a8b7d}
   .busca input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(31,91,63,.15),0 6px 18px rgba(80,40,20,.08)}
   .busca input::-webkit-search-cancel-button{display:none}
@@ -324,9 +337,17 @@
 
 <main>
   <div class="busca" id="busca" role="search">
-    <label for="q" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></label>
-    <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar peça pelo nome ou código" aria-label="Buscar peça pelo nome ou código">
-    <button type="button" class="limpar" id="q-limpar" aria-label="Limpar busca" hidden>&times;</button>
+    <button type="button" class="abrir-busca" id="abrir-busca" aria-controls="busca-campo" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Buscar peça</span>
+    </button>
+    <div class="busca-campo" id="busca-campo" hidden>
+      <div class="busca-input">
+        <label for="q" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></label>
+        <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar pelo nome ou código" aria-label="Buscar pelo nome ou código">
+        <button type="button" class="limpar" id="q-limpar" aria-label="Apagar o texto" hidden>&times;</button>
+      </div>
+      <button type="button" class="voltar-busca" id="fechar-busca">Voltar</button>
+    </div>
   </div>
   <section id="resultados" hidden aria-live="polite"></section>
   <div id="secoes"></div>
@@ -837,14 +858,23 @@ document.addEventListener("click", e=>{
   }
   var t;
   q.addEventListener("input",function(){ clearTimeout(t); t=setTimeout(render,120); });
-  q.addEventListener("keydown",function(e){
-    if(e.key==="Escape"){ q.value=""; render(); }
-    if(e.key==="Enter"){ e.preventDefault(); q.blur(); }
-  });
+  q.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); q.blur(); } });
+  var area=document.getElementById("busca"), campo=document.getElementById("busca-campo"), abrir=document.getElementById("abrir-busca"), fechar=document.getElementById("fechar-busca");
+  function abrirBusca(){
+    abrir.hidden=true; abrir.setAttribute("aria-expanded","true"); campo.hidden=false;
+    q.focus();   /* no mesmo toque: abre o teclado no celular e o cursor no computador */
+    area.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+  function fecharBusca(){
+    q.value=""; render(); campo.hidden=true; abrir.hidden=false; abrir.setAttribute("aria-expanded","false"); abrir.focus({preventScroll:true});
+  }
+  abrir.addEventListener("click",abrirBusca);
+  fechar.addEventListener("click",fecharBusca);
   limpar.addEventListener("click",function(){ q.value=""; render(); q.focus(); });
+  q.addEventListener("keydown",function(e){ if(e.key==="Escape"){ if(q.value){ q.value=""; render(); } else fecharBusca(); } });
   res.addEventListener("click",function(e){
     var b=e.target.closest("[data-sec]"); if(!b) return;
-    q.value=""; render();
+    fecharBusca();
     var alvo=document.getElementById(b.dataset.sec); if(alvo) alvo.scrollIntoView({behavior:"smooth"});
   });
   /* atalho "Buscar" na barra de navegação */
@@ -852,7 +882,7 @@ document.addEventListener("click", e=>{
   if(nav){
     nav.insertAdjacentHTML("afterbegin",'<a href="#busca" class="nav-busca" aria-label="Buscar peça"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>&nbsp;Buscar</a>');
     nav.addEventListener("click",function(e){
-      if(e.target.closest(".nav-busca")){ e.preventDefault(); document.getElementById("busca").scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(function(){q.focus({preventScroll:true});},350); }
+      if(e.target.closest(".nav-busca")){ e.preventDefault(); abrirBusca(); }
     });
   }
 })();
