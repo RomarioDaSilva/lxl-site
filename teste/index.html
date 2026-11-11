@@ -107,6 +107,41 @@
 
   footer{text-align:center;color:#b9b19f;background:var(--musgo-dd);font-size:.85rem;padding:18px 16px 28px}
 
+
+  /* ===== Busca ===== */
+  .btn-buscar{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;min-height:52px;padding:0 30px;border:0;border-radius:999px;cursor:pointer;
+    background:linear-gradient(135deg,var(--musgo),var(--musgo-d));color:#fff;font:inherit;font-size:1.05rem;font-weight:700;box-shadow:0 8px 20px rgba(31,64,54,.28);transition:transform .15s,box-shadow .2s}
+  .btn-buscar svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+  @media(hover:hover){.btn-buscar:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(31,64,54,.36)}}
+  .h-busca{display:flex;align-items:center;gap:8px;max-width:640px;margin:0 auto 22px;scroll-margin-top:20px}
+  .h-busca[hidden]{display:none}
+  .h-input{position:relative;flex:1;min-width:0}
+  .h-input > svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--musgo);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+  .h-input input{width:100%;height:54px;border-radius:999px;border:1.5px solid #dccfb4;background:#fff;padding:0 14px 0 46px;font:inherit;font-size:16px;color:var(--cafe);
+    box-shadow:0 6px 18px rgba(30,30,28,.08);-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
+  .h-input input:not(:placeholder-shown){padding-right:50px}
+  .h-input input::placeholder{color:#9a9183}
+  .h-input input::-webkit-search-cancel-button{display:none}
+  .h-input input:focus{outline:none;border-color:var(--musgo);box-shadow:0 0 0 4px rgba(47,93,80,.16),0 6px 18px rgba(30,30,28,.08)}
+  .h-limpar{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:50%;background:#f0e7d4;color:var(--cafe);font-size:1.2rem;line-height:1;cursor:pointer}
+  .h-voltar{flex:0 0 auto;min-height:54px;padding:0 15px;border:1.5px solid #dccfb4;border-radius:999px;background:#fff;color:var(--musgo-d);font:inherit;font-weight:700;cursor:pointer}
+  .h-voltar:hover{background:#f6efdf}
+  #h-res .h-tit{font-family:Georgia,serif;font-size:1.35rem;color:var(--musgo);margin:6px 0 4px;text-align:center}
+  #h-res .h-sub{margin:0 0 16px;text-align:center;color:var(--muted);font-size:.95rem}
+  .h-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .h-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--linha);border-radius:16px;overflow:hidden;text-decoration:none;box-shadow:0 3px 12px rgba(30,30,28,.07);transition:transform .25s,box-shadow .25s}
+  @media(hover:hover){.h-card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(30,30,28,.13)}}
+  .h-card .f{position:relative;aspect-ratio:1/1;background:var(--areia);overflow:hidden}
+  .h-card .f img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .h-card .i{padding:10px 12px 14px;display:flex;flex-direction:column;gap:3px}
+  .h-card .c{font-size:.72rem;letter-spacing:.06em;color:var(--muted)}
+  .h-card .n{font-family:Georgia,serif;font-size:1rem;line-height:1.25;color:var(--cafe);font-weight:700}
+  .h-card .p{font-weight:800;color:var(--terracota-d);margin-top:2px}
+  .h-card .k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--musgo);margin-top:4px}
+  .h-vazio{background:#fff;border:1px dashed #d9cfb9;border-radius:18px;padding:24px 18px;text-align:center}
+  .h-vazio p{margin:0 0 14px;color:var(--muted)}
+  @media(min-width:780px){.h-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
+
   /* ===== Entrada suave ===== */
   @keyframes subir{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
   .hero > *{animation:subir .8s ease backwards}
@@ -135,8 +170,20 @@
       <span class="eyebrow">Catálogos</span>
       <h2>Escolha por onde começar</h2>
       <p>Toque no catálogo para ver as peças e os valores.</p>
+      <button type="button" class="btn-buscar" id="h-abrir" aria-controls="h-campo" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar
+      </button>
     </div>
-    <a class="destaque rev" href="natal/">
+    <div class="h-busca" id="h-campo" role="search" hidden>
+      <div class="h-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="h-q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar pelo nome ou código" aria-label="Buscar pelo nome ou código">
+        <button type="button" class="h-limpar" id="h-limpar" aria-label="Apagar o texto" hidden>&times;</button>
+      </div>
+      <button type="button" class="h-voltar" id="h-fechar">Voltar</button>
+    </div>
+    <div id="h-res" hidden aria-live="polite"></div>
+    <a class="destaque rev" id="h-destaque" href="natal/">
       <div class="foto"><span class="selo">Novo</span><img src="natal/imagens/PRE-007.jpg" alt="Catálogo de Natal 2026" onerror="this.remove()"></div>
       <div class="info">
         <span class="tag">Edição 2026</span>
@@ -147,7 +194,7 @@
     </a>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="sec-breve">
     <div class="sec-head rev">
       <span class="eyebrow">Em breve</span>
       <h2>Vem mais por aí</h2>
@@ -172,7 +219,7 @@
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="sec-passos">
     <div class="sec-head rev">
       <span class="eyebrow">Como pedir</span>
       <h2>Simples e direto</h2>
@@ -202,6 +249,75 @@
   var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
   document.getElementById("cta").href = wa;
   document.getElementById("cta-topo").href = wa;
+</script>
+<script>
+/* ===== Busca nos catálogos ===== */
+(function(){
+  var abrir=document.getElementById("h-abrir"), campo=document.getElementById("h-campo"), q=document.getElementById("h-q"),
+      limpar=document.getElementById("h-limpar"), fechar=document.getElementById("h-fechar"), res=document.getElementById("h-res"),
+      destaque=document.getElementById("h-destaque"), breve=document.getElementById("sec-breve"), passos=document.getElementById("sec-passos");
+  var dados=null, carregando=null, falhou=false;
+  var BRL=function(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); };
+  function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function termos(v){ return norm(v).split(" ").filter(Boolean).map(function(t){ return t.length>3&&/s$/.test(t)?t.slice(0,-1):t; }); }
+  function carregar(){
+    if(dados||carregando) return carregando;
+    carregando=fetch("natal/busca-indice.json").then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+      dados=j.map(function(p){ return {p:p,
+        hn:" "+norm([p.sku,p.nome,p.tag,p.secao,p.top?"mais vendido":""].join(" "))+" ",
+        hd:" "+norm([p.desc,p.cor].join(" "))+" "}; });
+    }).catch(function(){ falhou=true; });
+    return carregando;
+  }
+  function noNome(it,t){ return it.hn.indexOf(" "+t)>-1; }
+  function naDesc(it,t){ return it.hd.indexOf(" "+t+" ")>-1||it.hd.indexOf(" "+t+"s ")>-1||it.hd.indexOf(" "+t+"es ")>-1; }
+  function buscar(v){
+    var ts=termos(v), out=[];
+    dados.forEach(function(it,i){
+      if(ts.every(function(t){return noNome(it,t)||naDesc(it,t);})) out.push({p:it.p,i:i,w:ts.every(function(t){return noNome(it,t);})?0:1});
+    });
+    return out.sort(function(a,b){return a.w-b.w||a.i-b.i;}).map(function(x){return x.p;});
+  }
+  function lista(sim){ destaque.hidden=!sim; breve.hidden=!sim; passos.hidden=!sim; res.hidden=sim; }
+  function render(){
+    var v=q.value, tem=norm(v).length>0;
+    limpar.hidden=!v.length;
+    if(!tem){ lista(true); res.innerHTML=""; return; }
+    lista(false);
+    if(falhou){ res.innerHTML='<div class="h-vazio"><p>Não foi possível carregar a busca agora. Você pode procurar direto no catálogo.</p><a class="btn btn-main" href="natal/">Abrir catálogo de Natal</a></div>'; return; }
+    if(!dados){ res.innerHTML='<p class="h-sub">Buscando...</p>'; carregar().then(render); return; }
+    var a=buscar(v);
+    var tit='<h3 class="h-tit">'+(a.length?a.length+(a.length===1?" peça encontrada":" peças encontradas"):"Nada encontrado")+'</h3><p class="h-sub">Busca por &ldquo;'+esc(v.trim())+'&rdquo;</p>';
+    if(a.length){
+      res.innerHTML=tit+'<div class="h-grid">'+a.map(function(p){
+        return '<a class="h-card" href="'+p.u+'#/p/'+p.sku+'"><div class="f"><img src="'+p.u+'imagens/'+p.foto+'.jpg" alt="'+esc(p.nome)+'" loading="lazy" onerror="this.remove()"></div>'+
+          '<div class="i"><span class="c">'+p.sku+'</span><span class="n">'+esc(p.nome)+'</span>'+(p.preco!==null?'<span class="p">'+BRL(p.preco)+'</span>':'<span class="p">Consulte o valor</span>')+'<span class="k">Ver peça</span></div></a>';
+      }).join("")+'</div>';
+    }else{
+      var msg="Olá! Procurei "+v.trim()+" no site da LXL Projetos e não encontrei. Vocês fazem?";
+      res.innerHTML=tit+'<div class="h-vazio"><p>Não achamos essa peça nos catálogos. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p><a class="btn btn-wpp" target="_blank" rel="noopener" href="https://wa.me/5538992214206?text='+encodeURIComponent(msg)+'">Perguntar no WhatsApp</a></div>';
+    }
+  }
+  function abrirBusca(){
+    abrir.hidden=true; abrir.setAttribute("aria-expanded","true"); campo.hidden=false;
+    q.focus();   /* no mesmo toque: teclado no celular e cursor no computador */
+    campo.scrollIntoView({behavior:"smooth",block:"center"});
+    carregar();
+  }
+  function fecharBusca(){
+    q.value=""; render(); campo.hidden=true; abrir.hidden=false; abrir.setAttribute("aria-expanded","false");
+  }
+  var t;
+  abrir.addEventListener("click",abrirBusca);
+  fechar.addEventListener("click",fecharBusca);
+  limpar.addEventListener("click",function(){ q.value=""; render(); q.focus(); });
+  q.addEventListener("input",function(){ clearTimeout(t); t=setTimeout(render,120); });
+  q.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){ if(q.value){ q.value=""; render(); } else fecharBusca(); }
+    if(e.key==="Enter"){ e.preventDefault(); q.blur(); }
+  });
+})();
 </script>
 </body>
 </html>
