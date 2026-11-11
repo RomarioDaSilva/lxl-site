@@ -36,13 +36,13 @@ function modal(html) {
   const f = document.createElement('div');
   f.className = 'mf';
   f.innerHTML = '<div class="mc">' + html + '</div>';
-  const fechar = () => { f.remove(); document.removeEventListener('keydown', esc_); };
-  const esc_ = e => { if (e.key === 'Escape') fechar(); };
-  f.addEventListener('mousedown', e => { if (e.target === f) fechar(); });
-  document.addEventListener('keydown', esc_);
-  document.body.appendChild(f);
+  const fechar = () => { f.remove(); document.removeEventListener('keydown', tecla); };
+  const tecla = e => { if (e.key !== 'Escape') return; const todos = document.querySelectorAll('.mf'); if (todos[todos.length - 1] === f) f.fechar(); };
   f.fechar = fechar;
-  f.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', fechar));
+  f.addEventListener('mousedown', e => { if (e.target === f) f.fechar(); });
+  document.addEventListener('keydown', tecla);
+  document.body.appendChild(f);
+  f.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => f.fechar()));
   return f;
 }
 
@@ -111,6 +111,8 @@ async function telaPedidos() {
 }
 
 /* ---------- produtos (cache) ---------- */
+let coresLista = [];
+const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
 async function carregarCatalogo() {
   if (catalogo) return catalogo;
@@ -138,7 +140,7 @@ document.addEventListener('error', e => {
 }, true);
 
 async function carregarProdutos(forcar) {
-  if (!produtos || forcar) produtos = (await api('produtos')).produtos;
+  if (!produtos || forcar) { const j = await api('produtos'); produtos = j.produtos; coresLista = j.cores || []; }
   return produtos;
 }
 
@@ -196,14 +198,24 @@ function desenharItens() {
   if (!P.itens.length) { box.innerHTML = '<div class="vazio">Nenhum item ainda.</div>'; totais(); return; }
   box.innerHTML = P.itens.map((i, n) => {
     const p = i.produto_id && produtos.find(x => x.id === i.produto_id);
-    const aviso = p && p.controla && p.estoque < i.qtd ? '<div class="neg" style="font-size:13px">Estoque atual: ' + p.estoque + '</div>' : '';
-    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="Descrição do item">') + '</div>' + aviso +
+    const cq = p && i.cor_id ? p.cores.find(c => c.cor_id === i.cor_id) : null;
+    const disp = cq ? cq.qtd : (p ? p.estoque : 0);
+    const aviso = p && p.controla && disp < i.qtd ? '<div class="neg" style="font-size:13px">Estoque atual' + (cq ? ' (' + esc(cq.nome) + ')' : '') + ': ' + disp + '</div>' : '';
+    const seletor = p && p.usa_cores ? '<select class="corsel" data-cs="' + n + '"><option value="">Escolha a cor</option>' + p.cores.map(c => '<option value="' + c.cor_id + '"' + (c.cor_id === i.cor_id ? ' selected' : '') + '>' + esc(c.nome) + ' (' + c.qtd + ' em estoque)</option>').join('') + '</select>' : '';
+    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="Descrição do item">') + '</div>' + seletor + aviso +
       '<div class="lin"><div class="qtd"><button type="button" data-menos="' + n + '">&minus;</button><span>' + i.qtd + '</span><button type="button" data-mais="' + n + '">+</button></div>' +
       '<input type="text" inputmode="decimal" class="preco" data-p="' + n + '" value="' + fmtIn(i.preco) + '" placeholder="Preço un.">' +
       '<span class="sub" data-sub="' + n + '"></span><button class="x" type="button" data-rm="' + n + '" aria-label="Remover">&times;</button></div></div>';
   }).join('');
   box.querySelectorAll('[data-menos]').forEach(b => b.onclick = () => { const i = P.itens[+b.dataset.menos]; if (i.qtd > 1) i.qtd--; desenharItens(); });
   box.querySelectorAll('[data-mais]').forEach(b => b.onclick = () => { P.itens[+b.dataset.mais].qtd++; desenharItens(); });
+  box.querySelectorAll('[data-cs]').forEach(sel => sel.onchange = () => {
+    const i = P.itens[+sel.dataset.cs], pr = produtos.find(x => x.id === i.produto_id);
+    const c = pr && pr.cores.find(x => x.cor_id === +sel.value);
+    i.cor_id = c ? c.cor_id : null; i.cor = c ? c.nome : '';
+    i.descricao = pr.nome + (c ? ' (' + c.nome + ')' : '');
+    desenharItens();
+  });
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { P.itens.splice(+b.dataset.rm, 1); desenharItens(); });
   box.querySelectorAll('[data-p]').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.p].preco = parseNum(el.value); totais(); }));
   box.querySelectorAll('.desc').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].descricao = el.value; }));
@@ -216,12 +228,16 @@ function abrirPicker() {
     const q = $('#pq', m).value.toLowerCase().trim();
     const l = produtos.filter(p => p.ativo && (!q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q))).slice(0, 60);
     $('#pl', m).innerHTML = l.length ? l.map(p =>
-      '<div class="prod" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + p.estoque : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div></div><b>' + brl(p.preco) + '</b></div>').join('')
+      '<div class="prod" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + (p.usa_cores ? p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') : p.estoque) : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div></div><b>' + brl(p.preco) + '</b></div>').join('')
       : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item avulso".</div>';
     m.querySelectorAll('.prod').forEach(el => el.onclick = () => {
       const p = produtos.find(x => x.id === +el.dataset.id);
-      const ex = P.itens.find(i => i.produto_id === p.id);
-      if (ex) ex.qtd++; else P.itens.push({ produto_id: p.id, descricao: p.nome, qtd: 1, preco: p.preco });
+      const ex = p.usa_cores ? null : P.itens.find(i => i.produto_id === p.id);
+      if (ex) ex.qtd++;
+      else if (p.usa_cores) {
+        const so = p.cores.length === 1 ? p.cores[0] : null;
+        P.itens.push({ produto_id: p.id, cor_id: so ? so.cor_id : null, cor: so ? so.nome : '', descricao: p.nome + (so ? ' (' + so.nome + ')' : ''), qtd: 1, preco: p.preco });
+      } else P.itens.push({ produto_id: p.id, descricao: p.nome, qtd: 1, preco: p.preco });
       desenharItens(); toast('Adicionado: ' + p.nome);
     });
   };
@@ -263,6 +279,8 @@ function lerWhats(t) {
 }
 
 async function salvarPedido() {
+  const semCor = P.itens.find(i => { const pr = i.produto_id && produtos.find(x => x.id === i.produto_id); return pr && pr.usa_cores && !i.cor_id; });
+  if (semCor) return toast('Escolha a cor de ' + semCor.descricao + '.');
   const b = $('#salvar'); b.disabled = true;
   try {
     const j = await api('pedido_salvar', P);
@@ -330,7 +348,7 @@ async function telaEstoque() {
   quadro('estoque', '<p class="carregando">Carregando...</p>');
   try { await Promise.all([carregarProdutos(true), carregarCatalogo()]); } catch (e) { return toast(e.message); }
   $('.wrap').innerHTML =
-    '<h1>Estoque</h1><div class="barra"><button class="btn o" id="novo" type="button">Novo produto</button><button class="btn l" id="imp" type="button">Importar do catálogo</button></div>' +
+    '<h1>Estoque</h1><div class="barra"><button class="btn o" id="novo" type="button">Novo produto</button><button class="btn l" id="imp" type="button">Importar do catálogo</button><button class="btn l" id="cores" type="button">Cores</button></div>' +
     '<div class="chips">' + [['todos', 'Todos'], ['pronta', 'Pronta entrega'], ['encomenda', 'Sob encomenda'], ['inativos', 'Inativos']].map(([k, t]) => '<button class="chip ' + (fEst === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('') + '</div>' +
     '<div class="l2"><select id="sec"><option value="">Todas as seções</option>' +
     catalogo.secoes.map(s => '<option value="' + esc(s) + '"' + (sEst === s ? ' selected' : '') + '>' + esc(s) + ' (' + produtos.filter(p => p.ativo && secaoDe(p) === s).length + ')</option>').join('') +
@@ -348,7 +366,7 @@ async function telaEstoque() {
     });
     $('#lista').innerHTML = l.length ? l.map(p =>
       '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div></div></div>' +
-      (p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
+      (p.controla && p.usa_cores ? '<div class="cmini">' + p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') + '<b class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</b></div>' : p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
       : '<div class="vazio">Nenhum produto aqui. Toque em "Novo produto" ou "Importar do catálogo".</div>';
     $('#lista').querySelectorAll('.prod').forEach(el => el.onclick = ev => {
       if (ev.target.closest('[data-stop]')) return;
@@ -363,26 +381,83 @@ async function telaEstoque() {
   $('#sec').onchange = e => { sEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;
+  $('#cores').onclick = () => gerenciarCores(() => telaEstoque());
   desenha();
 }
 
 function formProduto(p) {
-  const n = p || { id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '' };
+  const n = p || { id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '', usa_cores: 0, cores: [] };
+  const qs = {}; n.cores.forEach(c => { qs[c.cor_id] = c.qtd; });
+  const existiam = new Set(n.cores.map(c => c.cor_id));
   const m = modal('<h2>' + (p ? 'Editar produto' : 'Novo produto') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
     '<label>Nome *</label><input type="text" id="nome" value="' + esc(n.nome) + '"><div class="l2"><div><label>Código</label><input type="text" id="codigo" value="' + esc(n.codigo) + '" placeholder="ex: PRE-001"></div>' +
     '<div><label>Preço (R$)</label><input type="text" inputmode="decimal" id="preco" value="' + fmtIn(n.preco) + '"></div></div>' +
     '<label>Tipo</label><select id="controla"><option value="1"' + (n.controla ? ' selected' : '') + '>Pronta entrega (controla estoque)</option><option value="0"' + (n.controla ? '' : ' selected') + '>Sob encomenda (sem estoque)</option></select>' +
-    '<div id="eb"><label>Quantidade em estoque</label><input type="text" inputmode="numeric" id="estoque" value="' + n.estoque + '"></div><p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
+    '<div id="eb"><label>Quantidade total em estoque</label><input type="text" inputmode="numeric" id="estoque" value="' + n.estoque + '">' +
+    '<div class="ck"><input type="checkbox" id="usaCores"' + (n.usa_cores ? ' checked' : '') + '><label style="margin:0;color:inherit">Esta peça tem mais de uma cor</label></div>' +
+    '<div id="cbox" class="cbox"></div></div>' +
+    '<p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
     '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button></div>');
+  const total = () => parseInt($('#estoque', m).value, 10) || 0;
+  const soma = () => coresLista.reduce((s, c) => s + (qs[c.id] > 0 ? qs[c.id] : 0), 0);
+  const contador = () => {
+    const el = $('#cont', m); if (!el) return;
+    const s = soma(), tt = total();
+    el.className = 'cont ' + (s === tt ? 'ok' : 'erro2');
+    el.textContent = s === tt ? 'Tudo certo: ' + s + ' de ' + tt + ' distribuídos.' : (s < tt ? 'Faltam distribuir ' + (tt - s) + ' (distribuído ' + s + ' de ' + tt + ').' : 'Passou ' + (s - tt) + ' do total (distribuído ' + s + ' de ' + tt + ').');
+  };
+  const desenhaCores = () => {
+    const box = $('#cbox', m);
+    if (!$('#usaCores', m).checked) { box.innerHTML = ''; return; }
+    box.innerHTML = (coresLista.length ? coresLista.map(c =>
+      '<div class="corlin">' + bol(c.hex) + '<span class="cn">' + esc(c.nome) + '</span><input type="text" inputmode="numeric" class="cq" data-cor="' + c.id + '" value="' + (qs[c.id] > 0 || existiam.has(c.id) ? (qs[c.id] || 0) : '') + '" placeholder="0"></div>').join('')
+      : '<p class="mut" style="margin:4px 0">Nenhuma cor cadastrada ainda. Toque em "Cadastrar cor" abaixo.</p>') +
+      '<div class="cont" id="cont"></div>' +
+      '<div class="acoes"><button class="btn s l" id="novaCor" type="button">Cadastrar cor</button><button class="btn s l" id="editCores" type="button">Editar cores</button></div>' +
+      '<div id="ncbox" hidden class="ncbox"><input type="text" id="ncNome" placeholder="Nome da cor (ex: Vermelho)"><input type="color" id="ncHex" value="#c0392b" aria-label="Cor"><button class="btn s" id="ncOk" type="button">Salvar cor</button></div>';
+    box.querySelectorAll('.cq').forEach(el => el.addEventListener('input', () => { qs[+el.dataset.cor] = parseInt(el.value, 10) || 0; contador(); }));
+    $('#novaCor', m).onclick = () => { const b = $('#ncbox', m); b.hidden = !b.hidden; if (!b.hidden) $('#ncNome', m).focus(); };
+    $('#ncOk', m).onclick = async () => {
+      try { const j = await api('cor_salvar', { nome: $('#ncNome', m).value, hex: $('#ncHex', m).value }); coresLista = j.cores; desenhaCores(); toast('Cor cadastrada.'); }
+      catch (e) { toast(e.message); }
+    };
+    $('#editCores', m).onclick = () => gerenciarCores(() => { desenhaCores(); });
+    contador();
+  };
   const eb = () => { const c = $('#controla', m).value === '1'; $('#eb', m).style.display = c ? '' : 'none'; $('#eh', m).style.display = c ? 'none' : ''; };
   $('#controla', m).onchange = eb; eb();
+  $('#usaCores', m).onchange = desenhaCores;
+  $('#estoque', m).addEventListener('input', contador);
+  desenhaCores();
   $('#ok', m).onclick = async () => {
+    const usa = $('#controla', m).value === '1' && $('#usaCores', m).checked;
+    if (usa && soma() !== total()) return toast('As cores somam ' + soma() + ', mas o estoque total é ' + total() + '. Ajuste para ficarem iguais.');
     try {
-      await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: parseInt($('#estoque', m).value, 10) || 0, ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value });
+      await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: total(), ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value,
+        usa_cores: usa ? 1 : 0, cores: usa ? coresLista.filter(c => qs[c.id] > 0 || existiam.has(c.id)).map(c => ({ cor_id: c.id, qtd: qs[c.id] || 0 })) : [] });
       m.fechar(); telaEstoque(); toast('Produto salvo.');
     } catch (e) { toast(e.message); }
   };
+}
+
+function gerenciarCores(aoFechar) {
+  const m = modal('<h2>Cores cadastradas <button class="btn s l" data-fechar type="button">Concluir</button></h2><div id="lc"></div>');
+  const fecharOrig = m.fechar;
+  m.fechar = () => { fecharOrig(); if (aoFechar) aoFechar(); };
+  const desenha = () => {
+    $('#lc', m).innerHTML = coresLista.map(c =>
+      '<div class="gc" data-id="' + c.id + '"><input type="color" value="' + esc(c.hex) + '" class="gh"><input type="text" class="gn" value="' + esc(c.nome) + '"><button class="btn s l" data-sv type="button">Salvar</button><button class="btn s r" data-ex type="button">Excluir</button></div>').join('') +
+      '<div class="gc novo"><input type="color" value="#c0392b" class="gh" id="gnh"><input type="text" class="gn" id="gnn" placeholder="Nova cor (nome)"><button class="btn s" id="gna" type="button">Adicionar</button></div>' +
+      (coresLista.length ? '' : '<p class="mut">Ainda não há cores. Adicione a primeira acima.</p>');
+    m.querySelectorAll('.gc[data-id]').forEach(row => {
+      const id = +row.dataset.id;
+      row.querySelector('[data-sv]').onclick = async () => { try { const j = await api('cor_salvar', { id, nome: row.querySelector('.gn').value, hex: row.querySelector('.gh').value }); coresLista = j.cores; produtos = null; toast('Cor salva.'); desenha(); } catch (e) { toast(e.message); } };
+      row.querySelector('[data-ex]').onclick = async () => { if (!confirm('Excluir a cor "' + row.querySelector('.gn').value + '"?')) return; try { const j = await api('cor_excluir', { id }); coresLista = j.cores; desenha(); } catch (e) { toast(e.message); } };
+    });
+    $('#gna', m).onclick = async () => { try { const j = await api('cor_salvar', { nome: $('#gnn', m).value, hex: $('#gnh', m).value }); coresLista = j.cores; toast('Cor cadastrada.'); desenha(); } catch (e) { toast(e.message); } };
+  };
+  desenha();
 }
 
 async function importarCatalogo() {

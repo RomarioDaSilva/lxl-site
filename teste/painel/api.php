@@ -20,6 +20,13 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS produtos (id $pk, codigo VARCHAR(40) DEFAULT '', nome VARCHAR(160) NOT NULL, preco DECIMAL(10,2) DEFAULT 0, controla TINYINT DEFAULT 1, estoque INT DEFAULT 0, ativo TINYINT DEFAULT 1, obs VARCHAR(255) DEFAULT '')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS pedidos (id $pk, data VARCHAR(10), cliente VARCHAR(120), whatsapp VARCHAR(30) DEFAULT '', pagamento VARCHAR(30) DEFAULT '', pago TINYINT DEFAULT 0, entrega VARCHAR(20) DEFAULT 'Retirada', endereco VARCHAR(255) DEFAULT '', prazo VARCHAR(60) DEFAULT '', obs TEXT, desconto DECIMAL(10,2) DEFAULT 0, frete DECIMAL(10,2) DEFAULT 0, total DECIMAL(10,2) DEFAULT 0, status VARCHAR(20) DEFAULT 'novo', criado_em VARCHAR(19))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS itens (id $pk, pedido_id INT NOT NULL, produto_id INT NULL, descricao VARCHAR(200), qtd INT DEFAULT 1, preco DECIMAL(10,2) DEFAULT 0)$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
+    /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
+    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"]] as [$tab, $col, $def]) {
+        try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
+        catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
+    }
 }
 
 /* ---------- sessão e segurança ---------- */
@@ -67,12 +74,28 @@ function num($v): float {
     if (is_string($v)) $v = str_replace(',', '.', $v);
     return is_numeric($v) ? round((float)$v, 2) : 0.0;
 }
-function produtoOut(array $p): array {
+function produtoOut(array $p, array $mapaCores = []): array {
     return [
         'id' => (int)$p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'],
         'preco' => (float)$p['preco'], 'controla' => (int)$p['controla'],
         'estoque' => (int)$p['estoque'], 'ativo' => (int)$p['ativo'], 'obs' => $p['obs'],
+        'usa_cores' => (int)($p['usa_cores'] ?? 0),
+        'cores' => $mapaCores[(int)$p['id']] ?? [],
     ];
+}
+function mapaDeCores(): array {
+    $r = db()->query('SELECT pc.produto_id, pc.cor_id, pc.qtd, c.nome, c.hex FROM produto_cores pc JOIN cores c ON c.id = pc.cor_id ORDER BY c.nome')->fetchAll();
+    $m = [];
+    foreach ($r as $x) $m[(int)$x['produto_id']][] = ['cor_id' => (int)$x['cor_id'], 'nome' => $x['nome'], 'hex' => $x['hex'], 'qtd' => (int)$x['qtd']];
+    return $m;
+}
+function listaDeCores(): array {
+    return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'hex' => $c['hex']], db()->query('SELECT * FROM cores ORDER BY nome')->fetchAll());
+}
+function produtoPorId(int $id): ?array {
+    $s = db()->prepare('SELECT * FROM produtos WHERE id = ?'); $s->execute([$id]);
+    $p = $s->fetch();
+    return $p ? produtoOut($p, mapaDeCores()) : null;
 }
 function pedidoOut(array $p, ?array $itens = null): array {
     $r = [
@@ -85,6 +108,7 @@ function pedidoOut(array $p, ?array $itens = null): array {
     if ($itens !== null) {
         $r['itens'] = array_map(fn($i) => [
             'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'],
+            'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
             'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
         ], $itens);
     }
@@ -101,6 +125,10 @@ function ajustarEstoque(array $itens, int $sinal): void {
         if (empty($i['produto_id'])) continue;
         $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ? AND controla = 1')
            ->execute([$sinal * (int)$i['qtd'], (int)$i['produto_id']]);
+        if (!empty($i['cor_id'])) {
+            $db->prepare('UPDATE produto_cores SET qtd = qtd + ? WHERE produto_id = ? AND cor_id = ?')
+               ->execute([$sinal * (int)$i['qtd'], (int)$i['produto_id'], (int)$i['cor_id']]);
+        }
     }
 }
 
@@ -169,7 +197,8 @@ case 'logout': {
 /* ----- produtos ----- */
 case 'produtos': {
     $r = $db->query('SELECT * FROM produtos ORDER BY ativo DESC, nome')->fetchAll();
-    out(['produtos' => array_map('produtoOut', $r)]);
+    $m = mapaDeCores();
+    out(['produtos' => array_map(fn($p) => produtoOut($p, $m), $r), 'cores' => listaDeCores()]);
 }
 
 case 'produto_salvar': {
@@ -182,24 +211,70 @@ case 'produto_salvar': {
         $s->execute([$codigo, $id]);
         if ($s->fetch()) fail('Já existe um produto com esse código.');
     }
-    $d = [$codigo, $nome, num($in['preco'] ?? 0), empty($in['controla']) ? 0 : 1, (int)($in['estoque'] ?? 0), empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255)];
-    if ($id) {
-        $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=? WHERE id=?')->execute([...$d, $id]);
-    } else {
-        $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs) VALUES (?,?,?,?,?,?,?)')->execute($d);
-        $id = (int)$db->lastInsertId();
+    $controla = empty($in['controla']) ? 0 : 1;
+    $estoque = (int)($in['estoque'] ?? 0);
+    $usa = ($controla && !empty($in['usa_cores'])) ? 1 : 0;
+    $linhas = [];
+    if ($usa) {
+        $soma = 0; $vistas = [];
+        foreach (($in['cores'] ?? []) as $c) {
+            $cid = (int)($c['cor_id'] ?? 0); $q = (int)($c['qtd'] ?? 0);
+            if ($cid < 1 || isset($vistas[$cid])) continue;
+            if ($q < 0) fail('A quantidade de uma cor não pode ser negativa.');
+            $s = $db->prepare('SELECT id FROM cores WHERE id = ?'); $s->execute([$cid]);
+            if (!$s->fetch()) fail('Uma das cores escolhidas não existe mais. Atualize a página.');
+            $vistas[$cid] = 1; $soma += $q; $linhas[] = [$cid, $q];
+        }
+        if (!$linhas) fail('Escolha pelo menos uma cor e a quantidade de cada uma.');
+        if ($soma !== $estoque) fail('As cores somam ' . $soma . ', mas o estoque total é ' . $estoque . '. Ajuste para ficarem iguais.');
     }
-    $s = $db->prepare('SELECT * FROM produtos WHERE id = ?'); $s->execute([$id]);
-    out(['produto' => produtoOut($s->fetch())]);
+    $d = [$codigo, $nome, num($in['preco'] ?? 0), $controla, $estoque, empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255), $usa];
+    $db->beginTransaction();
+    try {
+        if ($id) {
+            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=? WHERE id=?')->execute([...$d, $id]);
+        } else {
+            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores) VALUES (?,?,?,?,?,?,?,?)')->execute($d);
+            $id = (int)$db->lastInsertId();
+        }
+        $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
+        foreach ($linhas as [$cid, $q]) $db->prepare('INSERT INTO produto_cores (produto_id, cor_id, qtd) VALUES (?,?,?)')->execute([$id, $cid, $q]);
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        fail('Não consegui salvar o produto.', 500);
+    }
+    out(['produto' => produtoPorId($id)]);
+}
+
+case 'cor_salvar': {
+    $id = (int)($in['id'] ?? 0);
+    $nome = txt($in['nome'] ?? '', 40);
+    if ($nome === '') fail('Informe o nome da cor.');
+    $hex = preg_match('/^#[0-9a-fA-F]{6}$/', (string)($in['hex'] ?? '')) ? strtolower($in['hex']) : '#cccccc';
+    $s = $db->prepare('SELECT id FROM cores WHERE LOWER(nome) = LOWER(?) AND id <> ?'); $s->execute([$nome, $id]);
+    if ($s->fetch()) fail('Já existe uma cor com esse nome.');
+    if ($id) $db->prepare('UPDATE cores SET nome = ?, hex = ? WHERE id = ?')->execute([$nome, $hex, $id]);
+    else { $db->prepare('INSERT INTO cores (nome, hex) VALUES (?, ?)')->execute([$nome, $hex]); $id = (int)$db->lastInsertId(); }
+    out(['id' => $id, 'cores' => listaDeCores()]);
+}
+
+case 'cor_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $s = $db->prepare('SELECT COUNT(*) FROM produto_cores WHERE cor_id = ?'); $s->execute([$id]);
+    if ((int)$s->fetchColumn() > 0) fail('Essa cor está em uso em alguma peça. Tire a cor da peça antes de excluir.');
+    $db->prepare('DELETE FROM cores WHERE id = ?')->execute([$id]);
+    out(['cores' => listaDeCores()]);
 }
 
 case 'produto_ajustar': {
     $id = (int)($in['id'] ?? 0); $delta = (int)($in['delta'] ?? 0);
+    $s = $db->prepare('SELECT usa_cores FROM produtos WHERE id = ?'); $s->execute([$id]);
+    $x = $s->fetch();
+    if (!$x) fail('Produto não encontrado.', 404);
+    if ((int)$x['usa_cores'] === 1) fail('Essa peça tem cores. Abra a peça para ajustar a quantidade de cada cor.');
     $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ?')->execute([$delta, $id]);
-    $s = $db->prepare('SELECT * FROM produtos WHERE id = ?'); $s->execute([$id]);
-    $p = $s->fetch();
-    if (!$p) fail('Produto não encontrado.', 404);
-    out(['produto' => produtoOut($p)]);
+    out(['produto' => produtoPorId($id)]);
 }
 
 case 'produto_importar': {
@@ -263,7 +338,21 @@ case 'pedido_salvar': {
         $desc = txt($i['descricao'] ?? '', 200); $qtd = (int)($i['qtd'] ?? 0);
         if ($desc === '' || $qtd < 1) continue;
         $pid = !empty($i['produto_id']) ? (int)$i['produto_id'] : null;
-        $itens[] = ['produto_id' => $pid, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0))];
+        $cid = null; $corNome = '';
+        if ($pid) {
+            $s = $db->prepare('SELECT usa_cores, nome FROM produtos WHERE id = ?'); $s->execute([$pid]);
+            $pr = $s->fetch();
+            if ($pr && (int)$pr['usa_cores'] === 1) {
+                $cid = (int)($i['cor_id'] ?? 0);
+                if (!$cid) fail('Escolha a cor de ' . $pr['nome'] . '.');
+                $s = $db->prepare('SELECT c.nome FROM produto_cores pc JOIN cores c ON c.id = pc.cor_id WHERE pc.produto_id = ? AND pc.cor_id = ?');
+                $s->execute([$pid, $cid]);
+                $cr = $s->fetch();
+                if (!$cr) fail('A cor escolhida não existe em ' . $pr['nome'] . '.');
+                $corNome = $cr['nome'];
+            }
+        }
+        $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0))];
     }
     if (!$itens) fail('Adicione pelo menos um item.');
     $sub = 0.0; foreach ($itens as $i) $sub += $i['preco'] * $i['qtd'];
@@ -288,7 +377,7 @@ case 'pedido_salvar': {
             $id = (int)$db->lastInsertId();
         }
         foreach ($itens as $i) {
-            $db->prepare('INSERT INTO itens (pedido_id, produto_id, descricao, qtd, preco) VALUES (?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['descricao'], $i['qtd'], $i['preco']]);
+            $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco) VALUES (?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco']]);
         }
         if ($status !== 'cancelado') ajustarEstoque($itens, -1);
         $db->commit();
@@ -301,6 +390,11 @@ case 'pedido_salvar': {
         if (!$i['produto_id']) continue;
         $s = $db->prepare('SELECT nome, estoque FROM produtos WHERE id = ? AND controla = 1 AND estoque < 0'); $s->execute([$i['produto_id']]);
         if ($r = $s->fetch()) $neg[] = $r['nome'];
+        if ($i['cor_id']) {
+            $s = $db->prepare('SELECT p.nome, c.nome AS cor FROM produto_cores pc JOIN produtos p ON p.id = pc.produto_id JOIN cores c ON c.id = pc.cor_id WHERE pc.produto_id = ? AND pc.cor_id = ? AND pc.qtd < 0');
+            $s->execute([$i['produto_id'], $i['cor_id']]);
+            if ($r = $s->fetch()) $neg[] = $r['nome'] . ' (' . $r['cor'] . ')';
+        }
     }
     out(['id' => $id, 'avisos' => array_values(array_unique($neg))]);
 }

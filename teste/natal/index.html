@@ -78,6 +78,11 @@
   .info h3{font-size:.9rem;line-height:1.22}
   .entrega{display:inline-block;align-self:flex-start;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#f3e6cc;color:#6b4a12}
   .entrega.pronta{background:#dff1e6;color:var(--green-d)}
+  .cores-pronta{display:flex;gap:4px;align-self:flex-start}
+  .cores-pronta i,.cor-item i{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.3)}
+  .cor-item{display:inline-block;margin-right:10px;white-space:nowrap}
+  .cor-item i{margin-right:4px;vertical-align:-1px}
+  .cor-pronta{font-weight:600;color:var(--green-d)}
   .preco{margin-top:auto;padding-top:3px;font-size:1.12rem;font-weight:800;color:var(--red-d)}
   .preco s{font-size:.8rem;font-weight:500;color:var(--muted);margin-right:6px}
   .preco .mes{display:block;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--green-d);margin-top:1px}
@@ -538,7 +543,8 @@ function limiteHTML(){
   return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
 }
 function entregaHTML(p){
-  return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>':'';
+  const dots = p.coresPronta&&p.coresPronta.length ? '<span class="cores-pronta" aria-label="Cores em pronta entrega">'+p.coresPronta.map(c=>'<i title="'+c.n.replace(/"/g,"")+'" style="background:'+c.h+'"></i>').join('')+'</span>' : '';
+  return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>'+dots:'';
 }
 
 /* Card da lista: só código, título, prazo, valor e botão. Tocar no card abre a página do produto. */
@@ -599,7 +605,8 @@ function montar(){
 function detalheHTML(p){
   const fs = fotosDe(p);
   const temPreco = typeof p.preco==="number";
-  const cores = p.cor ? p.cor+'. Outras cores sob consulta.' : 'Consulte as cores disponíveis.';
+  const pronta = p.coresPronta&&p.coresPronta.length ? '<span class="cor-pronta">Em pronta entrega: </span>'+p.coresPronta.map(c=>'<span class="cor-item"><i style="background:'+c.h+'"></i>'+c.n.replace(/[<>&"]/g,"")+' ('+c.q+')</span>').join("")+'<br>' : '';
+  const cores = pronta+(p.cor ? p.cor+'. Outras cores sob consulta.' : 'Consulte as cores disponíveis.');
   const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : 'Consulte as medidas no WhatsApp.';
   const rel = PRODUTOS.filter(x=>x.secao===p.secao && x.sku!==p.sku).slice(0,4);
   return '<button class="voltar" type="button" id="voltar">&larr; Voltar</button>'+
@@ -795,6 +802,9 @@ fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).th
     const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
     if(n>0){ p.estoque=n; p.entrega="Pronta entrega: "+n+(n>1?" disponíveis":" disponível"); mudou=true; }
     if(v>0 && v!==p.preco){ p.preco=v; mudou=true; }
+    const cs=d.cores&&d.cores[p.sku];
+    p.coresPronta = Array.isArray(cs) ? cs.filter(c=>c&&c.q>0).map(c=>({n:String(c.n||""),h:/^#[0-9a-fA-F]{6}$/.test(c.h)?c.h:"#cccccc",q:c.q|0})) : null;
+    if(p.coresPronta&&p.coresPronta.length) mudou=true;
   });
   if(mudou){ const y=window.scrollY; montar(); rota(); if(document.getElementById("detalhe").hidden) window.scrollTo(0,y); }
 }).catch(()=>{});

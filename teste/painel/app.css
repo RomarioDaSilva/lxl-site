@@ -115,3 +115,24 @@ textarea{min-height:80px;resize:vertical}
 .prod .esq{display:flex;gap:10px;align-items:center;min-width:0}
 .th{width:52px;height:52px;flex:0 0 52px;border-radius:10px;object-fit:cover;background:#ece7db;display:flex;align-items:center;justify-content:center;font-size:22px}
 .th.sem{color:#a39a86}
+
+.bol{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.25);vertical-align:-2px;margin-right:3px}
+.cbox{background:#faf8f2;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px}
+.cbox:empty{display:none}
+.corlin{display:flex;align-items:center;gap:10px;padding:6px 0}
+.corlin .bol{width:22px;height:22px;margin:0}
+.corlin .cn{flex:1;font-weight:600}
+.corlin .cq{width:80px;text-align:center}
+.cont{font-size:13px;font-weight:700;margin:8px 0;padding:6px 10px;border-radius:8px}
+.cont.ok{background:#d9efe3;color:#1f6b45}.cont.erro2{background:#f6dcdc;color:#9a2020}
+.ncbox{display:flex;gap:8px;margin-top:8px;align-items:center}
+.ncbox input[type=text]{flex:1}
+input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line);border-radius:10px;background:#fff;flex:0 0 46px}
+.gc{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.gc .gn{flex:1;min-width:0}
+.gc .btn{padding:7px 10px}
+.gc.novo{border-top:1px solid var(--line);padding-top:10px}
+.cmini{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap}
+.cmini b{margin-left:6px;font-size:17px}
+.corsel{margin-top:6px}
+[hidden]{display:none!important}
