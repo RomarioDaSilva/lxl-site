@@ -786,14 +786,15 @@ montar();
 window.addEventListener("hashchange", rota);
 rota();
 
-/* Estoque ao vivo: o painel da LXL informa quais peças estão em pronta entrega.
+/* Estoque e preços ao vivo: o painel da LXL informa quais peças estão em pronta entrega e o preço de cada uma.
    Se o painel não responder, tudo continua como "Sob encomenda". */
 fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{
   if(!d||!d.itens) return;
   let mudou=false;
   PRODUTOS.forEach(p=>{
-    const n=d.itens[p.sku];
+    const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
     if(n>0){ p.estoque=n; p.entrega="Pronta entrega: "+n+(n>1?" disponíveis":" disponível"); mudou=true; }
+    if(v>0 && v!==p.preco){ p.preco=v; mudou=true; }
   });
   if(mudou){ const y=window.scrollY; montar(); rota(); if(document.getElementById("detalhe").hidden) window.scrollTo(0,y); }
 }).catch(()=>{});

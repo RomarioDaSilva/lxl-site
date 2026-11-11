@@ -341,10 +341,10 @@ function formProduto(p) {
     '<label>Nome *</label><input type="text" id="nome" value="' + esc(n.nome) + '"><div class="l2"><div><label>Código</label><input type="text" id="codigo" value="' + esc(n.codigo) + '" placeholder="ex: PRE-001"></div>' +
     '<div><label>Preço (R$)</label><input type="text" inputmode="decimal" id="preco" value="' + fmtIn(n.preco) + '"></div></div>' +
     '<label>Tipo</label><select id="controla"><option value="1"' + (n.controla ? ' selected' : '') + '>Pronta entrega (controla estoque)</option><option value="0"' + (n.controla ? '' : ' selected') + '>Sob encomenda (sem estoque)</option></select>' +
-    '<div id="eb"><label>Quantidade em estoque</label><input type="text" inputmode="numeric" id="estoque" value="' + n.estoque + '"></div>' +
+    '<div id="eb"><label>Quantidade em estoque</label><input type="text" inputmode="numeric" id="estoque" value="' + n.estoque + '"></div><p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
     '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button></div>');
-  const eb = () => { $('#eb', m).style.display = $('#controla', m).value === '1' ? '' : 'none'; };
+  const eb = () => { const c = $('#controla', m).value === '1'; $('#eb', m).style.display = c ? '' : 'none'; $('#eh', m).style.display = c ? 'none' : ''; };
   $('#controla', m).onchange = eb; eb();
   $('#ok', m).onclick = async () => {
     try {
