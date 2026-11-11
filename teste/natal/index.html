@@ -321,6 +321,8 @@
 
   .limite{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#FDE9EA;color:var(--red-d)}
   .limite svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .entrega,.limite{display:inline-flex;align-items:center;box-sizing:border-box;height:24px;padding:0 10px;font-size:.7rem;line-height:1;font-weight:700;border-radius:999px;align-self:flex-start}
+  .link-med{color:var(--green-d);font-weight:700;text-decoration:underline}
   .link-faq{display:inline-flex;margin-top:10px;font-weight:700;color:var(--green-d)}
   footer .links-uteis{margin:14px 0 4px}
   footer .links-uteis a{color:#fff;font-weight:700;text-underline-offset:3px}
@@ -534,7 +536,7 @@ const msgProduto = p => typeof p.preco==="number"
 
 function precoHTML(p){
   return typeof p.preco==="number"
-    ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+(CONFIG.mes?'<span class="mes">Preço especial '+CONFIG.mes+'</span>':'')+'</div>'
+    ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+'</div>'
     : '<div class="preco consulte">Consulte o valor</div>';
 }
 function limiteHTML(){
@@ -542,9 +544,11 @@ function limiteHTML(){
   var f=new Date(L.ate+"T23:59:59"); if(new Date()>f) return "";
   return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
 }
-function entregaHTML(p){
+function entregaHTML(p, card){
   const dots = p.coresPronta&&p.coresPronta.length ? '<span class="cores-pronta" aria-label="Cores em pronta entrega">'+p.coresPronta.map(c=>'<i title="'+c.n.replace(/"/g,"")+'" style="background:'+c.h+'"></i>').join('')+'</span>' : '';
-  return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>'+dots:'';
+  const pronta = p.estoque>0;
+  const txt = pronta ? (card?'':'Pronta entrega: ')+p.estoque+(p.estoque>1?' disponíveis':' disponível') : (p.entrega||'');
+  return txt?'<span class="entrega'+(pronta||/^pronta/i.test(p.entrega||'')?' pronta':'')+'">'+txt+'</span>'+dots:'';
 }
 
 /* Card da lista: só código, título, prazo, valor e botão. Tocar no card abre a página do produto. */
@@ -552,7 +556,7 @@ function cardHTML(p){
   const temPreco = typeof p.preco==="number";
   return '<a class="card-link" href="#/p/'+p.sku+'">'+
     '<div class="foto">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fotosDe(p)[0],p.nome,true)+'</div>'+
-    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+'</div></a>'+
+    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p,true)+precoHTML(p)+'</div></a>'+
     '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>';
 }
 
@@ -607,7 +611,7 @@ function detalheHTML(p){
   const temPreco = typeof p.preco==="number";
   const pronta = p.coresPronta&&p.coresPronta.length ? '<span class="cor-pronta">Em pronta entrega: </span>'+p.coresPronta.map(c=>'<span class="cor-item"><i style="background:'+c.h+'"></i>'+c.n.replace(/[<>&"]/g,"")+' ('+c.q+')</span>').join("")+'<br>' : '';
   const cores = pronta+(p.cor ? p.cor+'. Outras cores sob consulta.' : 'Consulte as cores disponíveis.');
-  const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : 'Consulte as medidas no WhatsApp.';
+  const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : '<a class="link-med" target="_blank" rel="noopener" href="'+wppLink("Olá! Quero saber as medidas da peça "+p.nome+" ("+p.sku+").")+'">Consultar as medidas pelo WhatsApp</a>';
   const rel = PRODUTOS.filter(x=>x.secao===p.secao && x.sku!==p.sku).slice(0,4);
   return '<button class="voltar" type="button" id="voltar">&larr; Voltar</button>'+
   '<div class="det">'+
@@ -800,7 +804,7 @@ fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).th
   let mudou=false;
   PRODUTOS.forEach(p=>{
     const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
-    if(n>0){ p.estoque=n; p.entrega="Pronta entrega: "+n+(n>1?" disponíveis":" disponível"); mudou=true; }
+    if(n>0){ p.estoque=n; p.entrega="Pronta entrega"; mudou=true; }
     if(v>0 && v!==p.preco){ p.preco=v; mudou=true; }
     const cs=d.cores&&d.cores[p.sku];
     p.coresPronta = Array.isArray(cs) ? cs.filter(c=>c&&c.q>0).map(c=>({n:String(c.n||""),h:/^#[0-9a-fA-F]{6}$/.test(c.h)?c.h:"#cccccc",q:c.q|0})) : null;
