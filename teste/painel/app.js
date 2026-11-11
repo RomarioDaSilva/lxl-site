@@ -113,6 +113,7 @@ async function telaPedidos() {
 
 /* ---------- produtos (cache) ---------- */
 let coresLista = [];
+let paramsCusto = {};
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
 async function carregarCatalogo() {
@@ -141,7 +142,7 @@ document.addEventListener('error', e => {
 }, true);
 
 async function carregarProdutos(forcar) {
-  if (!produtos || forcar) { const j = await api('produtos'); produtos = j.produtos; coresLista = j.cores || []; }
+  if (!produtos || forcar) { const j = await api('produtos'); produtos = j.produtos; coresLista = j.cores || []; paramsCusto = j.params || {}; }
   return produtos;
 }
 
@@ -387,7 +388,7 @@ async function telaEstoque() {
 }
 
 function formProduto(p) {
-  const n = p || { id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '', usa_cores: 0, cores: [] };
+  const n = p || { id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '', usa_cores: 0, cores: [], peso_g: 0, tempo_min: 0, material: 'PLA', perda_pct: 10, extras: 0, embalagem: 0.8, custo: 0 };
   const qs = {}; n.cores.forEach(c => { qs[c.cor_id] = c.qtd; });
   const existiam = new Set(n.cores.map(c => c.cor_id));
   const m = modal('<h2>' + (p ? 'Editar produto' : 'Novo produto') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
@@ -399,7 +400,42 @@ function formProduto(p) {
     '<div id="cbox" class="cbox"></div></div>' +
     '<p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
+    '<button type="button" class="acord" id="acBtn" aria-expanded="false"><span>Custo</span><span class="seta">&#9662;</span></button>' +
+    '<div id="acBox" class="acbox" hidden>' +
+    '<div class="l2"><div><label>Peso (g)</label><input type="text" inputmode="decimal" id="cPeso" value="' + fmtIn(n.peso_g) + '"></div>' +
+    '<div><label>Tempo (horas)</label><input type="text" inputmode="decimal" id="cTempo" value="' + fmtIn(Math.round(n.tempo_min / 6) / 10) + '" placeholder="ex: 1,5"></div></div>' +
+    '<div class="l2"><div><label>Material</label><select id="cMat"><option' + (n.material === 'PLA' ? ' selected' : '') + '>PLA</option><option' + (n.material === 'PETG' ? ' selected' : '') + '>PETG</option></select></div>' +
+    '<div><label>Perda (%)</label><input type="text" inputmode="decimal" id="cPerda" value="' + fmtIn(n.perda_pct) + '"></div></div>' +
+    '<div class="l2"><div><label>Extras (R$)</label><input type="text" inputmode="decimal" id="cExtra" value="' + fmtIn(n.extras) + '" placeholder="argola, LED..."></div>' +
+    '<div><label>Embalagem (R$)</label><input type="text" inputmode="decimal" id="cEmb" value="' + fmtIn(n.embalagem) + '"></div></div>' +
+    '<div id="cRes" class="cres"></div></div>' +
     '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button></div>');
+  const calcCusto = () => {
+    const P = paramsCusto, v = id => parseNum($('#' + id, m).value) || 0;
+    const peso = v('cPeso'), h = v('cTempo'), perda = v('cPerda');
+    const kg = $('#cMat', m).value === 'PETG' ? (P.preco_kg_petg || 0) : (P.preco_kg_pla || 0);
+    const mat = peso * (1 + perda / 100) * kg / 1000;
+    const en = h * (P.potencia_w || 0) / 1000 * (P.energia_kwh || 0);
+    const des = (P.vida_util_h > 0) ? h * (P.valor_impressora || 0) / P.vida_util_h : 0;
+    const ext = v('cExtra'), emb = v('cEmb');
+    const tot = mat + en + des + ext + emb;
+    const den = 1 - ((P.margem_pct || 0) + (P.imposto_pct || 0)) / 100;
+    let sug = den > 0 ? tot / den : 0; sug = sug > 0 ? Math.ceil(sug) - 0.1 : 0; if (sug > 0 && sug < tot) sug = Math.ceil(tot);
+    const preco = parseNum($('#preco', m).value) || 0;
+    const lucro = preco - tot, marg = preco > 0 ? lucro / preco * 100 : 0;
+    return { mat, en, des, ext, emb, tot, sug, preco, lucro, marg, h };
+  };
+  const linhaC = (a, b, cls) => '<div class="cl' + (cls ? ' ' + cls : '') + '"><span>' + a + '</span><b>' + b + '</b></div>';
+  const desenhaCusto = () => {
+    const c = calcCusto();
+    $('#cRes', m).innerHTML = linhaC('Filamento (com perda)', brl(c.mat)) + linhaC('Energia', brl(c.en)) + linhaC('Desgaste da impressora', brl(c.des)) +
+      linhaC('Extras', brl(c.ext)) + linhaC('Embalagem', brl(c.emb)) + linhaC('Custo total', brl(c.tot), 'tt') +
+      linhaC('Preço sugerido (margem ' + (paramsCusto.margem_pct || 0) + '%)', brl(c.sug)) +
+      (c.preco > 0 ? linhaC('Lucro no preço atual', brl(c.lucro), c.lucro < 0 ? 'neg' : '') + linhaC('Margem real', c.marg.toFixed(0) + '%', c.lucro < 0 ? 'neg' : '') : '');
+  };
+  $('#acBtn', m).onclick = () => { const b = $('#acBox', m), a = $('#acBtn', m); b.hidden = !b.hidden; a.setAttribute('aria-expanded', String(!b.hidden)); a.classList.toggle('aberto', !b.hidden); if (!b.hidden) desenhaCusto(); };
+  ['cPeso', 'cTempo', 'cPerda', 'cExtra', 'cEmb', 'preco'].forEach(id => $('#' + id, m).addEventListener('input', desenhaCusto));
+  $('#cMat', m).onchange = desenhaCusto;
   const total = () => parseInt($('#estoque', m).value, 10) || 0;
   const soma = () => coresLista.reduce((s, c) => s + (qs[c.id] > 0 ? qs[c.id] : 0), 0);
   const contador = () => {
@@ -436,6 +472,8 @@ function formProduto(p) {
     if (usa && soma() !== total()) return toast('As cores somam ' + soma() + ', mas o estoque total é ' + total() + '. Ajuste para ficarem iguais.');
     try {
       await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: total(), ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value,
+        peso_g: parseNum($('#cPeso', m).value) || 0, tempo_min: Math.round((parseNum($('#cTempo', m).value) || 0) * 60), material: $('#cMat', m).value,
+        perda_pct: parseNum($('#cPerda', m).value) || 0, extras: parseNum($('#cExtra', m).value) || 0, embalagem: parseNum($('#cEmb', m).value) || 0, custo: Math.round(calcCusto().tot * 100) / 100,
         usa_cores: usa ? 1 : 0, cores: usa ? coresLista.filter(c => qs[c.id] > 0 || existiam.has(c.id)).map(c => ({ cor_id: c.id, qtd: qs[c.id] || 0 })) : [] });
       m.fechar(); telaEstoque(); toast('Produto salvo.');
     } catch (e) { toast(e.message); }

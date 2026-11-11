@@ -23,7 +23,11 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
-    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"]] as [$tab, $col, $def]) {
+    $db->exec("CREATE TABLE IF NOT EXISTS parametros (chave VARCHAR(40) NOT NULL PRIMARY KEY, valor VARCHAR(40) NOT NULL)$fim");
+    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
+              ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
+              ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
     }
@@ -81,6 +85,9 @@ function produtoOut(array $p, array $mapaCores = []): array {
         'estoque' => (int)$p['estoque'], 'ativo' => (int)$p['ativo'], 'obs' => $p['obs'],
         'usa_cores' => (int)($p['usa_cores'] ?? 0),
         'cores' => $mapaCores[(int)$p['id']] ?? [],
+        'peso_g' => (float)($p['peso_g'] ?? 0), 'tempo_min' => (int)($p['tempo_min'] ?? 0), 'material' => $p['material'] ?? 'PLA',
+        'perda_pct' => (float)($p['perda_pct'] ?? 10), 'extras' => (float)($p['extras'] ?? 0),
+        'embalagem' => (float)($p['embalagem'] ?? 0.8), 'custo' => (float)($p['custo'] ?? 0),
     ];
 }
 function mapaDeCores(): array {
@@ -91,6 +98,15 @@ function mapaDeCores(): array {
 }
 function listaDeCores(): array {
     return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'hex' => $c['hex']], db()->query('SELECT * FROM cores ORDER BY nome')->fetchAll());
+}
+const PARAMS_PADRAO = ['energia_kwh' => 1.17, 'potencia_w' => 100, 'valor_impressora' => 2461.04, 'vida_util_h' => 5000,
+    'margem_pct' => 45, 'imposto_pct' => 0, 'preco_kg_pla' => 88, 'preco_kg_petg' => 57, 'embalagem_fixa' => 0.80, 'perda_pct' => 10];
+function parametros(): array {
+    $p = PARAMS_PADRAO;
+    foreach (db()->query('SELECT chave, valor FROM parametros')->fetchAll() as $r) {
+        if (array_key_exists($r['chave'], $p) && is_numeric($r['valor'])) $p[$r['chave']] = (float)$r['valor'];
+    }
+    return $p;
 }
 function produtoPorId(int $id): ?array {
     $s = db()->prepare('SELECT * FROM produtos WHERE id = ?'); $s->execute([$id]);
@@ -198,7 +214,7 @@ case 'logout': {
 case 'produtos': {
     $r = $db->query('SELECT * FROM produtos ORDER BY ativo DESC, nome')->fetchAll();
     $m = mapaDeCores();
-    out(['produtos' => array_map(fn($p) => produtoOut($p, $m), $r), 'cores' => listaDeCores()]);
+    out(['produtos' => array_map(fn($p) => produtoOut($p, $m), $r), 'cores' => listaDeCores(), 'params' => parametros()]);
 }
 
 case 'produto_salvar': {
@@ -228,13 +244,16 @@ case 'produto_salvar': {
         if (!$linhas) fail('Escolha pelo menos uma cor e a quantidade de cada uma.');
         if ($soma !== $estoque) fail('As cores somam ' . $soma . ', mas o estoque total é ' . $estoque . '. Ajuste para ficarem iguais.');
     }
-    $d = [$codigo, $nome, num($in['preco'] ?? 0), $controla, $estoque, empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255), $usa];
+    $material = ($in['material'] ?? 'PLA') === 'PETG' ? 'PETG' : 'PLA';
+    $d = [$codigo, $nome, num($in['preco'] ?? 0), $controla, $estoque, empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255), $usa,
+          max(0, num($in['peso_g'] ?? 0)), max(0, (int)($in['tempo_min'] ?? 0)), $material, max(0, num($in['perda_pct'] ?? 10)),
+          max(0, num($in['extras'] ?? 0)), max(0, num($in['embalagem'] ?? 0)), max(0, num($in['custo'] ?? 0))];
     $db->beginTransaction();
     try {
         if ($id) {
-            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=? WHERE id=?')->execute([...$d, $id]);
+            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=?, peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, custo=? WHERE id=?')->execute([...$d, $id]);
         } else {
-            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores) VALUES (?,?,?,?,?,?,?,?)')->execute($d);
+            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores, peso_g, tempo_min, material, perda_pct, extras, embalagem, custo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute($d);
             $id = (int)$db->lastInsertId();
         }
         $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
@@ -245,6 +264,21 @@ case 'produto_salvar': {
         fail('Não consegui salvar o produto.', 500);
     }
     out(['produto' => produtoPorId($id)]);
+}
+
+case 'parametros_salvar': {
+    $novos = $in['params'] ?? [];
+    if (!is_array($novos)) fail('Valores inválidos.');
+    foreach (PARAMS_PADRAO as $k => $_) {
+        if (!array_key_exists($k, $novos)) continue;
+        $v = num($novos[$k]);
+        if ($v < 0) fail('Os valores não podem ser negativos.');
+        if (in_array($k, ['vida_util_h'], true) && $v <= 0) fail('A vida útil da impressora precisa ser maior que zero.');
+        if ($k === 'margem_pct' && $v + num($novos['imposto_pct'] ?? 0) >= 100) fail('Margem mais imposto precisam ficar abaixo de 100%.');
+        $db->prepare('DELETE FROM parametros WHERE chave = ?')->execute([$k]);
+        $db->prepare('INSERT INTO parametros (chave, valor) VALUES (?, ?)')->execute([$k, (string)$v]);
+    }
+    out(['params' => parametros()]);
 }
 
 case 'cor_salvar': {
