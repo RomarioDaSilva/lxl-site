@@ -556,6 +556,7 @@ function montar(){
   const nav = document.getElementById("nav");
   const cont = document.getElementById("secoes");
   nav.innerHTML = "";
+  cont.innerHTML = "";
 
   const CORES=[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
   let _ci=0;
@@ -784,6 +785,18 @@ document.addEventListener("click", e=>{
 montar();
 window.addEventListener("hashchange", rota);
 rota();
+
+/* Estoque ao vivo: o painel da LXL informa quais peças estão em pronta entrega.
+   Se o painel não responder, tudo continua como "Sob encomenda". */
+fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!d.itens) return;
+  let mudou=false;
+  PRODUTOS.forEach(p=>{
+    const n=d.itens[p.sku];
+    if(n>0){ p.estoque=n; p.entrega="Pronta entrega: "+n+(n>1?" disponíveis":" disponível"); mudou=true; }
+  });
+  if(mudou){ const y=window.scrollY; montar(); rota(); if(document.getElementById("detalhe").hidden) window.scrollTo(0,y); }
+}).catch(()=>{});
 
 document.addEventListener("click", e=>{
   /* guarda a posição da lista para voltar no mesmo ponto */
