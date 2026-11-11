@@ -27,7 +27,7 @@ function instalar(): void {
     foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
-              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
     }
@@ -87,7 +87,7 @@ function produtoOut(array $p, array $mapaCores = []): array {
         'cores' => $mapaCores[(int)$p['id']] ?? [],
         'peso_g' => (float)($p['peso_g'] ?? 0), 'tempo_min' => (int)($p['tempo_min'] ?? 0), 'material' => $p['material'] ?? 'PLA',
         'perda_pct' => (float)($p['perda_pct'] ?? 10), 'extras' => (float)($p['extras'] ?? 0),
-        'embalagem' => (float)($p['embalagem'] ?? 0.8), 'custo' => (float)($p['custo'] ?? 0),
+        'embalagem' => (float)($p['embalagem'] ?? 0.8), 'custo' => (float)($p['custo'] ?? 0), 'preco_kg' => (float)($p['preco_kg'] ?? 0),
     ];
 }
 function mapaDeCores(): array {
@@ -247,13 +247,13 @@ case 'produto_salvar': {
     $material = ($in['material'] ?? 'PLA') === 'PETG' ? 'PETG' : 'PLA';
     $d = [$codigo, $nome, num($in['preco'] ?? 0), $controla, $estoque, empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255), $usa,
           max(0, num($in['peso_g'] ?? 0)), max(0, (int)($in['tempo_min'] ?? 0)), $material, max(0, num($in['perda_pct'] ?? 10)),
-          max(0, num($in['extras'] ?? 0)), max(0, num($in['embalagem'] ?? 0)), max(0, num($in['custo'] ?? 0))];
+          max(0, num($in['extras'] ?? 0)), max(0, num($in['embalagem'] ?? 0)), max(0, num($in['custo'] ?? 0)), max(0, num($in['preco_kg'] ?? 0))];
     $db->beginTransaction();
     try {
         if ($id) {
-            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=?, peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, custo=? WHERE id=?')->execute([...$d, $id]);
+            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=?, peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, custo=?, preco_kg=? WHERE id=?')->execute([...$d, $id]);
         } else {
-            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores, peso_g, tempo_min, material, perda_pct, extras, embalagem, custo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute($d);
+            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores, peso_g, tempo_min, material, perda_pct, extras, embalagem, custo, preco_kg) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute($d);
             $id = (int)$db->lastInsertId();
         }
         $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
@@ -309,6 +309,31 @@ case 'produto_ajustar': {
     if ((int)$x['usa_cores'] === 1) fail('Essa peça tem cores. Abra a peça para ajustar a quantidade de cada cor.');
     $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ?')->execute([$delta, $id]);
     out(['produto' => produtoPorId($id)]);
+}
+
+case 'custos_importar': {
+    $lista = $in['lista'] ?? [];
+    if (!is_array($lista)) fail('Lista inválida.');
+    $P = parametros(); $ok = 0; $nao = [];
+    $db->beginTransaction();
+    foreach (array_slice($lista, 0, 500) as $l) {
+        $cod = strtoupper(txt($l['codigo'] ?? '', 40));
+        $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $s->execute([$cod]);
+        $row = $s->fetch();
+        if (!$row) { $nao[] = $cod; continue; }
+        $peso = max(0, num($l['peso_g'] ?? 0)); $h = max(0, num($l['tempo_h'] ?? 0));
+        $mat = ($l['material'] ?? 'PLA') === 'PETG' ? 'PETG' : 'PLA';
+        $perda = max(0, num($l['perda_pct'] ?? 10)); $ext = max(0, num($l['extras'] ?? 0)); $emb = max(0, num($l['embalagem'] ?? 0));
+        $kg = max(0, num($l['preco_kg'] ?? 0));
+        $kgUsado = $kg > 0 ? $kg : ($mat === 'PETG' ? $P['preco_kg_petg'] : $P['preco_kg_pla']);
+        $custo = $peso * (1 + $perda / 100) * $kgUsado / 1000 + $h * $P['potencia_w'] / 1000 * $P['energia_kwh']
+               + ($P['vida_util_h'] > 0 ? $h * $P['valor_impressora'] / $P['vida_util_h'] : 0) + $ext + $emb;
+        $db->prepare('UPDATE produtos SET peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, preco_kg=?, custo=? WHERE id=?')
+           ->execute([$peso, (int)round($h * 60), $mat, $perda, $ext, $emb, $kg, round($custo, 2), (int)$row['id']]);
+        $ok++;
+    }
+    $db->commit();
+    out(['atualizados' => $ok, 'nao_encontrados' => $nao]);
 }
 
 case 'produto_importar': {
