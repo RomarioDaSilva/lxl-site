@@ -356,12 +356,22 @@ function formProduto(p) {
 
 async function importarCatalogo() {
   try {
-    const r = await fetch('/natal/busca-indice.json', { cache: 'no-store' });
+    const r = await fetch('../natal/busca-indice.json', { cache: 'no-store' });
     const d = await r.json();
-    const lista = d.map(x => ({ codigo: x.sku, nome: x.nome, preco: typeof x.preco === 'number' ? x.preco : 0 }));
-    const m = modal('<h2>Importar do catálogo <button class="btn s l" data-fechar type="button">Fechar</button></h2><p>O catálogo de Natal tem <b>' + lista.length + '</b> peças. Vou cadastrar as que ainda não estão no estoque, como <b>sob encomenda</b> e com o preço do catálogo. As que já existem não mudam.</p><div class="acoes"><button class="btn" id="ok" type="button">Importar agora</button></div>');
+    const lista = d.map(x => ({ codigo: String(x.sku || '').toUpperCase(), nome: x.nome, preco: typeof x.preco === 'number' ? x.preco : 0 }));
+    const existentes = new Set(produtos.map(p => p.codigo));
+    const faltam = lista.filter(x => x.codigo && !existentes.has(x.codigo));
+    const topo = '<h2>Importar do catálogo <button class="btn s l" data-fechar type="button">Fechar</button></h2>';
+    if (!faltam.length) {
+      modal(topo + '<p>Está tudo em dia. As <b>' + lista.length + '</b> peças do catálogo já estão cadastradas no estoque.</p>');
+      return;
+    }
+    const nomes = faltam.slice(0, 12).map(x => '<li>' + esc(x.codigo) + ' &middot; ' + esc(x.nome) + '</li>').join('');
+    const m = modal(topo + '<p>O catálogo tem <b>' + faltam.length + '</b> peça(s) que ainda não estão no estoque:</p><ul style="padding-left:18px;margin:0 0 12px">' + nomes + '</ul>' +
+      (faltam.length > 12 ? '<p class="mut">e mais ' + (faltam.length - 12) + '...</p>' : '') +
+      '<p class="mut">Elas entram como <b>sob encomenda</b>, com o preço do catálogo. As peças que já estão cadastradas não mudam.</p><div class="acoes"><button class="btn" id="ok" type="button">Importar ' + faltam.length + ' peça(s)</button></div>');
     $('#ok', m).onclick = async () => {
-      try { const j = await api('produto_importar', { lista }); m.fechar(); toast(j.novos + ' cadastrada(s), ' + j.pulados + ' já existia(m).'); telaEstoque(); } catch (e) { toast(e.message); }
+      try { const j = await api('produto_importar', { lista: faltam }); m.fechar(); toast(j.novos + ' peça(s) cadastrada(s).'); telaEstoque(); } catch (e) { toast(e.message); }
     };
   } catch (e) { toast('Não consegui ler o catálogo.'); }
 }
