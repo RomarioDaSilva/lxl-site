@@ -53,7 +53,7 @@ function quadro(ativo, corpo) {
     '<nav class="nav"><a href="#/pedidos" class="' + (ativo === 'pedidos' ? 'on' : '') + '"><span>&#128203;</span>Pedidos</a>' +
     '<a href="#/novo" class="novo ' + (ativo === 'novo' ? 'on' : '') + '"><span>&#10133;</span>Novo pedido</a>' +
     '<a href="#/estoque" class="' + (ativo === 'estoque' ? 'on' : '') + '"><span>&#128230;</span>Estoque</a>' +
-    '<a href="../natal/" target="_blank" rel="noopener"><span>&#127876;</span>Ver catálogo</a></nav>';
+    '<a href="../" target="_blank" rel="noopener"><span>&#127876;</span>Ver catálogo</a></nav>';
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
 }
 
