@@ -11,6 +11,7 @@ const parseNum = v => { if (typeof v === 'number') return v; const n = parseFloa
 const fmtIn = n => (n || n === 0) ? String(Number(n).toFixed(2)).replace('.', ',') : '';
 const STATUS = { novo: 'Novo', producao: 'Em produção', pronto: 'Pronto', entregue: 'Entregue', cancelado: 'Cancelado' };
 const PROXIMO = { novo: 'producao', producao: 'pronto', pronto: 'entregue' };
+const TIPOS_PERSO = ['Miniatura', 'Chaveiro', 'Placa / letreiro', 'Topo de bolo', 'Decoração', 'Reparo / peça sob medida', 'Outro'];
 const PAGTO = ['Pix', 'Cartão', 'Dinheiro', 'A combinar'];
 const EMPRESA = { fone: '(38) 99221-4206', insta: '@lxlprojetos', site: 'lxlprojetos.site', cidade: 'Montes Claros, MG' };
 
@@ -178,7 +179,7 @@ async function telaPedidoForm(id) {
     '<div class="l2"><div><label>WhatsApp</label><input type="tel" id="whatsapp" value="' + esc(P.whatsapp) + '" placeholder="(38) 9...."></div>' +
     '<div><label>Data do pedido</label><input type="date" id="data" value="' + esc(P.data) + '"></div></div></div>' +
     '<div class="card"><h2>Itens</h2><div id="itens"></div>' +
-    '<div class="acoes"><button class="btn o" id="add" type="button">Adicionar peça</button><button class="btn l" id="avulso" type="button">Item avulso</button></div></div>' +
+    '<div class="acoes"><button class="btn o" id="add" type="button">Adicionar peça</button><button class="btn l" id="avulso" type="button">Item personalizado</button></div></div>' +
     '<div class="card"><h2>Valores</h2><div class="l2"><div><label>Desconto (R$)</label><input type="text" inputmode="decimal" id="desconto" value="' + (P.desconto ? fmtIn(P.desconto) : '') + '" placeholder="0,00"></div>' +
     '<div><label>Frete (R$)</label><input type="text" inputmode="decimal" id="frete" value="' + (P.frete ? fmtIn(P.frete) : '') + '" placeholder="0,00"></div></div>' +
     '<div class="l2"><div><label>Pagamento</label><select id="pagamento">' + opt(PAGTO, P.pagamento) + '</select></div>' +
@@ -198,7 +199,7 @@ async function telaPedidoForm(id) {
   endBox();
   desenharItens();
   $('#add').onclick = abrirPicker;
-  $('#avulso').onclick = () => { P.itens.push({ produto_id: null, descricao: '', qtd: 1, preco: 0 }); desenharItens(); const l = document.querySelectorAll('.desc'); if (l.length) l[l.length - 1].focus(); };
+  $('#avulso').onclick = () => { P.itens.push({ produto_id: null, tipo: '', descricao: '', detalhes: '', custo: 0, qtd: 1, preco: 0 }); desenharItens(); const l = document.querySelectorAll('.desc'); if (l.length) l[l.length - 1].focus(); };
   $('#colar').onclick = abrirColar;
   $('#salvar').onclick = salvarPedido;
 }
@@ -233,7 +234,8 @@ function ligarCliente() {
   tagCliente();
 }
 function endBox() { $('#endbox').style.display = P.entrega === 'Entrega' ? '' : 'none'; }
-function totais() { const t = $('#tot'); if (t) t.textContent = 'Total ' + brl(totalPed()); document.querySelectorAll('[data-sub]').forEach(el => { const i = P.itens[+el.dataset.sub]; el.textContent = brl((Number(i.preco) || 0) * (Number(i.qtd) || 0)); }); }
+function totais() { const t = $('#tot'); if (t) t.textContent = 'Total ' + brl(totalPed()); document.querySelectorAll('[data-lu]').forEach(el => { const i = P.itens[+el.dataset.lu]; const l = ((Number(i.preco) || 0) - (Number(i.custo) || 0)) * (Number(i.qtd) || 0); el.textContent = Number(i.custo) > 0 ? 'Lucro neste item: ' + brl(l) : 'Informe o custo para ver o lucro.'; });
+  document.querySelectorAll('[data-sub]').forEach(el => { const i = P.itens[+el.dataset.sub]; el.textContent = brl((Number(i.preco) || 0) * (Number(i.qtd) || 0)); }); }
 
 function desenharItens() {
   const box = $('#itens');
@@ -244,7 +246,14 @@ function desenharItens() {
     const disp = cq ? cq.qtd : (p ? p.estoque : 0);
     const aviso = p && p.controla && disp < i.qtd ? '<div class="neg" style="font-size:13px">Estoque atual' + (cq ? ' (' + esc(cq.nome) + ')' : '') + ': ' + disp + '</div>' : '';
     const seletor = p && p.usa_cores ? '<select class="corsel" data-cs="' + n + '"><option value="">Escolha a cor</option>' + p.cores.map(c => '<option value="' + c.cor_id + '"' + (c.cor_id === i.cor_id ? ' selected' : '') + '>' + esc(c.nome) + ' (' + c.qtd + ' em estoque)</option>').join('') + '</select>' : '';
-    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="Descrição do item">') + '</div>' + seletor + aviso +
+    const perso = !i.produto_id;
+    const tipoOk = TIPOS_PERSO.includes(i.tipo) || !i.tipo;
+    const persoHTML = perso ? '<div class="perso"><label>Tipo de personalização</label><select class="ptipo" data-n="' + n + '"><option value="">Escolha o tipo</option>' + TIPOS_PERSO.map(x => '<option' + (x === i.tipo || (!tipoOk && x === 'Outro') ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' +
+      (!tipoOk || i.tipo === 'Outro' ? '<input type="text" class="poutro" data-n="' + n + '" value="' + (tipoOk ? '' : esc(i.tipo)) + '" placeholder="Qual tipo? (ex: Troféu)">' : '') +
+      '<label>Nome do item</label><input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="ex: Miniatura da Ana">' +
+      '<label>Descrição / detalhes</label><input type="text" class="pdet" data-n="' + n + '" value="' + esc(i.detalhes || '') + '" placeholder="medidas, cores, referência...">' +
+      '<label>Custo (R$ por unidade)</label><input type="text" inputmode="decimal" class="pcusto" data-n="' + n + '" value="' + (i.custo ? fmtIn(i.custo) : '') + '" placeholder="0,00"><div class="mut plucro" data-lu="' + n + '" style="font-size:13px;margin-top:4px"></div></div>' : '';
+    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<b>Item personalizado</b>') + '</div>' + persoHTML + seletor + aviso +
       '<div class="lin"><div class="qtd"><button type="button" data-menos="' + n + '">&minus;</button><span>' + i.qtd + '</span><button type="button" data-mais="' + n + '">+</button></div>' +
       '<input type="text" inputmode="decimal" class="preco" data-p="' + n + '" value="' + fmtIn(i.preco) + '" placeholder="Preço un.">' +
       '<span class="sub" data-sub="' + n + '"></span><button class="x" type="button" data-rm="' + n + '" aria-label="Remover">&times;</button></div></div>';
@@ -261,6 +270,10 @@ function desenharItens() {
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { P.itens.splice(+b.dataset.rm, 1); desenharItens(); });
   box.querySelectorAll('[data-p]').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.p].preco = parseNum(el.value); totais(); }));
   box.querySelectorAll('.desc').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].descricao = el.value; }));
+  box.querySelectorAll('.pdet').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].detalhes = el.value; }));
+  box.querySelectorAll('.pcusto').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].custo = parseNum(el.value); totais(); }));
+  box.querySelectorAll('.ptipo').forEach(el => el.onchange = () => { const i = P.itens[+el.dataset.n]; i.tipo = el.value === 'Outro' ? 'Outro' : el.value; desenharItens(); });
+  box.querySelectorAll('.poutro').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].tipo = el.value.trim() || 'Outro'; }));
   totais();
 }
 
@@ -271,7 +284,7 @@ function abrirPicker() {
     const l = produtos.filter(p => p.ativo && (!q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q))).slice(0, 60);
     $('#pl', m).innerHTML = l.length ? l.map(p =>
       '<div class="prod" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + (p.usa_cores ? p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') : p.estoque) : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div></div><b>' + brl(p.preco) + '</b></div>').join('')
-      : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item avulso".</div>';
+      : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item personalizado".</div>';
     m.querySelectorAll('.prod').forEach(el => el.onclick = () => {
       const p = produtos.find(x => x.id === +el.dataset.id);
       const ex = p.usa_cores ? null : P.itens.find(i => i.produto_id === p.id);
@@ -337,7 +350,7 @@ async function salvarPedido() {
 /* ---------- notinha ---------- */
 function notaHTML(p) {
   const sub = p.itens.reduce((s, i) => s + i.preco * i.qtd, 0);
-  const lin = p.itens.map(i => '<tr><td class="c">' + i.qtd + 'x</td><td>' + esc(i.descricao) + '</td><td class="r">' + brl(i.preco) + '</td><td class="r">' + brl(i.preco * i.qtd) + '</td></tr>').join('');
+  const lin = p.itens.map(i => '<tr><td class="c">' + i.qtd + 'x</td><td>' + esc(i.descricao) + (i.detalhes ? '<br><small>' + esc(i.detalhes) + '</small>' : '') + '</td><td class="r">' + brl(i.preco) + '</td><td class="r">' + brl(i.preco * i.qtd) + '</td></tr>').join('');
   return '<div class="nota" id="nota"><div class="cab"><img src="/natal/imagens/logo-colorida.png" alt="LXL Projetos"><div>Peças em impressão 3D &middot; ' + EMPRESA.cidade + '<br>WhatsApp ' + EMPRESA.fone + ' &middot; ' + EMPRESA.insta + '<br>' + EMPRESA.site + '</div></div>' +
     '<div class="tit">COMPROVANTE DE VENDA<span>Nº ' + numPed(p.id) + ' &middot; ' + dataBR(p.data) + '</span></div>' +
     '<div class="cli"><b>Cliente:</b> ' + esc(p.cliente) + (p.whatsapp ? '<br><b>WhatsApp:</b> ' + esc(p.whatsapp) : '') +
@@ -663,6 +676,7 @@ async function telaRelatorios() {
   } else if (relAba === 'itens') {
     corpo = '<div class="card"><h2>Peças mais vendidas</h2>' + tab([{ t: 'Peça' }, { t: 'Qtd', r: 1 }, { t: 'Vendido', r: 1 }, { t: 'Lucro', r: 1 }],
         d.top_produtos.map(x => '<tr><td>' + esc(x.nome) + (x.codigo ? '<small>' + esc(x.codigo) + '</small>' : '') + '</td><td class="r">' + x.q + '</td><td class="r">' + brl(x.v) + '</td><td class="r">' + (Number(x.c) > 0 ? brl(x.v - x.c) : '-') + '</td></tr>')) + '</div>' +
+      '<div class="card"><h2>Itens personalizados</h2>' + tab([{ t: 'Tipo' }, { t: 'Qtd', r: 1 }, { t: 'Vendido', r: 1 }, { t: 'Lucro', r: 1 }], (d.personalizados || []).map(x => '<tr><td>' + esc(x.nome) + '</td><td class="r">' + x.q + '</td><td class="r">' + brl(x.v) + '</td><td class="r">' + (Number(x.c) > 0 ? brl(x.v - x.c) : '-') + '</td></tr>')) + '</div>' +
       '<div class="card"><h2>Cores mais pedidas</h2>' + barras(d.top_cores.map(x => ({ r: x.nome, v: Number(x.q) })), v => v + ' un.') + '</div>' +
       '<div class="card"><h2>Melhores clientes</h2>' + tab([{ t: 'Cliente' }, { t: 'Pedidos', r: 1 }, { t: 'Total', r: 1 }], d.top_clientes.map(x => '<tr><td>' + esc(x.nome) + '</td><td class="r">' + x.n + '</td><td class="r">' + brl(x.v) + '</td></tr>')) + '</div>';
   } else if (relAba === 'estoque') {

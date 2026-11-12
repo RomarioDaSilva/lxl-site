@@ -153,4 +153,5 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .bl{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bt{background:#efeadf;border-radius:6px;height:14px}.bf{background:var(--g);height:14px;border-radius:6px}.bv{font-weight:600}
 .rt{width:100%;border-collapse:collapse;font-size:14px}.rt th{text-align:left;color:var(--mut);font-size:12px;font-weight:600;padding:4px 0}.rt td{padding:7px 0;border-top:1px solid var(--line)}
 .rt .r{text-align:right}.rt small{display:block;color:var(--mut);font-size:11px}.rt td.neg{color:#b3261e;font-weight:700}
+.perso{background:#faf7f0;border:1px dashed #d9d2c3;border-radius:10px;padding:8px 10px;margin:6px 0}.perso label{margin-top:8px}
 [hidden]{display:none!important}

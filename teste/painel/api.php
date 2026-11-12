@@ -29,7 +29,7 @@ function instalar(): void {
     foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
-              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL']] as [$tab, $col, $def]) {
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
     }
@@ -139,6 +139,7 @@ function pedidoOut(array $p, ?array $itens = null): array {
             'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'],
             'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
             'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
+            'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''), 'custo' => (float)($i['custo'] ?? 0),
         ], $itens);
     }
     return $r;
@@ -333,8 +334,8 @@ case 'relatorios': {
     $r = $um("SELECT COUNT(*) n, COALESCE(SUM(total),0) fat, COALESCE(SUM(frete),0) frete, COALESCE(SUM(desconto),0) desc_ FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ?", $per);
     $recebido = $um("SELECT COALESCE(SUM(total),0) v FROM pedidos WHERE status <> 'cancelado' AND pago = 1 AND data BETWEEN ? AND ?", $per)['v'];
     $canc = $um("SELECT COUNT(*) n FROM pedidos WHERE status = 'cancelado' AND data BETWEEN ? AND ?", $per)['n'];
-    $it = $um("SELECT COALESCE(SUM(i.qtd * COALESCE(pr.custo,0)),0) custo,
-        COALESCE(SUM(CASE WHEN pr.id IS NULL OR COALESCE(pr.custo,0) = 0 THEN i.qtd ELSE 0 END),0) sem_custo,
+    $it = $um("SELECT COALESCE(SUM(i.qtd * CASE WHEN i.produto_id IS NULL THEN COALESCE(i.custo,0) ELSE COALESCE(pr.custo,0) END),0) custo,
+        COALESCE(SUM(CASE WHEN (i.produto_id IS NULL AND COALESCE(i.custo,0) = 0) OR (i.produto_id IS NOT NULL AND COALESCE(pr.custo,0) = 0) THEN i.qtd ELSE 0 END),0) sem_custo,
         COALESCE(SUM(i.qtd),0) pecas
         FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id LEFT JOIN produtos pr ON pr.id = i.produto_id
         WHERE pd.status <> 'cancelado' AND pd.data BETWEEN ? AND ?", $per);
@@ -343,9 +344,11 @@ case 'relatorios': {
         'cancelados' => (int)$canc, 'custo' => round((float)$it['custo'], 2), 'lucro' => round($fat - (float)$it['custo'], 2),
         'sem_custo' => (int)$it['sem_custo'], 'pecas' => (int)$it['pecas'], 'frete' => (float)$r['frete'], 'desconto' => (float)$r['desc_']];
     $dias = $todos("SELECT data, COUNT(*) n, SUM(total) v FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY data ORDER BY data", $per);
-    $topProd = $todos("SELECT COALESCE(pr.codigo,'') codigo, i.descricao nome, SUM(i.qtd) q, SUM(i.qtd * i.preco) v, SUM(i.qtd * COALESCE(pr.custo,0)) c
+    $topProd = $todos("SELECT COALESCE(pr.codigo,'') codigo, i.descricao nome, SUM(i.qtd) q, SUM(i.qtd * i.preco) v, SUM(i.qtd * CASE WHEN i.produto_id IS NULL THEN COALESCE(i.custo,0) ELSE COALESCE(pr.custo,0) END) c
         FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id LEFT JOIN produtos pr ON pr.id = i.produto_id
         WHERE pd.status <> 'cancelado' AND pd.data BETWEEN ? AND ? GROUP BY pr.codigo, i.descricao ORDER BY q DESC, v DESC LIMIT 10", $per);
+    $perso = $todos("SELECT CASE WHEN i.tipo = '' THEN 'Sem tipo' ELSE i.tipo END nome, SUM(i.qtd) q, SUM(i.qtd * i.preco) v, SUM(i.qtd * COALESCE(i.custo,0)) c
+        FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id WHERE pd.status <> 'cancelado' AND i.produto_id IS NULL AND pd.data BETWEEN ? AND ? GROUP BY nome ORDER BY v DESC", $per);
     $topCor = $todos("SELECT i.cor nome, SUM(i.qtd) q FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id
         WHERE pd.status <> 'cancelado' AND i.cor <> '' AND pd.data BETWEEN ? AND ? GROUP BY i.cor ORDER BY q DESC LIMIT 8", $per);
     $topCli = $todos("SELECT cliente nome, COUNT(*) n, SUM(total) v FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY cliente ORDER BY v DESC LIMIT 10", $per);
@@ -372,7 +375,7 @@ case 'relatorios': {
     foreach ($db->query("SELECT codigo, nome FROM produtos WHERE codigo <> ''")->fetchAll() as $pr) $nomes[$pr['codigo']] = $pr['nome'];
     $rot = function (array $l) use ($nomes) { usort($l, fn($a, $b) => $b['q'] <=> $a['q']); return array_map(fn($x) => ['codigo' => $x['k'], 'nome' => $nomes[$x['k']] ?? $x['k'], 'q' => $x['q']], array_slice($l, 0, 10)); };
     $site['produtos'] = $rot($site['produtos']); $site['adds'] = $rot($site['adds']);
-    out(['resumo' => $resumo, 'dias' => $dias, 'top_produtos' => $topProd, 'top_cores' => $topCor, 'top_clientes' => $topCli, 'por_status' => $porStatus,
+    out(['resumo' => $resumo, 'dias' => $dias, 'top_produtos' => $topProd, 'top_cores' => $topCor, 'personalizados' => $perso, 'top_clientes' => $topCli, 'por_status' => $porStatus,
          'por_pagamento' => $porPag, 'por_entrega' => $porEnt, 'abertos' => ['n' => (int)$abertos['n'], 'v' => (float)$abertos['v']],
          'estoque' => ['n' => (int)$est['n'], 'pecas' => (int)$est['q'], 'valor_custo' => (float)$est['vc'], 'valor_venda' => (float)$est['vv'], 'baixo' => $zer, 'sob_encomenda' => (int)$enc, 'sem_custo' => (int)$semCustoProd],
          'site' => $site]);
@@ -511,7 +514,8 @@ case 'pedido_salvar': {
                 $corNome = $cr['nome'];
             }
         }
-        $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0))];
+        $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0)),
+            'tipo' => $pid ? '' : txt($i['tipo'] ?? '', 40), 'detalhes' => $pid ? '' : txt($i['detalhes'] ?? '', 255), 'custo' => $pid ? 0 : max(0, num($i['custo'] ?? 0))];
     }
     if (!$itens) fail('Adicione pelo menos um item.');
     $clienteId = !empty($in['cliente_id']) ? (int)$in['cliente_id'] : null;
@@ -538,7 +542,7 @@ case 'pedido_salvar': {
             $id = (int)$db->lastInsertId();
         }
         foreach ($itens as $i) {
-            $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco) VALUES (?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco']]);
+            $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco, tipo, detalhes, custo) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco'], $i['tipo'], $i['detalhes'], $i['custo']]);
         }
         if ($status !== 'cancelado') ajustarEstoque($itens, -1);
         $db->commit();
