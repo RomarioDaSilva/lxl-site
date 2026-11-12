@@ -23,11 +23,12 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
+    $db->exec("CREATE TABLE IF NOT EXISTS clientes (id $pk, nome VARCHAR(120) NOT NULL, telefone VARCHAR(30) DEFAULT '', endereco VARCHAR(255) DEFAULT '', cidade VARCHAR(80) DEFAULT '', obs VARCHAR(255) DEFAULT '', criado_em VARCHAR(19))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS parametros (chave VARCHAR(40) NOT NULL PRIMARY KEY, valor VARCHAR(40) NOT NULL)$fim");
     foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
-              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL']] as [$tab, $col, $def]) {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
     }
@@ -113,13 +114,24 @@ function produtoPorId(int $id): ?array {
     $p = $s->fetch();
     return $p ? produtoOut($p, mapaDeCores()) : null;
 }
+function clienteOut(array $c): array {
+    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%03d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
+            'endereco' => $c['endereco'], 'cidade' => $c['cidade'], 'obs' => $c['obs'],
+            'pedidos' => (int)($c['n_pedidos'] ?? 0), 'total' => (float)($c['total_pedidos'] ?? 0)];
+}
+function listaClientes(): array {
+    $r = db()->query("SELECT c.*, (SELECT COUNT(*) FROM pedidos p WHERE p.cliente_id = c.id AND p.status <> 'cancelado') AS n_pedidos,
+        (SELECT COALESCE(SUM(p.total),0) FROM pedidos p WHERE p.cliente_id = c.id AND p.status <> 'cancelado') AS total_pedidos
+        FROM clientes c ORDER BY c.nome")->fetchAll();
+    return array_map('clienteOut', $r);
+}
 function pedidoOut(array $p, ?array $itens = null): array {
     $r = [
         'id' => (int)$p['id'], 'data' => $p['data'], 'cliente' => $p['cliente'], 'whatsapp' => $p['whatsapp'],
         'pagamento' => $p['pagamento'], 'pago' => (int)$p['pago'], 'entrega' => $p['entrega'],
         'endereco' => $p['endereco'], 'prazo' => $p['prazo'], 'obs' => (string)$p['obs'],
         'desconto' => (float)$p['desconto'], 'frete' => (float)$p['frete'], 'total' => (float)$p['total'],
-        'status' => $p['status'],
+        'status' => $p['status'], 'cliente_id' => empty($p['cliente_id']) ? null : (int)$p['cliente_id'],
     ];
     if ($itens !== null) {
         $r['itens'] = array_map(fn($i) => [
@@ -311,6 +323,39 @@ case 'produto_ajustar': {
     out(['produto' => produtoPorId($id)]);
 }
 
+case 'clientes':
+    out(['clientes' => listaClientes()]);
+
+case 'cliente_salvar': {
+    $id = (int)($in['id'] ?? 0);
+    $nome = txt($in['nome'] ?? '', 120);
+    if ($nome === '') fail('Informe o nome do cliente.');
+    $tel = preg_replace('/[^\d+() -]/', '', txt($in['telefone'] ?? '', 30));
+    $f = [$nome, $tel, txt($in['endereco'] ?? '', 255), txt($in['cidade'] ?? '', 80), txt($in['obs'] ?? '', 255)];
+    if ($id) {
+        $db->prepare('UPDATE clientes SET nome=?, telefone=?, endereco=?, cidade=?, obs=? WHERE id=?')->execute([...$f, $id]);
+    } else {
+        $digs = preg_replace('/\D/', '', $tel);
+        if (strlen($digs) >= 8) {
+            foreach ($db->query('SELECT id, nome, telefone FROM clientes')->fetchAll() as $c) {
+                if (preg_replace('/\D/', '', $c['telefone']) === $digs) fail('Já existe um cliente com esse telefone: ' . $c['nome'] . '.');
+            }
+        }
+        $db->prepare('INSERT INTO clientes (nome, telefone, endereco, cidade, obs, criado_em) VALUES (?,?,?,?,?,?)')->execute([...$f, date('Y-m-d H:i:s')]);
+        $id = (int)$db->lastInsertId();
+    }
+    $todos = listaClientes();
+    $um = null; foreach ($todos as $c) if ($c['id'] === $id) $um = $c;
+    out(['cliente' => $um, 'clientes' => $todos]);
+}
+
+case 'cliente_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $db->prepare('UPDATE pedidos SET cliente_id = NULL WHERE cliente_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM clientes WHERE id = ?')->execute([$id]);
+    out(['clientes' => listaClientes()]);
+}
+
 case 'custos_importar': {
     $lista = $in['lista'] ?? [];
     if (!is_array($lista)) fail('Lista inválida.');
@@ -414,6 +459,8 @@ case 'pedido_salvar': {
         $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0))];
     }
     if (!$itens) fail('Adicione pelo menos um item.');
+    $clienteId = !empty($in['cliente_id']) ? (int)$in['cliente_id'] : null;
+    if ($clienteId) { $s = $db->prepare('SELECT id FROM clientes WHERE id = ?'); $s->execute([$clienteId]); if (!$s->fetch()) $clienteId = null; }
     $sub = 0.0; foreach ($itens as $i) $sub += $i['preco'] * $i['qtd'];
     $desc = max(0, num($in['desconto'] ?? 0)); $frete = max(0, num($in['frete'] ?? 0));
     $total = max(0, round($sub - $desc + $frete, 2));
@@ -421,7 +468,7 @@ case 'pedido_salvar': {
     $data = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['data'] ?? '')) ? $in['data'] : date('Y-m-d');
     $campos = [$data, $cliente, preg_replace('/[^\d+() -]/', '', txt($in['whatsapp'] ?? '', 30)), txt($in['pagamento'] ?? '', 30),
         empty($in['pago']) ? 0 : 1, in_array($in['entrega'] ?? '', ['Retirada', 'Entrega'], true) ? $in['entrega'] : 'Retirada',
-        txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60), txt($in['obs'] ?? '', 1000), $desc, $frete, $total, $status];
+        txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60), txt($in['obs'] ?? '', 1000), $desc, $frete, $total, $status, $clienteId];
     $db->beginTransaction();
     try {
         if ($id) {
@@ -429,10 +476,10 @@ case 'pedido_salvar': {
             $velho = $s->fetch();
             if (!$velho) { $db->rollBack(); fail('Pedido não encontrado.', 404); }
             if ($velho['status'] !== 'cancelado') ajustarEstoque(itensDoPedido($id), +1);
-            $db->prepare('UPDATE pedidos SET data=?, cliente=?, whatsapp=?, pagamento=?, pago=?, entrega=?, endereco=?, prazo=?, obs=?, desconto=?, frete=?, total=?, status=? WHERE id=?')->execute([...$campos, $id]);
+            $db->prepare('UPDATE pedidos SET data=?, cliente=?, whatsapp=?, pagamento=?, pago=?, entrega=?, endereco=?, prazo=?, obs=?, desconto=?, frete=?, total=?, status=?, cliente_id=? WHERE id=?')->execute([...$campos, $id]);
             $db->prepare('DELETE FROM itens WHERE pedido_id = ?')->execute([$id]);
         } else {
-            $db->prepare('INSERT INTO pedidos (data, cliente, whatsapp, pagamento, pago, entrega, endereco, prazo, obs, desconto, frete, total, status, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([...$campos, date('Y-m-d H:i:s')]);
+            $db->prepare('INSERT INTO pedidos (data, cliente, whatsapp, pagamento, pago, entrega, endereco, prazo, obs, desconto, frete, total, status, cliente_id, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([...$campos, date('Y-m-d H:i:s')]);
             $id = (int)$db->lastInsertId();
         }
         foreach ($itens as $i) {

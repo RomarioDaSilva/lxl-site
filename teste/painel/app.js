@@ -52,6 +52,7 @@ function quadro(ativo, corpo) {
     '<div class="wrap">' + corpo + '</div>' +
     '<nav class="nav"><a href="#/pedidos" class="' + (ativo === 'pedidos' ? 'on' : '') + '"><span>&#128203;</span>Pedidos</a>' +
     '<a href="#/novo" class="novo ' + (ativo === 'novo' ? 'on' : '') + '"><span>&#10133;</span>Novo pedido</a>' +
+    '<a href="#/clientes" class="' + (ativo === 'clientes' ? 'on' : '') + '"><span>&#128100;</span>Clientes</a>' +
     '<a href="#/estoque" class="' + (ativo === 'estoque' ? 'on' : '') + '"><span>&#128230;</span>Estoque</a>' +
     '<a href="../" target="_blank" rel="noopener"><span>&#127876;</span>Ver catálogo</a></nav>';
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
@@ -114,6 +115,12 @@ async function telaPedidos() {
 /* ---------- produtos (cache) ---------- */
 let coresLista = [];
 let paramsCusto = {};
+let clientes = null;
+async function carregarClientes(forcar) { if (!clientes || forcar) clientes = (await api('clientes')).clientes; return clientes; }
+const acharCliente = (nome, tel) => {
+  const d = String(tel || '').replace(/\D/g, ''), n = String(nome || '').trim().toLowerCase();
+  return (clientes || []).find(c => (d.length >= 8 && c.telefone.replace(/\D/g, '') === d) || (n && c.nome.trim().toLowerCase() === n)) || null;
+};
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
 async function carregarCatalogo() {
@@ -149,7 +156,7 @@ async function carregarProdutos(forcar) {
 /* ---------- pedido: novo / editar ---------- */
 let P = null;
 function pedidoVazio() {
-  return { id: 0, data: hoje(), cliente: '', whatsapp: '', itens: [], desconto: 0, frete: 0, entrega: 'Retirada', endereco: '', prazo: '', pagamento: 'Pix', pago: 0, status: 'novo', obs: '' };
+  return { id: 0, cliente_id: null, data: hoje(), cliente: '', whatsapp: '', itens: [], desconto: 0, frete: 0, entrega: 'Retirada', endereco: '', prazo: '', pagamento: 'Pix', pago: 0, status: 'novo', obs: '' };
 }
 const subtotal = () => P.itens.reduce((s, i) => s + (Number(i.preco) || 0) * (Number(i.qtd) || 0), 0);
 const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Number(P.frete) || 0));
@@ -157,7 +164,7 @@ const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Num
 async function telaPedidoForm(id) {
   quadro(id ? '' : 'novo', '<p class="carregando">Carregando...</p>');
   try {
-    await Promise.all([carregarProdutos(), carregarCatalogo()]);
+    await Promise.all([carregarProdutos(), carregarCatalogo(), carregarClientes()]);
     if (id) { P = (await api('pedido', null, '&id=' + id)).pedido; }
     else if (!P || P.id) P = pedidoVazio();
   } catch (e) { return toast(e.message); }
@@ -165,7 +172,9 @@ async function telaPedidoForm(id) {
   $('.wrap').innerHTML =
     '<h1>' + (P.id ? 'Editar pedido #' + numPed(P.id) : 'Novo pedido') + '</h1>' +
     '<div class="barra"><button class="btn l" id="colar" type="button">Colar pedido do WhatsApp</button></div>' +
-    '<div class="card"><h2>Cliente</h2><label>Nome *</label><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off">' +
+    '<div class="card"><h2>Cliente</h2><label>Nome * (digite para buscar ou toque na seta)</label>' +
+    '<div class="cli-linha"><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off" placeholder="Buscar cliente ou digitar nome"><button class="btn s l" id="cliLista" type="button" aria-label="Ver lista de clientes">&#9662;</button><button class="btn s o" id="cliNovo" type="button" aria-label="Cadastrar novo cliente">+</button></div>' +
+    '<div id="cliSug" class="sug" hidden></div><div id="cliTag" class="clitag"></div>' +
     '<div class="l2"><div><label>WhatsApp</label><input type="tel" id="whatsapp" value="' + esc(P.whatsapp) + '" placeholder="(38) 9...."></div>' +
     '<div><label>Data do pedido</label><input type="date" id="data" value="' + esc(P.data) + '"></div></div></div>' +
     '<div class="card"><h2>Itens</h2><div id="itens"></div>' +
@@ -181,9 +190,10 @@ async function telaPedidoForm(id) {
     '<label>Observações (aparecem na notinha)</label><textarea id="obs">' + esc(P.obs) + '</textarea></div>' +
     '<div class="total"><div class="v" id="tot"></div><button class="btn" id="salvar" type="button">Salvar pedido</button></div>';
   const bind = (id, key, conv) => { $('#' + id).addEventListener('input', e => { P[key] = conv ? conv(e.target) : e.target.value; if (id === 'desconto' || id === 'frete') totais(); }); };
-  bind('cliente', 'cliente'); bind('whatsapp', 'whatsapp'); bind('data', 'data'); bind('endereco', 'endereco'); bind('prazo', 'prazo'); bind('obs', 'obs');
+  bind('whatsapp', 'whatsapp'); bind('data', 'data'); bind('endereco', 'endereco'); bind('prazo', 'prazo'); bind('obs', 'obs');
   bind('desconto', 'desconto', el => parseNum(el.value)); bind('frete', 'frete', el => parseNum(el.value));
   bind('pagamento', 'pagamento'); bind('status', 'status'); bind('pago', 'pago', el => el.checked ? 1 : 0);
+  ligarCliente();
   $('#entrega').addEventListener('change', e => { P.entrega = e.target.value; endBox(); });
   endBox();
   desenharItens();
@@ -191,6 +201,36 @@ async function telaPedidoForm(id) {
   $('#avulso').onclick = () => { P.itens.push({ produto_id: null, descricao: '', qtd: 1, preco: 0 }); desenharItens(); const l = document.querySelectorAll('.desc'); if (l.length) l[l.length - 1].focus(); };
   $('#colar').onclick = abrirColar;
   $('#salvar').onclick = salvarPedido;
+}
+function tagCliente() {
+  const c = P.cliente_id && (clientes || []).find(x => x.id === P.cliente_id);
+  $('#cliTag').innerHTML = c ? '<span>' + esc(c.codigo) + ' &middot; cliente cadastrado</span>' : '';
+}
+function escolherCliente(c) {
+  P.cliente_id = c.id; P.cliente = c.nome;
+  if (c.telefone) P.whatsapp = c.telefone;
+  const end = [c.endereco, c.cidade].filter(Boolean).join(' - ');
+  if (end) P.endereco = end;
+  $('#cliente').value = P.cliente; $('#whatsapp').value = P.whatsapp || ''; $('#endereco').value = P.endereco || '';
+  $('#cliSug').hidden = true; tagCliente();
+}
+function ligarCliente() {
+  const inp = $('#cliente'), sug = $('#cliSug');
+  const mostrar = todos => {
+    const q = inp.value.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    let l = (clientes || []).filter(c => todos || !q || c.nome.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q) || (qd.length >= 3 && c.telefone.replace(/\D/g, '').includes(qd)));
+    const total = l.length; l = l.slice(0, todos ? 50 : 6);
+    sug.innerHTML = l.length ? l.map(c => '<button type="button" class="sugi" data-cid="' + c.id + '"><b>' + esc(c.nome) + '</b><small>' + esc(c.codigo) + (c.telefone ? ' &middot; ' + esc(c.telefone) : '') + '</small></button>').join('') + (total > l.length ? '<div class="mut sugm">mais ' + (total - l.length) + '... continue digitando</div>' : '')
+      : '<div class="mut sugm">Nenhum cliente encontrado. Toque no + para cadastrar.</div>';
+    sug.hidden = false;
+    sug.querySelectorAll('[data-cid]').forEach(b => b.onmousedown = e => { e.preventDefault(); escolherCliente(clientes.find(x => x.id === +b.dataset.cid)); });
+  };
+  inp.addEventListener('input', () => { P.cliente = inp.value; if (P.cliente_id) { const c = clientes.find(x => x.id === P.cliente_id); if (!c || c.nome !== inp.value) { P.cliente_id = null; tagCliente(); } } mostrar(false); });
+  inp.addEventListener('focus', () => { if ((clientes || []).length) mostrar(false); });
+  inp.addEventListener('blur', () => setTimeout(() => { sug.hidden = true; }, 150));
+  $('#cliLista').onclick = () => { if (sug.hidden) mostrar(true); else sug.hidden = true; };
+  $('#cliNovo').onclick = () => formCliente({ id: 0, nome: P.cliente || '', telefone: P.whatsapp || '', endereco: '', cidade: '', obs: '' }, c => escolherCliente(c));
+  tagCliente();
 }
 function endBox() { $('#endbox').style.display = P.entrega === 'Entrega' ? '' : 'none'; }
 function totais() { const t = $('#tot'); if (t) t.textContent = 'Total ' + brl(totalPed()); document.querySelectorAll('[data-sub]').forEach(el => { const i = P.itens[+el.dataset.sub]; el.textContent = brl((Number(i.preco) || 0) * (Number(i.qtd) || 0)); }); }
@@ -258,7 +298,7 @@ function abrirColar() {
     const r = lerWhats($('#txt', m).value);
     if (!r.itens.length) return toast('Não encontrei itens na mensagem.');
     P.itens = r.itens;
-    if (r.nome) P.cliente = r.nome;
+    if (r.nome) { P.cliente = r.nome; const ex = acharCliente(r.nome, ''); if (ex) { P.cliente_id = ex.id; if (ex.telefone) P.whatsapp = ex.telefone; } }
     if (r.obs) P.obs = r.obs;
     m.fechar(); telaPedidoForm(0);
     toast(r.itens.length + ' item(ns) preenchido(s). Confira e complete o WhatsApp.');
@@ -544,6 +584,44 @@ async function importarCatalogo() {
   } catch (e) { toast('Não consegui ler o catálogo.'); }
 }
 
+/* ---------- clientes ---------- */
+let fCli = '';
+async function telaClientes() {
+  quadro('clientes', '<p class="carregando">Carregando...</p>');
+  try { await carregarClientes(true); } catch (e) { return toast(e.message); }
+  $('.wrap').innerHTML = '<h1>Clientes</h1><div class="barra"><button class="btn o" id="cNovo" type="button">Novo cliente</button></div>' +
+    '<input type="search" id="cBusca" placeholder="Buscar por nome, telefone ou código" value="' + esc(fCli) + '" style="margin-bottom:12px"><div id="cLista"></div>';
+  const desenha = () => {
+    const q = fCli.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    const l = clientes.filter(c => !q || c.nome.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q) || (qd.length >= 3 && c.telefone.replace(/\D/g, '').includes(qd)));
+    $('#cLista').innerHTML = l.length ? l.map(c => '<div class="card cli" data-id="' + c.id + '"><div><b>' + esc(c.nome) + '</b><small>' + esc(c.codigo) + (c.telefone ? ' &middot; ' + esc(c.telefone) : '') + (c.cidade ? ' &middot; ' + esc(c.cidade) : '') + '</small></div><div class="cr">' + c.pedidos + ' pedido(s)<small>' + brl(c.total) + '</small></div></div>').join('')
+      : '<div class="vazio">' + (clientes.length ? 'Nenhum cliente encontrado.' : 'Nenhum cliente ainda. Toque em "Novo cliente".') + '</div>';
+    document.querySelectorAll('.cli').forEach(el => el.onclick = () => formCliente(clientes.find(x => x.id === +el.dataset.id), () => telaClientes()));
+  };
+  $('#cBusca').addEventListener('input', e => { fCli = e.target.value; desenha(); });
+  $('#cNovo').onclick = () => formCliente({ id: 0, nome: '', telefone: '', endereco: '', cidade: '', obs: '' }, () => telaClientes());
+  desenha();
+}
+function formCliente(c, aoSalvar) {
+  const m = modal('<h2>' + (c.id ? 'Editar cliente ' + esc(c.codigo) : 'Novo cliente') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
+    '<label>Nome *</label><input type="text" id="cn" value="' + esc(c.nome) + '">' +
+    '<label>Telefone / WhatsApp</label><input type="tel" id="ct" value="' + esc(c.telefone) + '" placeholder="(38) 9....">' +
+    '<label>Endereço</label><input type="text" id="ce" value="' + esc(c.endereco) + '" placeholder="Rua, número, bairro">' +
+    '<label>Cidade</label><input type="text" id="cc" value="' + esc(c.cidade) + '" placeholder="Montes Claros">' +
+    '<label>Observações</label><input type="text" id="co" value="' + esc(c.obs) + '">' +
+    '<div class="acoes"><button class="btn" id="ok" type="button">Salvar</button>' + (c.id ? '<button class="btn s r" id="ex" type="button">Excluir</button>' : '') + '</div>');
+  $('#ok', m).onclick = async () => {
+    try {
+      const j = await api('cliente_salvar', { id: c.id, nome: $('#cn', m).value, telefone: $('#ct', m).value, endereco: $('#ce', m).value, cidade: $('#cc', m).value, obs: $('#co', m).value });
+      clientes = j.clientes; m.fechar(); toast('Cliente salvo.'); if (aoSalvar) aoSalvar(j.cliente);
+    } catch (e) { toast(e.message); }
+  };
+  if (c.id) $('#ex', m).onclick = async () => {
+    if (!confirm('Excluir o cliente "' + c.nome + '"? Os pedidos dele continuam salvos.')) return;
+    try { const j = await api('cliente_excluir', { id: c.id }); clientes = j.clientes; m.fechar(); toast('Cliente excluído.'); if (aoSalvar) aoSalvar(null); } catch (e) { toast(e.message); }
+  };
+}
+
 /* ---------- rotas ---------- */
 function rota() {
   if (!csrf) return;
@@ -554,6 +632,7 @@ function rota() {
     case 'editar': return telaPedidoForm(+h[1]);
     case 'nota': return telaNota(+h[1]);
     case 'estoque': return telaEstoque();
+    case 'clientes': return telaClientes();
     default: return telaPedidos();
   }
 }

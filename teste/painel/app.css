@@ -139,4 +139,10 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .acord .seta{transition:transform .2s;font-size:18px}.acord.aberto .seta{transform:rotate(180deg)}
 .acbox{padding:4px 2px 0}.cres{margin-top:12px;border-top:1px solid #e4ddcf;padding-top:8px}
 .cl{display:flex;justify-content:space-between;padding:5px 0;font-size:14px}.cl.tt{border-top:1px solid #d9d2c3;margin-top:4px;padding-top:8px;font-size:16px}.cl.neg b{color:#b3261e}
+.cli-linha{display:flex;gap:6px}.cli-linha input{flex:1}.cli-linha .btn{padding:0 14px}
+.sug{border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.sugi{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 12px;font:inherit;cursor:pointer}
+.sugi small{display:block;color:var(--mut);font-size:12px}.sugm{padding:10px 12px;font-size:13px}
+.clitag{margin-top:6px;font-size:12px;color:var(--g);font-weight:600}
+.cli{display:flex;justify-content:space-between;gap:10px;cursor:pointer;align-items:center}.cli small{display:block;color:var(--mut);font-size:12px}.cli .cr{text-align:right;font-weight:600;font-size:13px}
 [hidden]{display:none!important}
