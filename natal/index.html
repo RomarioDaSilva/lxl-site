@@ -78,6 +78,25 @@
   .info h3{font-size:.9rem;line-height:1.22}
   .entrega{display:inline-block;align-self:flex-start;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#f3e6cc;color:#6b4a12}
   .entrega.pronta{background:#dff1e6;color:var(--green-d)}
+  .cores-pronta{display:flex;gap:4px;align-self:flex-start}
+  .cores-pronta i,.cor-item i{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.3)}
+  .cor-item{display:inline-block;margin-right:10px;white-space:nowrap}
+  .cor-item i{margin-right:4px;vertical-align:-1px}
+  .cor-pronta{font-weight:600;color:var(--green-d);display:block;margin-bottom:8px}
+  .det-info .cores-pronta{display:none}
+  .cor-ops{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+  .cor-op{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px 6px 8px;border:2px solid #d9d2c3;border-radius:999px;background:#fff;font:inherit;font-weight:600;color:var(--ink,#2b2b2b);cursor:pointer}
+  .cor-op i{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.3);display:inline-block}
+  .cor-op small{font-weight:500;opacity:.7}
+  .cor-op.on{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,91,63,.18)}
+  .cor-aviso{font-size:.88rem;color:#8a5a00;margin:0 0 8px}
+  #cor-fundo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+  #cor-fundo[hidden]{display:none}
+  .cor-folha{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:18px 16px 22px}
+  .cor-folha h3{margin:0 0 4px;font-size:1.15rem}
+  .cor-folha p{margin:0 0 12px;color:#666;font-size:.92rem}
+  .cor-folha .cor-ops{margin-bottom:10px}
+  .cor-folha .cor-cancela{background:none;border:0;color:#666;font:inherit;text-decoration:underline;cursor:pointer;padding:8px}
   .preco{margin-top:auto;padding-top:3px;font-size:1.12rem;font-weight:800;color:var(--red-d)}
   .preco s{font-size:.8rem;font-weight:500;color:var(--muted);margin-right:6px}
   .preco .mes{display:block;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--green-d);margin-top:1px}
@@ -316,6 +335,8 @@
 
   .limite{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#FDE9EA;color:var(--red-d)}
   .limite svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .entrega,.limite{display:inline-flex;align-items:center;box-sizing:border-box;height:24px;padding:0 10px;font-size:.7rem;line-height:1;font-weight:700;border-radius:999px;align-self:flex-start}
+  .link-med{color:var(--green-d);font-weight:700;text-decoration:underline}
   .link-faq{display:inline-flex;margin-top:10px;font-weight:700;color:var(--green-d)}
   footer .links-uteis{margin:14px 0 4px}
   footer .links-uteis a{color:#fff;font-weight:700;text-underline-offset:3px}
@@ -521,6 +542,7 @@ const wppLink = msg => "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURI
 const msgGeral = "Olá! Vi o catálogo de Natal da LXL Projetos e quero saber mais.";
 
 const porSku = k => PRODUTOS.find(p=>p.sku===k);
+const temCores = p => !!(p && p.coresPronta && p.coresPronta.length);
 const fotosDe = p => p.fotos || [p.sku];
 const foto = (k,nome,lazy) => '<img src="imagens/'+k+'.jpg" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
 const msgProduto = p => typeof p.preco==="number"
@@ -529,7 +551,7 @@ const msgProduto = p => typeof p.preco==="number"
 
 function precoHTML(p){
   return typeof p.preco==="number"
-    ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+(CONFIG.mes?'<span class="mes">Preço especial '+CONFIG.mes+'</span>':'')+'</div>'
+    ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+'</div>'
     : '<div class="preco consulte">Consulte o valor</div>';
 }
 function limiteHTML(){
@@ -537,8 +559,11 @@ function limiteHTML(){
   var f=new Date(L.ate+"T23:59:59"); if(new Date()>f) return "";
   return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
 }
-function entregaHTML(p){
-  return p.entrega?'<span class="entrega'+(/^pronta/i.test(p.entrega)?' pronta':'')+'">'+p.entrega+'</span>':'';
+function entregaHTML(p, card){
+  const dots = p.coresPronta&&p.coresPronta.length ? '<span class="cores-pronta" aria-label="Cores em pronta entrega">'+p.coresPronta.map(c=>'<i title="'+c.n.replace(/"/g,"")+'" style="background:'+c.h+'"></i>').join('')+'</span>' : '';
+  const pronta = p.estoque>0;
+  const txt = pronta ? (card?'':'Pronta entrega: ')+p.estoque+(p.estoque>1?' disponíveis':' disponível') : (p.entrega||'');
+  return txt?'<span class="entrega'+(pronta||/^pronta/i.test(p.entrega||'')?' pronta':'')+'">'+txt+'</span>'+dots:'';
 }
 
 /* Card da lista: só código, título, prazo, valor e botão. Tocar no card abre a página do produto. */
@@ -546,7 +571,7 @@ function cardHTML(p){
   const temPreco = typeof p.preco==="number";
   return '<a class="card-link" href="#/p/'+p.sku+'">'+
     '<div class="foto">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fotosDe(p)[0],p.nome,true)+'</div>'+
-    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+'</div></a>'+
+    '<div class="info"><span class="cod">'+p.sku+'</span><h3>'+p.nome+'</h3>'+entregaHTML(p,true)+precoHTML(p)+'</div></a>'+
     '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>';
 }
 
@@ -555,7 +580,8 @@ let lastY = 0, veioDaLista = false;
 function montar(){
   const nav = document.getElementById("nav");
   const cont = document.getElementById("secoes");
-  nav.innerHTML = "";
+  nav.querySelectorAll("a:not(.nav-busca)").forEach(function(a){a.remove();});
+  cont.innerHTML = "";
 
   const CORES=[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
   let _ci=0;
@@ -598,8 +624,9 @@ function montar(){
 function detalheHTML(p){
   const fs = fotosDe(p);
   const temPreco = typeof p.preco==="number";
-  const cores = p.cor ? p.cor+'. Outras cores sob consulta.' : 'Consulte as cores disponíveis.';
-  const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : 'Consulte as medidas no WhatsApp.';
+  const pronta = temCores(p) ? '<span class="cor-pronta">Em pronta entrega, escolha a cor:</span><div class="cor-ops" id="cor-ops">'+p.coresPronta.map(c=>'<button type="button" class="cor-op" data-cor="'+esc2(c.n)+'"><i style="background:'+c.h+'"></i>'+c.n.replace(/[<>&"]/g,"")+' <small>('+c.q+')</small></button>').join("")+'</div>' : '';
+  const cores = (p.cor ? p.cor+'. Outras cores sob consulta.' : (temCores(p) ? 'Outras cores sob consulta.' : 'Consulte as cores disponíveis.'));
+  const medidas = p.medidas ? (/^[0-9,. ]+x/.test(p.medidas) ? p.medidas+' (comprimento x largura x altura)' : p.medidas) : '<a class="link-med" target="_blank" rel="noopener" href="'+wppLink("Olá! Quero saber as medidas da peça "+p.nome+" ("+p.sku+").")+'">Consultar as medidas pelo WhatsApp</a>';
   const rel = PRODUTOS.filter(x=>x.secao===p.secao && x.sku!==p.sku).slice(0,4);
   return '<button class="voltar" type="button" id="voltar">&larr; Voltar</button>'+
   '<div class="det">'+
@@ -608,7 +635,7 @@ function detalheHTML(p){
       (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+
-      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+
+      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+pronta+
       '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>'+
       '<button type="button" class="btn btn-comp" data-comp="'+p.sku+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar</button>'+
       '<a class="link-wpp" target="_blank" rel="noopener" href="'+wppLink(msgProduto(p))+'">'+(temPreco?'Pedir só este pelo WhatsApp':'Perguntar o valor pelo WhatsApp')+'</a>'+
@@ -653,11 +680,11 @@ let pedido = {};      /* {SKU: quantidade} */
 let dadosCliente = {nome:"", obs:""};
 try{
   const salvo = JSON.parse(localStorage.getItem(CHAVE)||"{}");
-  Object.keys(salvo.itens||{}).forEach(k=>{ if(porSku(k) && salvo.itens[k]>0) pedido[k]=Math.min(99,salvo.itens[k]|0); });
+  Object.keys(salvo.itens||{}).forEach(k=>{ if(porSku(k.split("|")[0]) && salvo.itens[k]>0) pedido[k]=Math.min(99,salvo.itens[k]|0); });
   if(salvo.cliente) dadosCliente = {nome:String(salvo.cliente.nome||""), obs:String(salvo.cliente.obs||"")};
 }catch(e){}
 function salvarPedido(){ try{ localStorage.setItem(CHAVE, JSON.stringify({itens:pedido,cliente:dadosCliente})); }catch(e){} }
-const itensPedido = () => Object.keys(pedido).map(k=>({p:porSku(k),q:pedido[k]})).filter(x=>x.p);
+const itensPedido = () => Object.keys(pedido).map(k=>{ const a=k.split("|"); return {p:porSku(a[0]),q:pedido[k],cor:a[1]||"",key:k}; }).filter(x=>x.p);
 const qtdTotal = () => itensPedido().reduce((a,x)=>a+x.q,0);
 function totais(){
   let total=0, combinar=0;
@@ -678,16 +705,27 @@ function toast(msg){
   const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
   setTimeout(()=>t.remove(),1800);
 }
-function adicionar(sku){
+function adicionar(sku,cor){
   const p = porSku(sku); if(!p) return;
-  pedido[sku] = Math.min(99,(pedido[sku]||0)+1);
+  const k = cor ? sku+"|"+cor : sku;
+  pedido[k] = Math.min(99,(pedido[k]||0)+1);
   salvarPedido(); atualizarBarra();
-  toast("Adicionado ao pedido: "+p.nome);
+  toast("Adicionado ao pedido: "+p.nome+(cor?" ("+cor+")":""));
 }
+function escolherCor(sku){
+  const p = porSku(sku); if(!p) return;
+  let f = document.getElementById("cor-fundo");
+  if(!f){ f=document.createElement("div"); f.id="cor-fundo"; document.body.appendChild(f); }
+  f.innerHTML = '<div class="cor-folha" role="dialog" aria-modal="true" aria-label="Escolha a cor"><h3>Qual cor você quer?</h3><p>'+esc2(p.nome)+'</p><div class="cor-ops">'+
+    p.coresPronta.map(c=>'<button type="button" class="cor-op" data-pick="'+esc2(c.n)+'" data-sku="'+sku+'"><i style="background:'+c.h+'"></i>'+c.n.replace(/[<>&"]/g,"")+' <small>('+c.q+')</small></button>').join("")+
+    '</div><button type="button" class="cor-cancela" data-cor-fechar>Cancelar</button></div>';
+  f.hidden = false;
+}
+function fecharCor(){ const f=document.getElementById("cor-fundo"); if(f){ f.hidden=true; f.innerHTML=""; } }
 function mensagemPedido(){
-  const linhas = itensPedido().map(({p,q},i)=>{
+  const linhas = itensPedido().map(({p,q,cor},i)=>{
     const tem = typeof p.preco==="number";
-    return (i+1)+") "+q+"x "+p.nome+" ("+p.sku+"): "+(tem ? brl(p.preco)+" cada = "+brl(p.preco*q) : "valor a combinar");
+    return (i+1)+") "+q+"x "+p.nome+(cor?" ["+cor+"]":"")+" ("+p.sku+"): "+(tem ? brl(p.preco)+" cada = "+brl(p.preco*q) : "valor a combinar");
   });
   const t = totais();
   let m = "Olá! Quero fazer um pedido do Catálogo de Natal 2026:\n\n"+linhas.join("\n")+"\n\n";
@@ -706,10 +744,10 @@ function abrirPedido(){
     corpo = '<div class="ped-vazio">Seu pedido está vazio.<br>Toque em "Adicionar ao pedido" nas peças que você quiser.</div>';
   }else{
     const t = totais();
-    corpo = its.map(({p,q})=>{
+    corpo = its.map(({p,q,cor,key})=>{
       const tem = typeof p.preco==="number";
-      return '<div class="ped-item"><div><b>'+esc2(p.nome)+'</b><small>'+p.sku+(tem?' · '+brl(p.preco)+' cada':' · valor a combinar')+'</small>'+
-        '<div class="ped-qtd"><button type="button" data-menos="'+p.sku+'" aria-label="Diminuir">−</button><span>'+q+'</span><button type="button" data-mais="'+p.sku+'" aria-label="Aumentar">+</button><button type="button" class="ped-rem" data-rem="'+p.sku+'">Remover</button></div></div>'+
+      return '<div class="ped-item"><div><b>'+esc2(p.nome)+'</b><small>'+p.sku+(cor?' · Cor: '+esc2(cor):'')+(tem?' · '+brl(p.preco)+' cada':' · valor a combinar')+'</small>'+
+        '<div class="ped-qtd"><button type="button" data-menos="'+esc2(key)+'" aria-label="Diminuir">−</button><span>'+q+'</span><button type="button" data-mais="'+esc2(key)+'" aria-label="Aumentar">+</button><button type="button" class="ped-rem" data-rem="'+esc2(key)+'">Remover</button></div></div>'+
         '<div class="sub'+(tem?'':' combinar')+'">'+(tem?brl(p.preco*q):'A combinar')+'</div></div>';
     }).join('') +
     '<div class="ped-total"><span>Total</span><span>'+brl(t.total)+'</span></div>'+
@@ -735,7 +773,20 @@ function mudar(sku,delta){
 }
 document.addEventListener("click", e=>{
   const add = e.target.closest("[data-add]");
-  if(add){ adicionar(add.dataset.add); return; }
+  if(add){
+    const sku=add.dataset.add, p=porSku(sku);
+    if(temCores(p)){
+      const sel=add.closest(".det-info") && add.closest(".det-info").querySelector(".cor-op.on");
+      if(sel){ adicionar(sku, sel.dataset.cor); return; }
+      escolherCor(sku); return;
+    }
+    adicionar(sku); return;
+  }
+  const op=e.target.closest(".cor-ops .cor-op[data-cor]");
+  if(op){ op.parentNode.querySelectorAll(".cor-op").forEach(b=>b.classList.toggle("on",b===op&&!op.classList.contains("on"))); return; }
+  const pk=e.target.closest("[data-pick]");
+  if(pk){ adicionar(pk.dataset.sku, pk.dataset.pick); fecharCor(); return; }
+  if(e.target.closest("[data-cor-fechar]") || e.target===document.getElementById("cor-fundo")){ fecharCor(); return; }
   if(e.target.closest("#barra-pedido")){ abrirPedido(); return; }
   if(e.target.closest("[data-fechar]") || e.target===document.getElementById("ped-fundo")){ fecharPedido(); return; }
   const mais=e.target.closest("[data-mais]"); if(mais){ mudar(mais.dataset.mais,1); return; }
@@ -784,6 +835,22 @@ document.addEventListener("click", e=>{
 montar();
 window.addEventListener("hashchange", rota);
 rota();
+
+/* Estoque e preços ao vivo: o painel da LXL informa quais peças estão em pronta entrega e o preço de cada uma.
+   Se o painel não responder, tudo continua como "Sob encomenda". */
+fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!d.itens) return;
+  let mudou=false;
+  PRODUTOS.forEach(p=>{
+    const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
+    if(n>0){ p.estoque=n; p.entrega="Pronta entrega"; mudou=true; }
+    if(v>0 && v!==p.preco){ p.preco=v; mudou=true; }
+    const cs=d.cores&&d.cores[p.sku];
+    p.coresPronta = Array.isArray(cs) ? cs.filter(c=>c&&c.q>0).map(c=>({n:String(c.n||""),h:/^#[0-9a-fA-F]{6}$/.test(c.h)?c.h:"#cccccc",q:c.q|0})) : null;
+    if(p.coresPronta&&p.coresPronta.length) mudou=true;
+  });
+  if(mudou){ const y=window.scrollY; montar(); rota(); if(document.getElementById("detalhe").hidden) window.scrollTo(0,y); }
+}).catch(()=>{});
 
 document.addEventListener("click", e=>{
   /* guarda a posição da lista para voltar no mesmo ponto */

@@ -1,0 +1,16 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+  Header set X-Frame-Options "DENY"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "same-origin"
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<FilesMatch "^(config\.example\.php)$">
+  Require all denied
+</FilesMatch>
