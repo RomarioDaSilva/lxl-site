@@ -272,9 +272,11 @@ function lerWhats(t) {
     let sku = '', nome, qtd, resto;
     if (m) { qtd = +m[1]; nome = m[2]; sku = m[3].toUpperCase(); resto = m[4]; }
     else { m = l.match(/^\s*\d+\)\s*(\d+)\s*x\s+(.+?):\s*(.*)$/); if (!m) return; qtd = +m[1]; nome = m[2]; resto = m[3]; }
+    let corNome = ''; const mc = nome.match(/\s*\[([^\]]+)\]\s*$/); if (mc) { corNome = mc[1].trim(); nome = nome.replace(/\s*\[[^\]]+\]\s*$/, ''); }
+    const corObj = corNome ? coresLista.find(c => c.nome.toLowerCase() === corNome.toLowerCase()) : null;
     const p = produtos.find(x => sku && x.codigo === sku);
     const pr = resto.match(/R\$\s*([\d.]+,\d{2})\s*cada/);
-    itens.push({ produto_id: p ? p.id : null, descricao: p ? p.nome : nome + (sku ? ' (' + sku + ')' : ''), qtd: qtd || 1, preco: pr ? parseNum(pr[1]) : (p ? p.preco : 0) });
+    itens.push({ produto_id: p ? p.id : null, descricao: p ? p.nome + (corObj ? ' (' + corObj.nome + ')' : '') : nome + (sku ? ' (' + sku + ')' : ''), qtd: qtd || 1, preco: pr ? parseNum(pr[1]) : (p ? p.preco : 0), cor_id: corObj ? corObj.id : null, cor: corObj ? corObj.nome : '' });
   });
   const n = t.match(/^\s*Nome:\s*(.+)$/im), o = t.match(/^\s*Observa[cç][õo]es:\s*(.+)$/im);
   return { itens, nome: n ? n[1].trim() : '', obs: o ? o[1].trim() : '' };
