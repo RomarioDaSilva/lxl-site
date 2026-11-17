@@ -451,24 +451,15 @@ async function telaCategorias() {
     '<div class="cata"><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' + arvore(c.id, prof + 1)).join('');
   const desenha = () => {
     $('.wrap').innerHTML = '<h1>Categorias</h1><p class="mut" style="margin:0 0 10px">Organize os itens em categorias e subcategorias. Um item pode ficar em mais de uma. Para colocar um item numa categoria, abra o item no Estoque e escolha em "Categorias".</p>' +
-      '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button><button class="btn l" id="kSug" type="button">Criar categorias sugeridas e organizar meus itens</button></div>' +
-      '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Criar categorias sugeridas e organizar meus itens".</div>') + '</div>';
+      '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button></div>' +
+      '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Nova categoria".</div>') + '</div>';
     $('#kNova').onclick = () => formCategoria(null, null, desenha);
-    $('#kSug').onclick = async () => {
-      if (!await confirmar('Criar as categorias sugeridas?', 'Vou criar Natal (com as subcategorias), Chaveiros, Brinquedos, Decoração, Religioso e outras, e colocar os itens que já estão no painel nas subcategorias de Natal. Não apaga nada e não duplica o que já existe.', 'Criar')) return;
-      try {
-        let j = await api('categorias_sugeridas', {});
-        const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
-        j = await api('categorias_do_catalogo', { lista: d.map(x => ({ sku: x.sku, secao: x.secao || '' })) });
-        categorias = j.categorias; produtos = null; await carregarProdutos(true); toast('Pronto. ' + j.ligados + ' itens organizados.'); desenha();
-      } catch (e) { toast(e.message); }
-    };
     document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => formCategoria(null, +b.dataset.sub, desenha));
     document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => formCategoria(catPorId(+b.dataset.ed), null, desenha));
     document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { cEst = b.dataset.ver; fEst = 'todos'; location.hash = '#/estoque'; });
     document.querySelectorAll('[data-ex]').forEach(b => b.onclick = async () => {
       const c = catPorId(+b.dataset.ex);
-      if (!await confirmar('Excluir "' + c.nome + '"?', 'Os itens não são apagados, só saem dessa categoria.', 'Excluir')) return;
+      if (!await confirmar('Excluir "' + c.nome + '"?', 'Nenhum item é apagado nem alterado, eles só deixam de aparecer nessa categoria.', 'Excluir')) return;
       try { const j = await api('categoria_excluir', { id: c.id }); categorias = j.categorias; produtos = null; await carregarProdutos(true); toast('Categoria excluída.'); desenha(); } catch (e) { toast(e.message); }
     });
   };
@@ -609,8 +600,8 @@ function formProduto(p) {
     $('#editCores', m).onclick = () => gerenciarCores(() => { desenhaCores(); });
     contador();
   };
-  let escolhidas = (n.categorias || []).slice();
-  const dcat = () => { $('#pcats', m).innerHTML = escolhidas.length ? escolhidas.map(id => '<span class="chipc">' + esc(catCaminho(id)) + '</span>').join('') : '<span class="mut" style="font-size:13px">Sem categoria. Escolha onde o item vai aparecer no site.</span>'; };
+  let escolhidas = (n.categorias || []).filter(catPorId);
+  const dcat = () => { $('#pcats', m).innerHTML = escolhidas.filter(catPorId).length ? escolhidas.filter(catPorId).map(id => '<span class="chipc">' + esc(catCaminho(id)) + '</span>').join('') : '<span class="mut" style="font-size:13px">Sem categoria. Escolha onde o item vai aparecer no site.</span>'; };
   $('#pcEsc', m).onclick = () => escolherCategorias(escolhidas, l => { escolhidas = l; dcat(); });
   dcat();
   const eb = () => { const c = $('#controla', m).value === '1'; $('#eb', m).style.display = c ? '' : 'none'; $('#eh', m).style.display = c ? 'none' : ''; };

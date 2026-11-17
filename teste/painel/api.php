@@ -123,6 +123,45 @@ function categoriaGarantir(string $nome, ?int $pai): int {
     $db->prepare('INSERT INTO categorias (nome, parent_id, ordem) VALUES (?,?,?)')->execute([$nome, $pai, (int)$o]);
     return (int)$db->lastInsertId();
 }
+const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
+    'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
+function secoesDoCatalogo(): array {
+    $f = __DIR__ . '/../natal/busca-indice.json';
+    $d = is_file($f) ? json_decode((string)file_get_contents($f), true) : null;
+    $m = [];
+    if (is_array($d)) foreach ($d as $x) { $k = strtoupper(trim((string)($x['sku'] ?? ''))); if ($k !== '') $m[$k] = trim((string)($x['secao'] ?? '')); }
+    return $m;
+}
+/* coloca o produto nas categorias de Natal conforme a seção que ele tinha no catálogo (só junta, nunca tira) */
+function ligarAoCatalogo(int $pid, string $codigo, array $secoes): void {
+    $sec = $secoes[strtoupper($codigo)] ?? null; if ($sec === null) return;
+    $natal = categoriaGarantir('Natal', null); $alvos = [];
+    if (isset(SECOES_NATAL[$sec])) {
+        $alvos[] = categoriaGarantir(SECOES_NATAL[$sec], $natal);
+        if ($sec === 'Presépio') $alvos[] = categoriaGarantir('Presépios', categoriaGarantir('Religioso', null));
+    } else $alvos[] = $natal;
+    foreach ($alvos as $cid) {
+        $q = db()->prepare('SELECT 1 FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?'); $q->execute([$pid, $cid]);
+        if (!$q->fetch()) db()->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
+    }
+}
+/* cria a estrutura inicial UMA vez só (depois disso, o que você apagar não volta) */
+function semearCategorias(): void {
+    $db = db();
+    $q = $db->prepare('SELECT valor FROM parametros WHERE chave = ?'); $q->execute(['seed_cat']);
+    if ($q->fetch()) return;
+    $db->beginTransaction();
+    try {
+        $arvore = ['Natal' => array_values(array_unique(array_values(SECOES_NATAL))),
+                   'Chaveiros' => ['Pet', 'Academia', 'Brinquedos', 'Sensoriais'], 'Brinquedos' => [], 'Decoração' => [],
+                   'Religioso' => ['Santos', 'Cruzes', 'Imagens', 'Presépios', 'Porta-textos'], 'Peças personalizadas' => []];
+        foreach ($arvore as $pai => $filhas) { $pid = categoriaGarantir($pai, null); foreach ($filhas as $f) categoriaGarantir($f, $pid); }
+        $sec = secoesDoCatalogo();
+        foreach ($db->query('SELECT id, codigo FROM produtos')->fetchAll() as $p) if ($p['codigo'] !== '') ligarAoCatalogo((int)$p['id'], $p['codigo'], $sec);
+        $db->prepare('INSERT INTO parametros (chave, valor) VALUES (?, ?)')->execute(['seed_cat', '1']);
+        $db->commit();
+    } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); }
+}
 function listaDeCores(): array {
     return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'hex' => $c['hex']], db()->query('SELECT * FROM cores ORDER BY nome')->fetchAll());
 }
@@ -251,6 +290,7 @@ case 'logout': {
 
 /* ----- produtos ----- */
 case 'produtos': {
+    semearCategorias();
     $r = $db->query('SELECT * FROM produtos ORDER BY ativo DESC, nome')->fetchAll();
     $m = mapaDeCores();
     $mc = mapaDeCategorias();
@@ -475,7 +515,7 @@ case 'custos_importar': {
 case 'produto_importar': {
     $lista = $in['lista'] ?? [];
     if (!is_array($lista)) fail('Lista inválida.');
-    $novos = 0; $pulados = 0;
+    $novos = 0; $pulados = 0; $secImp = secoesDoCatalogo();
     $db->beginTransaction();
     foreach (array_slice($lista, 0, 500) as $p) {
         $cod = strtoupper(txt($p['codigo'] ?? '', 40)); $nome = txt($p['nome'] ?? '', 160);
@@ -486,6 +526,7 @@ case 'produto_importar': {
         }
         $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs) VALUES (?,?,?,?,?,?,?)')
            ->execute([$cod, $nome, num($p['preco'] ?? 0), 0, 0, 1, 'Do catálogo (sob encomenda)']);
+        if ($cod !== '') ligarAoCatalogo((int)$db->lastInsertId(), $cod, $secImp);
         $novos++;
     }
     $db->commit();
@@ -494,6 +535,7 @@ case 'produto_importar': {
 
 /* ----- categorias ----- */
 case 'categorias': {
+    semearCategorias();
     out(['categorias' => listaDeCategorias()]);
 }
 case 'categoria_salvar': {
@@ -524,55 +566,12 @@ case 'categoria_excluir': {
     $id = (int)($in['id'] ?? 0);
     $q = $db->prepare('SELECT COUNT(*) FROM categorias WHERE parent_id = ?'); $q->execute([$id]);
     if ((int)$q->fetchColumn() > 0) fail('Essa categoria tem subcategorias. Apague ou mova as subcategorias primeiro.');
+    $db->beginTransaction();
     $db->prepare('DELETE FROM produto_categorias WHERE categoria_id = ?')->execute([$id]);
     $db->prepare('DELETE FROM categorias WHERE id = ?')->execute([$id]);
-    out(['categorias' => listaDeCategorias()]);
-}
-case 'categorias_sugeridas': {
-    $arvore = [
-        'Natal' => ['Árvores de Natal', 'Decoração de árvore', 'Feliz Natal', 'Mini Papais Noel', 'Decoração de mesa', 'Bomboniere e lembrancinhas', 'Presépios'],
-        'Chaveiros' => ['Pet', 'Academia', 'Brinquedos', 'Sensoriais', 'Profissões', 'Times e hobbies'],
-        'Brinquedos' => ['Articulados', 'Sensoriais', 'Educativos', 'Miniaturas'],
-        'Decoração' => ['Sala', 'Quarto', 'Cozinha', 'Escritório', 'Parede', 'Vasos e suportes'],
-        'Religioso' => ['Santos', 'Cruzes', 'Imagens', 'Presépios', 'Porta-textos', 'Terços e suportes'],
-        'Utilidades' => ['Organização', 'Suportes', 'Cozinha'],
-        'Datas comemorativas' => ['Páscoa', 'Dia das Mães', 'Dia dos Pais', 'Dia das Crianças'],
-        'Peças personalizadas' => [],
-    ];
-    foreach ($arvore as $pai => $filhas) {
-        $pid = categoriaGarantir($pai, null);
-        foreach ($filhas as $f) categoriaGarantir($f, $pid);
-    }
-    out(['categorias' => listaDeCategorias()]);
-}
-case 'categorias_do_catalogo': {
-    /* liga os itens às subcategorias de Natal usando as seções do catálogo antigo */
-    $lista = $in['lista'] ?? [];
-    if (!is_array($lista)) fail('Lista inválida.');
-    $mapa = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
-             'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
-    $db->beginTransaction();
-    $natal = categoriaGarantir('Natal', null); $relig = categoriaGarantir('Religioso', null); $lig = 0;
-    foreach (array_slice($lista, 0, 1000) as $x) {
-        $sku = strtoupper(txt($x['sku'] ?? '', 40)); $sec = txt($x['secao'] ?? '', 80);
-        if ($sku === '') continue;
-        $q = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $q->execute([$sku]);
-        $pid = $q->fetchColumn(); if (!$pid) continue;
-        $alvos = [];
-        if ($sec !== '' && isset($mapa[$sec])) {
-            $alvos[] = categoriaGarantir($mapa[$sec], $natal);
-            if ($sec === 'Presépio') $alvos[] = categoriaGarantir('Presépios', $relig);
-        } else $alvos[] = $natal;
-        foreach ($alvos as $cid) {
-            $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $cid]);
-            $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
-        }
-        $lig++;
-    }
     $db->commit();
-    out(['categorias' => listaDeCategorias(), 'ligados' => $lig]);
+    out(['categorias' => listaDeCategorias()]);
 }
-
 /* ----- pedidos ----- */
 case 'pedidos': {
     $w = []; $p = [];
