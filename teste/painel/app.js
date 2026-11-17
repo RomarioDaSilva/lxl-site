@@ -458,12 +458,16 @@ async function telaCategorias() {
   try { await carregarProdutos(true); await carregarCatalogo(); } catch (e) { return toast(e.message); }
   const arvore = (pai, prof) => catFilhas(pai).map(c =>
     '<div class="catl" style="margin-left:' + (prof * 18) + 'px"><div class="catn"><b>' + esc(c.nome) + '</b> <span class="mut">' + catTotal(c.id) + ' ite' + (catTotal(c.id) === 1 ? 'm' : 'ns') + '</span></div>' +
-    '<div class="cata"><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' + arvore(c.id, prof + 1)).join('');
+    '<div class="cata"><button class="btn s l" data-up="' + c.id + '" type="button" aria-label="Subir">&#8593;</button><button class="btn s l" data-dn="' + c.id + '" type="button" aria-label="Descer">&#8595;</button><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' + arvore(c.id, prof + 1)).join('');
   const desenha = () => {
     $('.wrap').innerHTML = '<h1>Categorias</h1><p class="mut" style="margin:0 0 10px">Organize os itens em categorias e subcategorias. Um item pode ficar em mais de uma. Para colocar um item numa categoria, abra o item no Estoque e escolha em "Categorias".</p>' +
       '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button></div>' +
       '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Nova categoria".</div>') + '</div>';
     $('#kNova').onclick = () => formCategoria(null, null, desenha);
+    /* setas: mudam a ordem entre categorias irmãs (a ordem das subcategorias de Natal vira a ordem das seções no catálogo) */
+    const mover = async (id, dir) => { try { const j = await api('categoria_ordenar', { id, dir }); categorias = j.categorias; desenha(); } catch (e) { toast(e.message); } };
+    document.querySelectorAll('[data-up]').forEach(b => b.onclick = () => mover(+b.dataset.up, -1));
+    document.querySelectorAll('[data-dn]').forEach(b => b.onclick = () => mover(+b.dataset.dn, 1));
     document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => formCategoria(null, +b.dataset.sub, desenha));
     document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => formCategoria(catPorId(+b.dataset.ed), null, desenha));
     document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { cEst = b.dataset.ver; fEst = 'todos'; location.hash = '#/estoque'; });

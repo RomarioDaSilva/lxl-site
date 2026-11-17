@@ -3,7 +3,7 @@ declare(strict_types=1);
 /*
  * Estoque PÚBLICO para o catálogo do site.
  * Mostra SOMENTE o código da peça, a quantidade das peças de pronta entrega (estoque maior que 0)
- * o preço de venda e as cores em pronta entrega das peças ativas. Não mostra cliente, pedido, custo nem nada privado.
+ * o preço de venda, as cores em pronta entrega e as categorias das peças ativas. Não mostra cliente, pedido, custo nem nada privado.
  */
 date_default_timezone_set('America/Sao_Paulo');
 header('Content-Type: application/json; charset=utf-8');
@@ -23,4 +23,14 @@ try {
 } catch (Throwable $e) {
     $itens = []; $precos = []; $cores = [];
 }
-echo json_encode(['itens' => (object)$itens, 'precos' => (object)$precos, 'cores' => (object)$cores], JSON_UNESCAPED_UNICODE);
+/* Categorias (para o catálogo se organizar sozinho): a árvore e, para cada código de peça ativa, os ids das categorias dela. */
+$categorias = []; $cats = [];
+try {
+    foreach (db()->query('SELECT id, nome, parent_id, ordem FROM categorias ORDER BY ordem, nome')->fetchAll() as $c)
+        $categorias[] = ['id' => (int)$c['id'], 'nome' => $c['nome'], 'pai' => $c['parent_id'] === null ? null : (int)$c['parent_id']];
+    foreach (db()->query("SELECT p.codigo, pc.categoria_id FROM produto_categorias pc JOIN produtos p ON p.id = pc.produto_id WHERE p.ativo = 1 AND p.codigo <> ''")->fetchAll() as $x)
+        $cats[$x['codigo']][] = (int)$x['categoria_id'];
+    /* peça ativa sem nenhuma categoria entra com lista vazia (assim o catálogo sabe que ela existe no painel) */
+    foreach (db()->query("SELECT p.codigo FROM produtos p WHERE p.ativo = 1 AND p.codigo <> ''")->fetchAll() as $x) if (!isset($cats[$x['codigo']])) $cats[$x['codigo']] = [];
+} catch (Throwable $e) { $categorias = []; $cats = []; }
+echo json_encode(['itens' => (object)$itens, 'precos' => (object)$precos, 'cores' => (object)$cores, 'categorias' => $categorias, 'cats' => (object)$cats], JSON_UNESCAPED_UNICODE);

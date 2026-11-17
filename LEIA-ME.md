@@ -18,6 +18,13 @@ Como o site está organizado, para quando precisar mexer à mão.
 - `teste/`: cópia de tudo para testar antes. Nada novo vai direto para produção.
 - `analytics.js`: Google Analytics (cole o ID `G-...` na variável `GA_ID`).
 
+## Categorias (painel e catálogo)
+- No painel, aba **Categorias**: árvore sem limite de níveis. Um item pode estar em várias categorias.
+- O catálogo de Natal lê a categoria **Natal** do painel (por `painel/estoque.php`): as subcategorias de Natal viram as seções, na ordem do painel (setas ↑ ↓).
+- Peça que não está no painel, ou está sem categoria, continua na seção escrita em `natal/dados.js`.
+- Peça colocada só em categorias de fora de Natal (ex.: Chaveiros) some do catálogo de Natal.
+- O texto, a foto e a descrição de cada peça continuam em `natal/dados.js` (o painel guarda preço, estoque e categorias).
+
 ## Regras de ouro
 1. Edite primeiro em `teste/`. Só depois copie para produção.
 2. Quando copiar da pasta `teste/` para a raiz, copie também os arquivos `.css` e `.js` de cada página, e troque `/teste/` por `/` nos endereços.

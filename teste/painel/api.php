@@ -570,6 +570,23 @@ case 'categoria_salvar': {
     else $id = categoriaGarantir($nome, $pai);
     out(['categorias' => listaDeCategorias(), 'id' => $id]);
 }
+case 'categoria_ordenar': {
+    /* sobe (-1) ou desce (1) uma categoria entre as irmãs (mesmo "pai"). Só muda a ordem, nada mais. */
+    $id = (int)($in['id'] ?? 0); $dir = ((int)($in['dir'] ?? 0)) < 0 ? -1 : 1;
+    $q = $db->prepare('SELECT parent_id FROM categorias WHERE id = ?'); $q->execute([$id]);
+    $r = $q->fetch(); if (!$r) fail('Categoria não encontrada. Atualize a página.');
+    $pai = $r['parent_id'] === null ? null : (int)$r['parent_id'];
+    if ($pai === null) $q = $db->query('SELECT id FROM categorias WHERE parent_id IS NULL ORDER BY ordem, nome');
+    else { $q = $db->prepare('SELECT id FROM categorias WHERE parent_id = ? ORDER BY ordem, nome'); $q->execute([$pai]); }
+    $ids = array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN));
+    $i = array_search($id, $ids, true);
+    $j = $i + $dir;
+    if ($i !== false && $j >= 0 && $j < count($ids)) { $t = $ids[$i]; $ids[$i] = $ids[$j]; $ids[$j] = $t; }
+    $db->beginTransaction();
+    foreach ($ids as $n => $cid) $db->prepare('UPDATE categorias SET ordem = ? WHERE id = ?')->execute([$n + 1, $cid]);
+    $db->commit();
+    out(['categorias' => listaDeCategorias()]);
+}
 case 'categoria_excluir': {
     $id = (int)($in['id'] ?? 0);
     $q = $db->prepare('SELECT COUNT(*) FROM categorias WHERE parent_id = ?'); $q->execute([$id]);

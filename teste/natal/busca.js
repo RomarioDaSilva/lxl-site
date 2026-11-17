@@ -8,11 +8,16 @@
   function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
   function tituloSecao(id){ for(var i=0;i<SECOES.length;i++) if(SECOES[i].id===id) return SECOES[i].titulo; return ""; }
-  var indice=PRODUTOS.map(function(p){
-    return {p:p,
-      hn:" "+norm([p.sku,p.nome,p.tag,tituloSecao(p.secao),p.top?"mais vendido":""].join(" "))+" ",
-      hd:" "+norm([p.desc,p.cor].join(" "))+" "};
-  });
+  var indice;
+  function montarIndice(){
+    indice=PRODUTOS.map(function(p){
+      return {p:p,
+        hn:" "+norm([p.sku,p.nome,p.tag,tituloSecao(p.secao),p.top?"mais vendido":""].join(" "))+" ",
+        hd:" "+norm([p.desc,p.cor].join(" "))+" "};
+    });
+  }
+  montarIndice();
+  window.lxlReindexar=montarIndice;   /* o catalogo.js chama isto quando as categorias do painel mudam as seções */
   function termos(v){
     return norm(v).split(" ").filter(Boolean).map(function(t){ return t.length>3 && /s$/.test(t) ? t.slice(0,-1) : t; });
   }

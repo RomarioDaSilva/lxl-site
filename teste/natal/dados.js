@@ -9,18 +9,21 @@ const CONFIG = {
   mes: "novembro de 2026"              /* Mês de validade dos preços. Em dezembro troque para "dezembro" ou deixe vazio para esconder o aviso */
 };
 
+/* Seções na ordem em que aparecem. Se o painel tiver as categorias de Natal, a ORDEM, o NOME e as PEÇAS de cada seção passam a vir do painel
+   (campo "categoria" = nome da subcategoria de Natal no painel). Este texto "sub" continua daqui. Subcategorias novas criadas no painel aparecem sozinhas.
+   Se o painel estiver fora do ar, vale tudo o que está escrito aqui. */
 /* Seções na ordem em que aparecem. Só aparecem as que tiverem produtos. */
 /* Cada linha abaixo é uma seção do catálogo. O "id" precisa ser igual ao campo "secao" dos produtos (lista PRODUTOS mais abaixo).
    Para criar uma seção nova: copie uma linha, troque id, titulo e sub, e use o mesmo id nos produtos dela. */
 const SECOES = [
-  {id:"presepio",    titulo:"Presépio",                sub:"Celebre o nascimento de Jesus em família. Peças delicadas para montar o seu presépio e preparar o coração para o Natal."},
-  {id:"arvores",     titulo:"Árvores de Natal",        sub:"Para mesa, balcão e estante."},
-  {id:"enfeites-arvore", titulo:"Decoração de árvore", sub:"Enfeites para pendurar e deixar a árvore de Natal ainda mais bonita."},
-  {id:"papai-noel",  titulo:"Mini Papais Noel",        sub:"Pequenos, charmosos e feitos para decorar qualquer cantinho."},
-  {id:"decoracoes-mesa", titulo:"Decorações de mesa",  sub:"Rena, boneco de neve, gnomo e mais para enfeitar mesa, aparador e estante."},
-  {id:"feliz-natal", titulo:"Feliz Natal",             sub:"Letreiros e placas para decorar e presentear."},
-  {id:"bombonieri",  titulo:"Bombonieri e lembrancinhas", sub:"Para ceia de empresa, igreja, escola e família. Quanto mais unidades, melhor o valor."},
-  {id:"kits",        titulo:"Kits de Natal",           sub:"Peças que combinam entre si. No kit você paga menos do que comprando separado."}
+  {id:"presepio", categoria:"Presépios",    titulo:"Presépio",                sub:"Celebre o nascimento de Jesus em família. Peças delicadas para montar o seu presépio e preparar o coração para o Natal."},
+  {id:"arvores", categoria:"Árvores de Natal",     titulo:"Árvores de Natal",        sub:"Para mesa, balcão e estante."},
+  {id:"enfeites-arvore", categoria:"Decoração de árvore", titulo:"Decoração de árvore", sub:"Enfeites para pendurar e deixar a árvore de Natal ainda mais bonita."},
+  {id:"papai-noel", categoria:"Mini Papais Noel",  titulo:"Mini Papais Noel",        sub:"Pequenos, charmosos e feitos para decorar qualquer cantinho."},
+  {id:"decoracoes-mesa", categoria:"Decoração de mesa", titulo:"Decorações de mesa",  sub:"Rena, boneco de neve, gnomo e mais para enfeitar mesa, aparador e estante."},
+  {id:"feliz-natal", categoria:"Feliz Natal", titulo:"Feliz Natal",             sub:"Letreiros e placas para decorar e presentear."},
+  {id:"bombonieri", categoria:"Bomboniere e lembrancinhas",  titulo:"Bombonieri e lembrancinhas", sub:"Para ceia de empresa, igreja, escola e família. Quanto mais unidades, melhor o valor."},
+  {id:"kits", categoria:"Kits de Natal",        titulo:"Kits de Natal",           sub:"Peças que combinam entre si. No kit você paga menos do que comprando separado."}
 ];
 
 /* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/PRE-001.jpg).

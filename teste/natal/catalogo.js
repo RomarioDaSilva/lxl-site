@@ -50,7 +50,7 @@ function montar(){
   const CORES=[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
   let _ci=0;
   SECOES.forEach(s=>{
-    const itens = PRODUTOS.filter(p=>p.secao===s.id);
+    const itens = PRODUTOS.filter(p=>(p.secoes||[p.secao]).indexOf(s.id)>-1);   /* secoes = todas as seções de Natal em que o painel colocou a peça */
     if(!itens.length) return;
     nav.insertAdjacentHTML("beforeend",'<a href="#'+s.id+'">'+s.titulo+'</a>');
     const sec = document.createElement("section");
@@ -135,7 +135,8 @@ function rota(){
     lista.forEach(e=>e.hidden=false);
     document.title = "Catálogo de Natal 2026 | LXL Projetos";
     if(estava) window.scrollTo(0,lastY);
-    else if(location.hash.length>1){ const alvo=document.querySelector(location.hash); if(alvo) alvo.scrollIntoView(); }
+    else if(location.hash.length>1){ let alvo=null; try{ alvo=document.querySelector(location.hash); }catch(e){}  /* link de peça que saiu do catálogo (#/p/...) não é um seletor válido */
+ if(alvo) alvo.scrollIntoView(); }
   }
 }
 /* ===== Pedido (carrinho) ===== */
@@ -302,12 +303,44 @@ montar();
 window.addEventListener("hashchange", rota);
 rota();
 
+/* CATEGORIAS DO PAINEL: o painel decide em que seção de Natal cada peça aparece.
+   Regras (seguras): peça que não está no painel, ou está sem categoria, continua na seção escrita em dados.js.
+   Peça que o painel colocou só em categorias de FORA de Natal (ex.: Chaveiros) some deste catálogo.
+   Uma peça em duas subcategorias de Natal aparece nas duas seções. */
+function aplicarCategorias(d){
+  if(!Array.isArray(d.categorias)||!d.categorias.length||!d.cats) return false;
+  const natal=d.categorias.find(c=>c.pai===null&&c.nome==="Natal"); if(!natal) return false;
+  const filhas=d.categorias.filter(c=>c.pai===natal.id);
+  if(!filhas.length) return false;
+  const desc=id=>{ const r=new Set([id]); let mais=true; while(mais){ mais=false; d.categorias.forEach(c=>{ if(c.pai!==null&&r.has(c.pai)&&!r.has(c.id)){ r.add(c.id); mais=true; } }); } return r; };
+  const slug=t=>"cat-"+String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const ordem=[], secDeFilha={};
+  filhas.forEach(f=>{
+    let s=SECOES.find(x=>x.categoria===f.nome);
+    if(!s){ s=SECOES.find(x=>x.id===slug(f.nome)); if(!s){ s={id:slug(f.nome),titulo:f.nome,sub:"",categoria:f.nome}; SECOES.push(s); } }
+    s.titulo=f.nome; secDeFilha[f.id]={s:s,ids:desc(f.id)}; ordem.push(s);
+  });
+  /* seções do painel primeiro, na ordem do painel; as que só existem em dados.js (ex.: Kits) vão depois */
+  const resto=SECOES.filter(s=>ordem.indexOf(s)<0); SECOES.length=0; ordem.concat(resto).forEach(s=>SECOES.push(s));
+  const natalIds=desc(natal.id);
+  for(let i=PRODUTOS.length-1;i>=0;i--){
+    const p=PRODUTOS[i], ids=d.cats[p.sku];
+    if(!Array.isArray(ids)||!ids.length) continue;                 /* não está no painel ou sem categoria: fica como está */
+    const alvos=filhas.map(f=>secDeFilha[f.id]).filter(x=>ids.some(id=>x.ids.has(id)));
+    if(alvos.length){ p.secoes=alvos.map(x=>x.s.id); p.secao=p.secoes[0]; }
+    else if(!ids.some(id=>natalIds.has(id))) PRODUTOS.splice(i,1);  /* só em categorias de fora de Natal */
+  }
+  if(window.lxlReindexar) window.lxlReindexar();
+  return true;
+}
+
 /* Estoque e preços ao vivo: o painel da LXL informa quais peças estão em pronta entrega e o preço de cada uma.
    Se o painel não responder, tudo continua como "Sob encomenda". */
 /* Se mudar a pasta do painel, ajuste o caminho "../painel/estoque.php" abaixo. */
 fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{
   if(!d||!d.itens) return;
   let mudou=false;
+  if(aplicarCategorias(d)) mudou=true;
   PRODUTOS.forEach(p=>{
     const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
     if(n>0){ p.estoque=n; p.entrega="Pronta entrega"; mudou=true; }
