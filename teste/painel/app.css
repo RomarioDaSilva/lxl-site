@@ -172,6 +172,9 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .qty{display:flex;gap:6px}.qty input{text-align:center;min-width:0;flex:1}.qty button{flex:0 0 46px;border:1px solid var(--line2);background:#fff;color:var(--g);border-radius:10px;font-size:24px;font-weight:700;cursor:pointer}.qty button:active{background:var(--sand)}
 .mais{width:100%;margin:2px 0 12px}.acbox.res{padding:4px 4px 6px}.acbox.res .it{border-top:1px solid var(--line3);padding:8px 0}.acbox.res .it:first-child{border-top:0}.acbox.res .it small{color:var(--mut);margin-left:6px}
 .mfoot{margin-top:14px}
+.cat-tg{width:30px;height:30px;border:0;background:var(--tint);color:var(--g);border-radius:8px;font-size:16px;cursor:pointer;margin-right:6px;vertical-align:middle;padding:0;touch-action:manipulation}
+.vazio-tg{display:inline-block;background:none;cursor:default}
+.voltar-cat{display:inline-block;margin-bottom:8px;color:var(--g);font-weight:700;text-decoration:none}
 .catl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 4px;border-bottom:1px solid #eee;flex-wrap:wrap}
 .catn{font-size:15px}.cata{display:flex;gap:6px;flex-wrap:wrap}
 .pcats{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
@@ -181,3 +184,4 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .ckr{display:flex;align-items:center;gap:8px;padding:9px 0;margin:0;color:inherit;font-size:15px}
 .ckr input{width:20px;height:20px;margin:0}
 [hidden]{display:none!important}
+a.chip{text-decoration:none;color:inherit}

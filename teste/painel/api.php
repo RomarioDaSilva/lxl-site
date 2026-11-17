@@ -587,6 +587,23 @@ case 'categoria_ordenar': {
     $db->commit();
     out(['categorias' => listaDeCategorias()]);
 }
+case 'categoria_itens': {
+    /* liga (add) ou desliga (remove) itens de uma categoria. Só mexe na ligação item-categoria, nunca no item. */
+    $id = (int)($in['id'] ?? 0);
+    $q = $db->prepare('SELECT id FROM categorias WHERE id = ?'); $q->execute([$id]);
+    if (!$q->fetch()) fail('Categoria não encontrada. Atualize a página.');
+    $db->beginTransaction();
+    foreach (array_unique(array_map('intval', (array)($in['add'] ?? []))) as $pid) {
+        $q = $db->prepare('SELECT id FROM produtos WHERE id = ?'); $q->execute([$pid]);
+        if (!$q->fetch()) continue;
+        $q = $db->prepare('SELECT 1 FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?'); $q->execute([$pid, $id]);
+        if (!$q->fetch()) $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $id]);
+    }
+    foreach (array_unique(array_map('intval', (array)($in['remove'] ?? []))) as $pid)
+        $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $id]);
+    $db->commit();
+    out(['ok' => true]);
+}
 case 'categoria_excluir': {
     $id = (int)($in['id'] ?? 0);
     $q = $db->prepare('SELECT COUNT(*) FROM categorias WHERE parent_id = ?'); $q->execute([$id]);
