@@ -47,6 +47,19 @@ function modal(html) {
   return f;
 }
 
+function confirmar(titulo, texto, rotulo) {
+  return new Promise(res => {
+    const m = modal('<h2>' + esc(titulo) + '</h2><p style="margin:4px 0 16px">' + esc(texto) + '</p>' +
+      '<div class="acoes"><button class="btn r" id="cfSim" type="button">' + esc(rotulo || 'Sim, excluir') + '</button><button class="btn l" id="cfNao" type="button">Cancelar</button></div>');
+    let feito = false;
+    const fim = v => { if (feito) return; feito = true; res(v); };
+    const fechar0 = m.fechar; m.fechar = () => { fechar0(); fim(false); };
+    $('#cfSim', m).onclick = () => { fim(true); fechar0(); };
+    $('#cfNao', m).onclick = () => m.fechar();
+    $('#cfNao', m).focus();
+  });
+}
+
 function quadro(ativo, corpo) {
   const it = (h, k, ic, tx) => '<a href="' + h + '" class="' + (ativo === k ? 'on' : '') + '"><span>' + ic + '</span>' + tx + '</a>';
   app.innerHTML =
@@ -548,7 +561,7 @@ function gerenciarCores(aoFechar) {
     m.querySelectorAll('.gc[data-id]').forEach(row => {
       const id = +row.dataset.id;
       row.querySelector('[data-sv]').onclick = async () => { try { const j = await api('cor_salvar', { id, nome: row.querySelector('.gn').value, hex: row.querySelector('.gh').value }); coresLista = j.cores; produtos = null; toast('Cor salva.'); desenha(); } catch (e) { toast(e.message); } };
-      row.querySelector('[data-ex]').onclick = async () => { if (!confirm('Excluir a cor "' + row.querySelector('.gn').value + '"?')) return; try { const j = await api('cor_excluir', { id }); coresLista = j.cores; desenha(); } catch (e) { toast(e.message); } };
+      row.querySelector('[data-ex]').onclick = async () => { if (!await confirmar('Excluir cor', 'Tem certeza que deseja excluir a cor "' + row.querySelector('.gn').value + '"?')) return; try { const j = await api('cor_excluir', { id }); coresLista = j.cores; desenha(); } catch (e) { toast(e.message); } };
     });
     $('#gna', m).onclick = async () => { try { const j = await api('cor_salvar', { nome: $('#gnn', m).value, hex: $('#gnh', m).value }); coresLista = j.cores; toast('Cor cadastrada.'); desenha(); } catch (e) { toast(e.message); } };
   };
@@ -630,7 +643,7 @@ function formCliente(c, aoSalvar) {
     } catch (e) { toast(e.message); }
   };
   if (c.id) $('#ex', m).onclick = async () => {
-    if (!confirm('Excluir o cliente "' + c.nome + '"? Os pedidos dele continuam salvos.')) return;
+    if (!await confirmar('Excluir cliente', 'Tem certeza que deseja excluir o cliente "' + c.nome + '"? Os pedidos dele continuam salvos.')) return;
     try { const j = await api('cliente_excluir', { id: c.id }); clientes = j.clientes; m.fechar(); toast('Cliente excluído.'); if (aoSalvar) aoSalvar(null); } catch (e) { toast(e.message); }
   };
 }
@@ -835,7 +848,7 @@ function ligarCalc() {
     const P = CALC.p;
     try { const j = await api('parametros_salvar', { params: { energia_kwh: P.energia_kwh, potencia_w: P.potencia_w, valor_impressora: P.valor_impressora, vida_util_h: P.vida_util_h, margem_pct: P.margem_pct, imposto_pct: P.imposto_pct, preco_kg_pla: P.preco_kg_pla, preco_kg_petg: P.preco_kg_petg } }); paramsCusto = j.params; toast('Valores salvos como padrão.'); } catch (e) { toast(e.message); }
   };
-  $('#limpar').onclick = () => { if (!CALC.linhas.length || confirm('Limpar a calculadora?')) { zerar(null); desenharCalc(); } };
+  $('#limpar').onclick = async () => { if (!CALC.linhas.length || await confirmar('Limpar a calculadora', 'Tem certeza? Tudo o que você preencheu vai ser apagado.', 'Sim, limpar')) { zerar(null); desenharCalc(); } };
   $('#calcRes').addEventListener('click', e => {
     const b = e.target.closest('[data-ac]'); if (!b) return;
     const k = b.dataset.ac, box = document.querySelector('[data-acb="' + k + '"]');
