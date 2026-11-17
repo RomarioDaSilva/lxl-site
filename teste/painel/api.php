@@ -5,10 +5,13 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Robots-Tag: noindex, nofollow');
 
+/* Etapas do pedido, na ordem. Se mudar aqui, mude também os nomes na tela (STATUS e PROXIMO em app.js). */
 const STATUS = ['novo', 'producao', 'pronto', 'entregue', 'cancelado'];
 
 require __DIR__ . '/lib.php';
 
+/* Cria as tabelas sozinho na primeira vez. Para adicionar uma coluna nova no futuro, coloque uma linha na lista
+   de colunas logo abaixo das tabelas ([tabela, coluna, tipo]). O painel faz o ALTER TABLE sozinho, sem precisar do phpMyAdmin. */
 function instalar(): void {
     $c = cfg();
     $sqlite = ($c['driver'] ?? 'mysql') === 'sqlite';
@@ -123,6 +126,8 @@ function categoriaGarantir(string $nome, ?int $pai): int {
     $db->prepare('INSERT INTO categorias (nome, parent_id, ordem) VALUES (?,?,?)')->execute([$nome, $pai, (int)$o]);
     return (int)$db->lastInsertId();
 }
+/* Liga o nome da seção do catálogo antigo à subcategoria de Natal. Só é usado na criação inicial das categorias
+   e quando se importa itens do catálogo. Mudar aqui não altera o que já está salvo. */
 const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
     'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
 function secoesDoCatalogo(): array {
@@ -145,6 +150,8 @@ function ligarAoCatalogo(int $pid, string $codigo, array $secoes): void {
         if (!$q->fetch()) db()->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
     }
 }
+/* Para recriar essa estrutura inicial depois de apagada: no phpMyAdmin, tabela "parametros", apague a linha com chave seed_cat
+   e abra o painel de novo. Ela só ADICIONA o que faltar, não apaga nada. */
 /* cria a estrutura inicial UMA vez só (depois disso, o que você apagar não volta) */
 function semearCategorias(): void {
     $db = db();
@@ -165,6 +172,7 @@ function semearCategorias(): void {
 function listaDeCores(): array {
     return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'hex' => $c['hex']], db()->query('SELECT * FROM cores ORDER BY nome')->fetchAll());
 }
+/* Valores iniciais dos custos (energia, impressora, filamento...). O que você salvar na Calculadora tem prioridade sobre estes. */
 const PARAMS_PADRAO = ['energia_kwh' => 1.17, 'potencia_w' => 100, 'valor_impressora' => 2461.04, 'vida_util_h' => 5000,
     'margem_pct' => 45, 'imposto_pct' => 0, 'preco_kg_pla' => 88, 'preco_kg_petg' => 57, 'embalagem_fixa' => 0.80, 'perda_pct' => 10];
 function parametros(): array {

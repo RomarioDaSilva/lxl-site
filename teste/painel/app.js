@@ -9,10 +9,14 @@ const dataBR = s => (s || '').split('-').reverse().join('/');
 const numPed = id => String(id).padStart(4, '0');
 const parseNum = v => { if (typeof v === 'number') return v; const n = parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 const fmtIn = n => (n || n === 0) ? String(Number(n).toFixed(2)).replace('.', ',') : '';
+/* Nomes das etapas do pedido na tela. As chaves (novo, producao...) precisam ser iguais ao STATUS do api.php. */
 const STATUS = { novo: 'Novo', producao: 'Em produção', pronto: 'Pronto', entregue: 'Entregue', cancelado: 'Cancelado' };
 const PROXIMO = { novo: 'producao', producao: 'pronto', pronto: 'entregue' };
+/* Opções do menu "Tipo" no item personalizado. Pode editar, apagar ou acrescentar nomes nesta lista. */
 const TIPOS_PERSO = ['Miniatura', 'Chaveiro', 'Placa / letreiro', 'Topo de bolo', 'Decoração', 'Reparo / peça sob medida', 'Outro'];
+/* Formas de pagamento do pedido. Pode editar a lista. */
 const PAGTO = ['Pix', 'Cartão', 'Dinheiro', 'A combinar'];
+/* Dados que saem na notinha do pedido. Troque aqui se mudar telefone, Instagram, site ou cidade. */
 const EMPRESA = { fone: '(38) 99221-4206', insta: '@lxlprojetos', site: 'lxlprojetos.site', cidade: 'Montes Claros, MG' };
 
 let csrf = '', usuario = '', produtos = null;

@@ -157,6 +157,7 @@
 </head>
 <body>
 
+<!-- TOPO: título, frase e os 2 botões. O número do WhatsApp dos botões é colocado pelo script lá embaixo (variável "wa"). -->
 <header class="hero">
   <img class="logo" src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
   <span class="eyebrow">Impressão 3D</span>
@@ -170,6 +171,8 @@
 
 <main class="wrap">
 
+  <!-- CATÁLOGOS: cada card grande abaixo leva para um catálogo.
+       Para adicionar um catálogo novo: copie um bloco <a class="destaque ..."> inteiro, cole abaixo e troque o link (href), o título e o texto. -->
   <section class="sec" id="catalogos">
     <div class="sec-head rev">
       <span class="eyebrow">Catálogos</span>
@@ -208,6 +211,7 @@
     </a>
   </section>
 
+  <!-- EM BREVE: avisos do que vem por aí. Para tirar, apague da linha <section> até o </section> correspondente. -->
   <section class="sec" id="sec-breve">
     <div class="sec-head rev">
       <span class="eyebrow">Em breve</span>
@@ -248,6 +252,7 @@
 
 </main>
 
+<!-- CONTATO: Instagram e TikTok são links fixos (troque o endereço no href se mudar o perfil). O botão de WhatsApp é preenchido pelo script. -->
 <section class="contato">
   <h2>Quer algo diferente?</h2>
   <p>Conte o que você precisa e a gente faz um orçamento sob medida.</p>
@@ -261,6 +266,8 @@
 <footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro. &middot; <a href="faq/">Perguntas frequentes</a></footer>
 
 <script>
+  /* NÚMERO DO WHATSAPP: 55 + DDD + número, só dígitos (hoje 5538992214206). Se trocar, troque aqui (3 linhas abaixo),
+     no catálogo (CONFIG, em natal/index.html), no FAQ (faq/index.html) e no painel (EMPRESA, em painel/app.js). */
   var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
   document.getElementById("cta").href = wa;
   document.getElementById("cta-topo").href = wa;

@@ -1,6 +1,10 @@
+# Regras da pasta do painel (a Hostinger lê este arquivo sozinha).
+# Não mostra a lista de arquivos da pasta.
 Options -Indexes
 DirectoryIndex index.html
 
+# Cabeçalhos de segurança: o painel não aparece no Google e não pode ser aberto dentro de outro site.
+# O Cache-Control faz o navegador conferir se há versão nova de html, js e css (evita ver tela antiga).
 <IfModule mod_headers.c>
   Header set X-Robots-Tag "noindex, nofollow"
   Header set X-Frame-Options "DENY"
@@ -11,6 +15,7 @@ DirectoryIndex index.html
   </FilesMatch>
 </IfModule>
 
+# Bloqueia a abertura do modelo de configuração pelo navegador.
 <FilesMatch "^(config\.example\.php)$">
   Require all denied
 </FilesMatch>

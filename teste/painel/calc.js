@@ -1,4 +1,10 @@
 /* Motor de cálculo da Calculadora de custo (puro, sem tela). Usado pelo painel e testado no Node. */
+/* FÓRMULA (para conferir à mão):
+   filamento = peso x (1 + perda%) x preço do kg / 1000
+   energia   = horas x watts / 1000 x preço do kWh
+   desgaste  = horas x valor da impressora / vida útil em horas
+   custo     = filamento + energia + desgaste + extras + embalagem (+ mão de obra)
+   preço sugerido = custo / (1 - (margem + imposto + taxa)%), arredondado para cima até terminar em ,90 */
 (function (raiz) {
   'use strict';
   var n = function (v) { v = Number(v); return isFinite(v) && v > 0 ? v : 0; };

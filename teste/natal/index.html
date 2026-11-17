@@ -434,6 +434,8 @@ const CONFIG = {
 };
 
 /* Seções na ordem em que aparecem. Só aparecem as que tiverem produtos. */
+/* Cada linha abaixo é uma seção do catálogo. O "id" precisa ser igual ao campo "secao" dos produtos (lista PRODUTOS mais abaixo).
+   Para criar uma seção nova: copie uma linha, troque id, titulo e sub, e use o mesmo id nos produtos dela. */
 const SECOES = [
   {id:"presepio",    titulo:"Presépio",                sub:"Celebre o nascimento de Jesus em família. Peças delicadas para montar o seu presépio e preparar o coração para o Natal."},
   {id:"arvores",     titulo:"Árvores de Natal",        sub:"Para mesa, balcão e estante."},
@@ -450,6 +452,9 @@ const SECOES = [
    preco: deixe de fora para mostrar "Consulte o valor".
    entrega: "Pronta entrega" ou "Sob encomenda" (pode escrever o prazo, ex.: "Sob encomenda, 3 dias").
    Campos opcionais: tag (etiqueta), antes (preço separado, usado nos kits). */
+/* ATENÇÃO: o preço e o estoque que aparecem no site vêm do PAINEL (aba Estoque) e substituem os valores daqui.
+   Para mudar preço ou quantidade, mude no painel. Os preços escritos aqui só valem se o painel estiver fora do ar.
+   top:true coloca o selo dourado de destaque na peça. */
 const PRODUTOS = [
   {sku:"PRE-001", secao:"presepio", nome:"Presépio Sagrada Família Tricô",
    desc:"Sagrada Família com textura de tricô, um presépio aconchegante e diferente.", cor:"Branco", medidas:"7 x 6 x 8 cm", preco:14.90, entrega:"Sob encomenda"},
@@ -675,6 +680,8 @@ function rota(){
   }
 }
 /* ===== Pedido (carrinho) ===== */
+/* O pedido do cliente fica guardado no celular dele com este nome. Se algum dia mudar o formato do pedido,
+   troque v1 por v2 para limpar os pedidos antigos que ficaram salvos nos aparelhos. */
 const CHAVE = "lxl_natal_pedido_v1";
 let pedido = {};      /* {SKU: quantidade} */
 let dadosCliente = {nome:"", obs:""};
@@ -838,6 +845,7 @@ rota();
 
 /* Estoque e preços ao vivo: o painel da LXL informa quais peças estão em pronta entrega e o preço de cada uma.
    Se o painel não responder, tudo continua como "Sob encomenda". */
+/* Se mudar a pasta do painel, ajuste o caminho "../painel/estoque.php" abaixo. */
 fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{
   if(!d||!d.itens) return;
   let mudou=false;
