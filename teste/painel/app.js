@@ -65,7 +65,7 @@ function quadro(ativo, corpo) {
   app.innerHTML =
     '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL">' +
     '<nav class="menu">' + it('#/pedidos', 'pedidos', '&#128203;', 'Pedidos') + it('#/novo', 'novo', '&#10133;', 'Novo') + it('#/clientes', 'clientes', '&#128100;', 'Clientes') +
-    it('#/estoque', 'estoque', '&#128230;', 'Estoque') + it('#/calculadora', 'calculadora', '&#129518;', 'Calculadora') + it('#/relatorios', 'relatorios', '&#128200;', 'Relatórios') + '</nav>' +
+    it('#/estoque', 'estoque', '&#128230;', 'Estoque') + it('#/categorias', 'categorias', '&#128193;', 'Categorias') + it('#/calculadora', 'calculadora', '&#129518;', 'Calculadora') + it('#/relatorios', 'relatorios', '&#128200;', 'Relatórios') + '</nav>' +
     '<a class="vsite" href="../" target="_blank" rel="noopener">Ver site</a><button id="sair" type="button">Sair</button></div>' +
     '<div class="wrap">' + corpo + '</div>';
   const mn = $('.topo .menu'), at = $('.topo .menu a.on'); if (mn && at) mn.scrollLeft = at.offsetLeft - (mn.clientWidth - at.offsetWidth) / 2;
@@ -128,6 +128,7 @@ async function telaPedidos() {
 
 /* ---------- produtos (cache) ---------- */
 let coresLista = [];
+let categorias = [];
 let paramsCusto = {};
 let clientes = null;
 async function carregarClientes(forcar) { if (!clientes || forcar) clientes = (await api('clientes')).clientes; return clientes; }
@@ -163,7 +164,7 @@ document.addEventListener('error', e => {
 }, true);
 
 async function carregarProdutos(forcar) {
-  if (!produtos || forcar) { const j = await api('produtos'); produtos = j.produtos; coresLista = j.cores || []; paramsCusto = j.params || {}; }
+  if (!produtos || forcar) { const j = await api('produtos'); produtos = j.produtos; coresLista = j.cores || []; paramsCusto = j.params || {}; categorias = j.categorias || []; }
   return produtos;
 }
 
@@ -413,7 +414,83 @@ async function telaNota(id) {
 }
 
 /* ---------- estoque ---------- */
-let fEst = 'todos', bEst = '', sEst = '';
+let fEst = 'todos', bEst = '', sEst = '', cEst = '';
+/* ---------- categorias ---------- */
+const catPorId = id => categorias.find(c => c.id === id);
+function catCaminho(id) { const t = []; let c = catPorId(id), g = 0; while (c && g++ < 30) { t.unshift(c.nome); c = c.parent_id ? catPorId(c.parent_id) : null; } return t.join(' › '); }
+function catFilhas(pai) { return categorias.filter(c => (c.parent_id || null) === (pai || null)); }
+function catDescend(id) { const r = new Set([id]); const v = i => catFilhas(i).forEach(f => { r.add(f.id); v(f.id); }); v(id); return r; }
+function catLista(pai, prof, ev) { /* lista achatada em ordem de árvore, com profundidade */
+  let r = []; catFilhas(pai).forEach(c => { if (c.id === ev) return; r.push({ c, prof }); r = r.concat(catLista(c.id, prof + 1, ev)); }); return r;
+}
+function catTotal(id) { const ds = catDescend(id); return produtos ? produtos.filter(p => p.ativo && (p.categorias || []).some(x => ds.has(x))).length : 0; }
+function catOpcoes(sel, ev, vazio) { return '<option value="">' + vazio + '</option>' + catLista(null, 0, ev).map(({ c, prof }) => '<option value="' + c.id + '"' + (sel === c.id ? ' selected' : '') + '>' + '   '.repeat(prof) + (prof ? '↳ ' : '') + esc(c.nome) + '</option>').join(''); }
+
+function formCategoria(c, paiInicial, depois) {
+  const n = c || { id: 0, nome: '', parent_id: paiInicial || null };
+  const m = modal('<h2>' + (c ? 'Editar categoria' : 'Nova categoria') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
+    '<label>Nome *</label><input type="text" id="kn" value="' + esc(n.nome) + '" placeholder="ex: Cruzes">' +
+    '<label>Fica dentro de</label><select id="kp">' + catOpcoes(n.parent_id, c ? c.id : 0, '(nenhuma, categoria principal)') + '</select>' +
+    '<p class="mut" style="font-size:13px">Dá para criar categoria dentro de categoria, quantas vezes precisar.</p>' +
+    '<div class="mfoot"><button class="btn" id="kok" type="button">Salvar</button></div>');
+  if (c) { /* não deixa escolher ela mesma nem suas filhas como "pai" */
+    const ds = catDescend(c.id); $('#kp', m).querySelectorAll('option').forEach(o => { if (o.value && ds.has(+o.value)) o.remove(); });
+  }
+  $('#kok', m).onclick = async () => {
+    try { const j = await api('categoria_salvar', { id: n.id, nome: $('#kn', m).value, parent_id: $('#kp', m).value || null }); categorias = j.categorias; m.fechar(); toast('Categoria salva.'); depois && depois(j.id); }
+    catch (e) { toast(e.message); }
+  };
+  setTimeout(() => $('#kn', m).focus(), 50);
+}
+
+async function telaCategorias() {
+  quadro('categorias', '<p class="carregando">Carregando...</p>');
+  try { await carregarProdutos(true); await carregarCatalogo(); } catch (e) { return toast(e.message); }
+  const arvore = (pai, prof) => catFilhas(pai).map(c =>
+    '<div class="catl" style="margin-left:' + (prof * 18) + 'px"><div class="catn"><b>' + esc(c.nome) + '</b> <span class="mut">' + catTotal(c.id) + ' ite' + (catTotal(c.id) === 1 ? 'm' : 'ns') + '</span></div>' +
+    '<div class="cata"><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' + arvore(c.id, prof + 1)).join('');
+  const desenha = () => {
+    $('.wrap').innerHTML = '<h1>Categorias</h1><p class="mut" style="margin:0 0 10px">Organize os itens em categorias e subcategorias. Um item pode ficar em mais de uma. Para colocar um item numa categoria, abra o item no Estoque e escolha em "Categorias".</p>' +
+      '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button><button class="btn l" id="kSug" type="button">Criar estrutura sugerida</button><button class="btn l" id="kNat" type="button">Organizar pelo catálogo de Natal</button></div>' +
+      '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Nova categoria" ou em "Criar estrutura sugerida" (Religioso, Chaveiros, Decoração, Natal, Peças personalizadas).</div>') + '</div>';
+    $('#kNova').onclick = () => formCategoria(null, null, desenha);
+    $('#kSug').onclick = async () => { try { const j = await api('categorias_sugeridas', {}); categorias = j.categorias; toast('Estrutura criada.'); desenha(); } catch (e) { toast(e.message); } };
+    $('#kNat').onclick = async () => {
+      if (!await confirmar('Organizar pelo catálogo de Natal?', 'Vou criar a categoria Natal com uma subcategoria para cada seção do catálogo e colocar os itens que já existem no painel dentro delas. Não apaga nada.', 'Organizar')) return;
+      try {
+        const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
+        const j = await api('categorias_do_catalogo', { lista: d.map(x => ({ sku: x.sku, secao: x.secao || '' })) });
+        categorias = j.categorias; produtos = null; await carregarProdutos(true); toast(j.ligados + ' itens organizados.'); desenha();
+      } catch (e) { toast(e.message); }
+    };
+    document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => formCategoria(null, +b.dataset.sub, desenha));
+    document.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => formCategoria(catPorId(+b.dataset.ed), null, desenha));
+    document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { cEst = b.dataset.ver; fEst = 'todos'; location.hash = '#/estoque'; });
+    document.querySelectorAll('[data-ex]').forEach(b => b.onclick = async () => {
+      const c = catPorId(+b.dataset.ex);
+      if (!await confirmar('Excluir "' + c.nome + '"?', 'Os itens não são apagados, só saem dessa categoria.', 'Excluir')) return;
+      try { const j = await api('categoria_excluir', { id: c.id }); categorias = j.categorias; produtos = null; await carregarProdutos(true); toast('Categoria excluída.'); desenha(); } catch (e) { toast(e.message); }
+    });
+  };
+  desenha();
+}
+
+/* escolher categorias de um item: lista com caixinhas */
+function escolherCategorias(atual, depois) {
+  const sel = new Set(atual);
+  const m = modal('<h2>Categorias do item <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
+    '<div id="ckl" class="ckl"></div><div class="acoes"><button class="btn s l" id="ckNova" type="button">+ Nova categoria</button></div>' +
+    '<div class="mfoot"><button class="btn" id="ckOk" type="button">Pronto</button></div>');
+  const d = () => {
+    $('#ckl', m).innerHTML = categorias.length ? catLista(null, 0, 0).map(({ c, prof }) => '<label class="ckr" style="padding-left:' + (prof * 18) + 'px"><input type="checkbox" data-c="' + c.id + '"' + (sel.has(c.id) ? ' checked' : '') + '> ' + esc(c.nome) + '</label>').join('')
+      : '<p class="mut">Nenhuma categoria ainda. Toque em "+ Nova categoria".</p>';
+    $('#ckl', m).querySelectorAll('input').forEach(i => i.onchange = () => { i.checked ? sel.add(+i.dataset.c) : sel.delete(+i.dataset.c); });
+  };
+  d();
+  $('#ckNova', m).onclick = () => formCategoria(null, null, id => { if (id) sel.add(id); d(); });
+  $('#ckOk', m).onclick = () => { m.fechar(); depois([...sel]); };
+}
+
 async function telaEstoque() {
   quadro('estoque', '<p class="carregando">Carregando...</p>');
   try { await Promise.all([carregarProdutos(true), carregarCatalogo()]); } catch (e) { return toast(e.message); }
@@ -423,7 +500,8 @@ async function telaEstoque() {
     '<div class="l2"><select id="sec"><option value="">Todas as seções</option>' +
     catalogo.secoes.map(s => '<option value="' + esc(s) + '"' + (sEst === s ? ' selected' : '') + '>' + esc(s) + ' (' + produtos.filter(p => p.ativo && secaoDe(p) === s).length + ')</option>').join('') +
     '<option value="__outros"' + (sEst === '__outros' ? ' selected' : '') + '>Fora do catálogo (' + produtos.filter(p => p.ativo && !secaoDe(p)).length + ')</option></select>' +
-    '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div><div class="card" style="margin-top:12px" id="lista"></div>';
+    '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div>' +
+    '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div><div class="card" style="margin-top:12px" id="lista"></div>';
   const desenha = () => {
     const q = bEst.toLowerCase().trim();
     const l = produtos.filter(p => {
@@ -432,10 +510,12 @@ async function telaEstoque() {
       if (fEst === 'inativos' && p.ativo) return false;
       if (fEst === 'todos' && !p.ativo) return false;
       if (sEst === '__outros' ? secaoDe(p) : (sEst && secaoDe(p) !== sEst)) return false;
+      if (cEst === '__sem') { if ((p.categorias || []).length) return false; }
+      else if (cEst) { const ds = catDescend(+cEst); if (!(p.categorias || []).some(x => ds.has(x))) return false; }
       return !q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q);
     });
     $('#lista').innerHTML = l.length ? l.map(p =>
-      '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div></div></div>' +
+      '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div>' + ((p.categorias || []).length ? '<div class="d cats">' + p.categorias.map(catCaminho).filter(Boolean).map(esc).join(' &middot; ') + '</div>' : '') + '</div></div>' +
       (p.controla && p.usa_cores ? '<div class="cmini">' + p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') + '<b class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</b></div>' : p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
       : '<div class="vazio">Nenhum produto aqui. Toque em "Novo produto" ou "Importar do catálogo".</div>';
     $('#lista').querySelectorAll('.prod').forEach(el => el.onclick = ev => {
@@ -449,6 +529,7 @@ async function telaEstoque() {
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fEst = b.dataset.f; telaEstoque(); });
   $('#q').oninput = e => { bEst = e.target.value; desenha(); };
   $('#sec').onchange = e => { sEst = e.target.value; desenha(); };
+  $('#cat').onchange = e => { cEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;
   $('#impc').onclick = importarCustos;
@@ -468,6 +549,7 @@ function formProduto(p) {
     '<div class="ck"><input type="checkbox" id="usaCores"' + (n.usa_cores ? ' checked' : '') + '><label style="margin:0;color:inherit">Esta peça tem mais de uma cor</label></div>' +
     '<div id="cbox" class="cbox"></div></div>' +
     '<p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
+    '<label>Categorias</label><div id="pcats" class="pcats"></div><div class="acoes"><button class="btn s l" id="pcEsc" type="button">Escolher categorias</button></div>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
     '<button type="button" class="acord" id="acBtn" aria-expanded="false"><span>Custo</span><span class="seta">&#9662;</span></button>' +
     '<div id="acBox" class="acbox" hidden>' +
@@ -531,6 +613,10 @@ function formProduto(p) {
     $('#editCores', m).onclick = () => gerenciarCores(() => { desenhaCores(); });
     contador();
   };
+  let escolhidas = (n.categorias || []).slice();
+  const dcat = () => { $('#pcats', m).innerHTML = escolhidas.length ? escolhidas.map(id => '<span class="chipc">' + esc(catCaminho(id)) + '</span>').join('') : '<span class="mut" style="font-size:13px">Sem categoria. Escolha onde o item vai aparecer no site.</span>'; };
+  $('#pcEsc', m).onclick = () => escolherCategorias(escolhidas, l => { escolhidas = l; dcat(); });
+  dcat();
   const eb = () => { const c = $('#controla', m).value === '1'; $('#eb', m).style.display = c ? '' : 'none'; $('#eh', m).style.display = c ? 'none' : ''; };
   $('#controla', m).onchange = eb; eb();
   $('#usaCores', m).onchange = desenhaCores;
@@ -543,7 +629,7 @@ function formProduto(p) {
       await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: total(), ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value,
         peso_g: parseNum($('#cPeso', m).value) || 0, tempo_min: Math.round((parseNum($('#cTempo', m).value) || 0) * 60), material: $('#cMat', m).value,
         preco_kg: parseNum($('#cKg', m).value) || 0, perda_pct: parseNum($('#cPerda', m).value) || 0, extras: parseNum($('#cExtra', m).value) || 0, embalagem: parseNum($('#cEmb', m).value) || 0, custo: Math.round(calcCusto().tot * 100) / 100,
-        usa_cores: usa ? 1 : 0, cores: usa ? coresLista.filter(c => qs[c.id] > 0 || existiam.has(c.id)).map(c => ({ cor_id: c.id, qtd: qs[c.id] || 0 })) : [] });
+        categorias: escolhidas, usa_cores: usa ? 1 : 0, cores: usa ? coresLista.filter(c => qs[c.id] > 0 || existiam.has(c.id)).map(c => ({ cor_id: c.id, qtd: qs[c.id] || 0 })) : [] });
       m.fechar(); telaEstoque(); toast('Produto salvo.');
     } catch (e) { toast(e.message); }
   };
@@ -890,6 +976,7 @@ function rota() {
     case 'editar': return telaPedidoForm(+h[1]);
     case 'nota': return telaNota(+h[1]);
     case 'estoque': return telaEstoque();
+    case 'categorias': return telaCategorias();
     case 'clientes': return telaClientes();
     case 'relatorios': return telaRelatorios();
     case 'calculadora': return telaCalculadora();

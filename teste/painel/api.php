@@ -22,6 +22,8 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS itens (id $pk, pedido_id INT NOT NULL, produto_id INT NULL, descricao VARCHAR(200), qtd INT DEFAULT 1, preco DECIMAL(10,2) DEFAULT 0)$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS categorias (id $pk, nome VARCHAR(80) NOT NULL, parent_id INT NULL, ordem INT DEFAULT 0, ativo TINYINT DEFAULT 1)$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS produto_categorias (produto_id INT NOT NULL, categoria_id INT NOT NULL, PRIMARY KEY (produto_id, categoria_id))$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
     $db->exec("CREATE TABLE IF NOT EXISTS clientes (id $pk, nome VARCHAR(120) NOT NULL, telefone VARCHAR(30) DEFAULT '', endereco VARCHAR(255) DEFAULT '', cidade VARCHAR(80) DEFAULT '', obs VARCHAR(255) DEFAULT '', criado_em VARCHAR(19))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS metricas (dia VARCHAR(10) NOT NULL, tipo VARCHAR(20) NOT NULL, chave VARCHAR(40) NOT NULL, qtd INT NOT NULL DEFAULT 0, PRIMARY KEY (dia, tipo, chave))$fim");
@@ -80,8 +82,9 @@ function num($v): float {
     if (is_string($v)) $v = str_replace(',', '.', $v);
     return is_numeric($v) ? round((float)$v, 2) : 0.0;
 }
-function produtoOut(array $p, array $mapaCores = []): array {
+function produtoOut(array $p, array $mapaCores = [], array $mapaCat = []): array {
     return [
+        'categorias' => $mapaCat[(int)$p['id']] ?? [],
         'id' => (int)$p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'],
         'preco' => (float)$p['preco'], 'controla' => (int)$p['controla'],
         'estoque' => (int)$p['estoque'], 'ativo' => (int)$p['ativo'], 'obs' => $p['obs'],
@@ -98,6 +101,28 @@ function mapaDeCores(): array {
     foreach ($r as $x) $m[(int)$x['produto_id']][] = ['cor_id' => (int)$x['cor_id'], 'nome' => $x['nome'], 'hex' => $x['hex'], 'qtd' => (int)$x['qtd']];
     return $m;
 }
+function mapaDeCategorias(): array {
+    $m = [];
+    foreach (db()->query('SELECT produto_id, categoria_id FROM produto_categorias')->fetchAll() as $x) $m[(int)$x['produto_id']][] = (int)$x['categoria_id'];
+    return $m;
+}
+function listaDeCategorias(): array {
+    $n = [];
+    foreach (db()->query('SELECT categoria_id, COUNT(*) c FROM produto_categorias GROUP BY categoria_id')->fetchAll() as $x) $n[(int)$x['categoria_id']] = (int)$x['c'];
+    return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'parent_id' => $c['parent_id'] === null ? null : (int)$c['parent_id'], 'ordem' => (int)$c['ordem'], 'qtd' => $n[(int)$c['id']] ?? 0],
+        db()->query('SELECT * FROM categorias ORDER BY ordem, nome')->fetchAll());
+}
+function categoriaGarantir(string $nome, ?int $pai): int {
+    $db = db();
+    $s = $pai === null ? $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id IS NULL') : $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id = ?');
+    $s->execute($pai === null ? [$nome] : [$nome, $pai]);
+    $id = $s->fetchColumn();
+    if ($id) return (int)$id;
+    if ($pai === null) { $o = $db->query('SELECT COALESCE(MAX(ordem),0)+1 FROM categorias WHERE parent_id IS NULL')->fetchColumn(); }
+    else { $q = $db->prepare('SELECT COALESCE(MAX(ordem),0)+1 FROM categorias WHERE parent_id = ?'); $q->execute([$pai]); $o = $q->fetchColumn(); }
+    $db->prepare('INSERT INTO categorias (nome, parent_id, ordem) VALUES (?,?,?)')->execute([$nome, $pai, (int)$o]);
+    return (int)$db->lastInsertId();
+}
 function listaDeCores(): array {
     return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'hex' => $c['hex']], db()->query('SELECT * FROM cores ORDER BY nome')->fetchAll());
 }
@@ -113,7 +138,7 @@ function parametros(): array {
 function produtoPorId(int $id): ?array {
     $s = db()->prepare('SELECT * FROM produtos WHERE id = ?'); $s->execute([$id]);
     $p = $s->fetch();
-    return $p ? produtoOut($p, mapaDeCores()) : null;
+    return $p ? produtoOut($p, mapaDeCores(), mapaDeCategorias()) : null;
 }
 function clienteOut(array $c): array {
     return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%03d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
@@ -228,7 +253,8 @@ case 'logout': {
 case 'produtos': {
     $r = $db->query('SELECT * FROM produtos ORDER BY ativo DESC, nome')->fetchAll();
     $m = mapaDeCores();
-    out(['produtos' => array_map(fn($p) => produtoOut($p, $m), $r), 'cores' => listaDeCores(), 'params' => parametros()]);
+    $mc = mapaDeCategorias();
+    out(['produtos' => array_map(fn($p) => produtoOut($p, $m, $mc), $r), 'cores' => listaDeCores(), 'params' => parametros(), 'categorias' => listaDeCategorias()]);
 }
 
 case 'produto_salvar': {
@@ -272,6 +298,13 @@ case 'produto_salvar': {
         }
         $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
         foreach ($linhas as [$cid, $q]) $db->prepare('INSERT INTO produto_cores (produto_id, cor_id, qtd) VALUES (?,?,?)')->execute([$id, $cid, $q]);
+        if (array_key_exists('categorias', $in) && is_array($in['categorias'])) {
+            $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ?')->execute([$id]);
+            foreach (array_unique(array_map('intval', $in['categorias'])) as $cid) {
+                $q = $db->prepare('SELECT id FROM categorias WHERE id = ?'); $q->execute([$cid]);
+                if ($q->fetch()) $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$id, $cid]);
+            }
+        }
         $db->commit();
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();
@@ -457,6 +490,71 @@ case 'produto_importar': {
     }
     $db->commit();
     out(['novos' => $novos, 'pulados' => $pulados]);
+}
+
+/* ----- categorias ----- */
+case 'categorias': {
+    out(['categorias' => listaDeCategorias()]);
+}
+case 'categoria_salvar': {
+    $id = (int)($in['id'] ?? 0);
+    $nome = txt($in['nome'] ?? '', 80);
+    if ($nome === '') fail('Informe o nome da categoria.');
+    $pai = isset($in['parent_id']) && $in['parent_id'] !== '' ? (int)$in['parent_id'] : null;
+    if ($pai !== null) {
+        $q = $db->prepare('SELECT id FROM categorias WHERE id = ?'); $q->execute([$pai]);
+        if (!$q->fetch()) fail('A categoria de cima não existe mais. Atualize a página.');
+        if ($id) {
+            $x = $pai; $g = 0;
+            while ($x !== null && $g++ < 50) {
+                if ($x === $id) fail('Uma categoria não pode ficar dentro dela mesma.');
+                $q = $db->prepare('SELECT parent_id FROM categorias WHERE id = ?'); $q->execute([$x]);
+                $v = $q->fetchColumn(); $x = ($v === false || $v === null) ? null : (int)$v;
+            }
+        }
+    }
+    $q = $pai === null ? $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id IS NULL AND id <> ?') : $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id = ? AND id <> ?');
+    $q->execute($pai === null ? [$nome, $id] : [$nome, $pai, $id]);
+    if ($q->fetch()) fail('Já existe uma categoria com esse nome nesse lugar.');
+    if ($id) $db->prepare('UPDATE categorias SET nome = ?, parent_id = ? WHERE id = ?')->execute([$nome, $pai, $id]);
+    else $id = categoriaGarantir($nome, $pai);
+    out(['categorias' => listaDeCategorias(), 'id' => $id]);
+}
+case 'categoria_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $q = $db->prepare('SELECT COUNT(*) FROM categorias WHERE parent_id = ?'); $q->execute([$id]);
+    if ((int)$q->fetchColumn() > 0) fail('Essa categoria tem subcategorias. Apague ou mova as subcategorias primeiro.');
+    $db->prepare('DELETE FROM produto_categorias WHERE categoria_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM categorias WHERE id = ?')->execute([$id]);
+    out(['categorias' => listaDeCategorias()]);
+}
+case 'categorias_sugeridas': {
+    $arvore = ['Religioso' => ['Santos', 'Cruzes', 'Imagens', 'Presépios', 'Porta-textos'],
+               'Chaveiros' => ['Pet', 'Academia', 'Brinquedos', 'Sensoriais'],
+               'Decoração' => [], 'Natal' => [], 'Peças personalizadas' => []];
+    foreach ($arvore as $pai => $filhas) {
+        $pid = categoriaGarantir($pai, null);
+        foreach ($filhas as $f) categoriaGarantir($f, $pid);
+    }
+    out(['categorias' => listaDeCategorias()]);
+}
+case 'categorias_do_catalogo': {
+    $lista = $in['lista'] ?? [];
+    if (!is_array($lista)) fail('Lista inválida.');
+    $db->beginTransaction();
+    $natal = categoriaGarantir('Natal', null); $lig = 0;
+    foreach (array_slice($lista, 0, 1000) as $x) {
+        $sku = strtoupper(txt($x['sku'] ?? '', 40)); $sec = txt($x['secao'] ?? '', 80);
+        if ($sku === '') continue;
+        $q = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $q->execute([$sku]);
+        $pid = $q->fetchColumn(); if (!$pid) continue;
+        $cid = $sec === '' ? $natal : categoriaGarantir($sec, $natal);
+        $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $cid]);
+        $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
+        $lig++;
+    }
+    $db->commit();
+    out(['categorias' => listaDeCategorias(), 'ligados' => $lig]);
 }
 
 /* ----- pedidos ----- */
