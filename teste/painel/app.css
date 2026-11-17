@@ -10,7 +10,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .topo button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
 .wrap{max-width:900px;margin:0 auto;padding:16px}
 .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
-.nav a{flex:1;max-width:220px;text-align:center;padding:10px 4px 9px;text-decoration:none;color:var(--mut);font-size:13px;font-weight:600}
+.nav a{flex:1;max-width:220px;text-align:center;padding:10px 2px 9px;text-decoration:none;color:var(--mut);font-size:11.5px;font-weight:600}
 .nav a span{display:block;font-size:20px;line-height:1.1}
 .nav a.on{color:var(--g)}
 .nav a.novo span{color:var(--o)}
@@ -154,4 +154,7 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .rt{width:100%;border-collapse:collapse;font-size:14px}.rt th{text-align:left;color:var(--mut);font-size:12px;font-weight:600;padding:4px 0}.rt td{padding:7px 0;border-top:1px solid var(--line)}
 .rt .r{text-align:right}.rt small{display:block;color:var(--mut);font-size:11px}.rt td.neg{color:#b3261e;font-weight:700}
 .perso{background:#faf7f0;border:1px dashed #d9d2c3;border-radius:10px;padding:8px 10px;margin:6px 0}.perso label{margin-top:8px}
+.calcbar{margin-bottom:12px}.cq .cqh{display:flex;align-items:center;gap:8px;margin-bottom:4px}.cq .cqh b{flex:1}.cq .cqh small{color:var(--mut)}
+.matl{border-top:1px dashed #d9d2c3;margin-top:8px;padding-top:4px}.cinfo{margin-top:10px;font-size:13px;line-height:1.5}
+.res .cl2{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px}.res .cl2.tt{font-size:16px;border-top:1px solid #e4ddcf;margin-top:2px;padding-top:8px}.res .cl2.neg b{color:#b3261e}
 [hidden]{display:none!important}
