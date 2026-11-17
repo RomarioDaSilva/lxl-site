@@ -48,15 +48,14 @@ function modal(html) {
 }
 
 function quadro(ativo, corpo) {
+  const it = (h, k, ic, tx) => '<a href="' + h + '" class="' + (ativo === k ? 'on' : '') + '"><span>' + ic + '</span>' + tx + '</a>';
   app.innerHTML =
-    '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL"><b>Painel</b><a class="vsite" href="../" target="_blank" rel="noopener">Ver site</a><button id="sair" type="button">Sair</button></div>' +
-    '<div class="wrap">' + corpo + '</div>' +
-    '<nav class="nav"><a href="#/pedidos" class="' + (ativo === 'pedidos' ? 'on' : '') + '"><span>&#128203;</span>Pedidos</a>' +
-    '<a href="#/novo" class="novo ' + (ativo === 'novo' ? 'on' : '') + '"><span>&#10133;</span>Novo</a>' +
-    '<a href="#/clientes" class="' + (ativo === 'clientes' ? 'on' : '') + '"><span>&#128100;</span>Clientes</a>' +
-    '<a href="#/estoque" class="' + (ativo === 'estoque' ? 'on' : '') + '"><span>&#128230;</span>Estoque</a>' +
-    '<a href="#/calculadora" class="' + (ativo === 'calculadora' ? 'on' : '') + '"><span>&#129518;</span>Calculadora</a>' +
-    '<a href="#/relatorios" class="' + (ativo === 'relatorios' ? 'on' : '') + '"><span>&#128200;</span>Relatórios</a></nav>';
+    '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL"><b>Painel</b>' +
+    '<nav class="menu">' + it('#/pedidos', 'pedidos', '&#128203;', 'Pedidos') + it('#/novo', 'novo', '&#10133;', 'Novo') + it('#/clientes', 'clientes', '&#128100;', 'Clientes') +
+    it('#/estoque', 'estoque', '&#128230;', 'Estoque') + it('#/calculadora', 'calculadora', '&#129518;', 'Calculadora') + it('#/relatorios', 'relatorios', '&#128200;', 'Relatórios') + '</nav>' +
+    '<a class="vsite" href="../" target="_blank" rel="noopener">Ver site</a><button id="sair" type="button">Sair</button></div>' +
+    '<div class="wrap">' + corpo + '</div>';
+  const mn = $('.topo .menu'), at = $('.topo .menu a.on'); if (mn && at) mn.scrollLeft = at.offsetLeft - (mn.clientWidth - at.offsetWidth) / 2;
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
 }
 
