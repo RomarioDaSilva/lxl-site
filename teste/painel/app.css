@@ -157,4 +157,5 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 .calcbar{margin-bottom:12px}.cq .cqh{display:flex;align-items:center;gap:8px;margin-bottom:4px}.cq .cqh b{flex:1}.cq .cqh small{color:var(--mut)}
 .matl{border-top:1px dashed #d9d2c3;margin-top:8px;padding-top:4px}.cinfo{margin-top:10px;font-size:13px;line-height:1.5}
 .res .cl2{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px}.res .cl2.tt{font-size:16px;border-top:1px solid #e4ddcf;margin-top:2px;padding-top:8px}.res .cl2.neg b{color:#b3261e}
+.calcgo{margin:14px 0}.btn.big{flex:1;font-size:18px;padding:15px 20px}.calcaviso{background:#fff4d6;border:1px solid #e6c870;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}#calcRes.velho{opacity:.45}
 [hidden]{display:none!important}

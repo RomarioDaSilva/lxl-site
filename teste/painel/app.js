@@ -760,8 +760,10 @@ function desenharCalc() {
     '<div class="acbox" id="parBox"' + (CALC.aberto ? '' : ' hidden') + '><div class="l2">' + par('Energia (R$/kWh)', 'energia_kwh') + par('Consumo (W)', 'potencia_w') + '</div><div class="l2">' + par('Valor da impressora (R$)', 'valor_impressora') + par('Vida útil (horas)', 'vida_util_h') + '</div>' +
       '<div class="l2">' + par('Margem de lucro (%)', 'margem_pct') + par('Imposto (%)', 'imposto_pct') + '</div><div class="l2">' + par('Taxa de venda/plataforma (%)', 'taxa_pct') + par('PLA médio (R$/kg)', 'preco_kg_pla') + '</div><div class="l2">' + par('PETG médio (R$/kg)', 'preco_kg_petg') + '<div></div></div>' +
       '<button class="btn s l" id="parSalvar" type="button">Salvar como padrão do painel</button></div>' +
-    '<div id="calcRes"></div><div class="acoes"><button class="btn" id="copiar" type="button">Copiar resumo</button><button class="btn l" id="limpar" type="button">Limpar tudo</button></div>';
-  ligarCalc(); resultadoCalc();
+    '<div class="acoes calcgo"><button class="btn big" id="calcular" type="button">Calcular</button><button class="btn l" id="limpar" type="button">Limpar tudo</button></div>' +
+    '<div id="calcAviso" class="calcaviso" hidden>Você mudou algum valor. Toque em <b>Calcular</b> para atualizar o resultado.</div><div id="calcRes"></div>';
+  ligarCalc();
+  if (CALC.res) { $('#calcRes').innerHTML = CALC.res; (CALC.infos || []).forEach((h, n) => { const el = document.querySelector('[data-info="' + n + '"]'); if (el) el.innerHTML = h; }); ligarCopiar(); $('#calcAviso').hidden = !CALC.stale; $('#calcRes').classList.toggle('velho', !!CALC.stale); }
 }
 function resultadoCalc() {
   const P = CALC.p, R = LXLCalc.calcOrcamento(CALC.linhas.map(paraMotor), nn(CALC.fixos), P);
@@ -783,25 +785,31 @@ function resultadoCalc() {
     '<div class="card res"><h2>Para produzir (' + R.pecas + ' peça' + (R.pecas === 1 ? '' : 's') + ')</h2>' + lin('Tempo de impressão', horasTxt(pr.horas)) +
     (pr.gramas_pla > 0 ? lin('Filamento PLA', kgTxt(pr.gramas_pla) + ' (' + pr.bobinas_pla + ' rolo' + (pr.bobinas_pla === 1 ? '' : 's') + ' de 1 kg)') : '') +
     (pr.gramas_petg > 0 ? lin('Filamento PETG', kgTxt(pr.gramas_petg) + ' (' + pr.bobinas_petg + ' rolo' + (pr.bobinas_petg === 1 ? '' : 's') + ' de 1 kg)') : '') +
-    (mats ? '<div class="mut" style="margin:10px 0 2px;font-size:12px">Por material (já com a perda):</div>' + mats : '') + '</div>';
+    (mats ? '<div class="mut" style="margin:10px 0 2px;font-size:12px">Por material (já com a perda):</div>' + mats : '') + '</div>' +
+    '<div class="acoes"><button class="btn" id="copiar" type="button">Copiar resumo</button></div>';
   CALC.ultimo = R;
+  CALC.res = $('#calcRes').innerHTML; CALC.stale = false;
+  CALC.infos = [...document.querySelectorAll('[data-info]')].map(el => el.innerHTML);
+  ligarCopiar(); $('#calcAviso').hidden = true; $('#calcRes').classList.remove('velho');
 }
+function mudouEstrutura() { CALC.stale = true; CALC.infos = []; }
+function marcarVelho() { if (!CALC.res) return; CALC.stale = true; $('#calcAviso').hidden = false; $('#calcRes').classList.add('velho'); }
 function ligarCalc() {
   const L = el => CALC.linhas[+el.dataset.n];
   document.querySelectorAll('.cq input.f-nome, .cq input[class^="f-"], .cq input[class^="m-"], .cq select.m-tipo').forEach(el => {
     const ev = el.tagName === 'SELECT' ? 'change' : 'input';
     el.addEventListener(ev, () => {
       const cls = [...el.classList].find(c => /^(f|m)-/.test(c)), l = L(el), k = cls.slice(2);
-      if (cls[0] === 'm') { l.materiais[+el.dataset.j][k] = el.value; if (k === 'tipo') return desenharCalc(); } else l[k] = el.value;
-      resultadoCalc();
+      if (cls[0] === 'm') { l.materiais[+el.dataset.j][k] = el.value; if (k === 'tipo') { mudouEstrutura(); return desenharCalc(); } } else l[k] = el.value;
+      marcarVelho();
     });
   });
-  document.querySelectorAll('.p-in').forEach(el => el.addEventListener('input', () => { CALC.p[el.dataset.k] = nn(el.value); resultadoCalc(); }));
-  $('.c-fixos').addEventListener('input', e => { CALC.fixos = e.target.value; resultadoCalc(); });
-  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { CALC.linhas.splice(+b.dataset.rm, 1); desenharCalc(); });
-  document.querySelectorAll('[data-addmat]').forEach(b => b.onclick = () => { CALC.linhas[+b.dataset.addmat].materiais.push({ nome: '', tipo: 'PLA', peso_g: '', preco_kg: '' }); desenharCalc(); });
-  document.querySelectorAll('[data-rmmat]').forEach(b => b.onclick = () => { const [n, j] = b.dataset.rmmat.split(':').map(Number); CALC.linhas[n].materiais.splice(j, 1); desenharCalc(); });
-  $('#addLivre').onclick = () => { CALC.linhas.push(linhaLivre()); desenharCalc(); };
+  document.querySelectorAll('.p-in').forEach(el => el.addEventListener('input', () => { CALC.p[el.dataset.k] = nn(el.value); marcarVelho(); }));
+  $('.c-fixos').addEventListener('input', e => { CALC.fixos = e.target.value; marcarVelho(); });
+  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { CALC.linhas.splice(+b.dataset.rm, 1); mudouEstrutura(); desenharCalc(); });
+  document.querySelectorAll('[data-addmat]').forEach(b => b.onclick = () => { CALC.linhas[+b.dataset.addmat].materiais.push({ nome: '', tipo: 'PLA', peso_g: '', preco_kg: '' }); mudouEstrutura(); desenharCalc(); });
+  document.querySelectorAll('[data-rmmat]').forEach(b => b.onclick = () => { const [n, j] = b.dataset.rmmat.split(':').map(Number); CALC.linhas[n].materiais.splice(j, 1); mudouEstrutura(); desenharCalc(); });
+  $('#addLivre').onclick = () => { CALC.linhas.push(linhaLivre()); mudouEstrutura(); desenharCalc(); };
   $('#addCat').onclick = escolherProdutoCalc;
   $('#parBtn').onclick = () => { CALC.aberto = !CALC.aberto; $('#parBox').hidden = !CALC.aberto; $('#parBtn').classList.toggle('aberto', CALC.aberto); };
   $('#parSalvar').onclick = async () => {
@@ -809,7 +817,14 @@ function ligarCalc() {
     try { const j = await api('parametros_salvar', { params: { energia_kwh: P.energia_kwh, potencia_w: P.potencia_w, valor_impressora: P.valor_impressora, vida_util_h: P.vida_util_h, margem_pct: P.margem_pct, imposto_pct: P.imposto_pct, preco_kg_pla: P.preco_kg_pla, preco_kg_petg: P.preco_kg_petg } }); paramsCusto = j.params; toast('Valores salvos como padrão.'); } catch (e) { toast(e.message); }
   };
   $('#limpar').onclick = () => { if (!CALC.linhas.length || confirm('Limpar a calculadora?')) { const p = CALC.p; CALC = calcInicial(); CALC.p = p; desenharCalc(); } };
-  $('#copiar').onclick = () => {
+  $('#calcular').onclick = () => {
+    if (!CALC.linhas.length) return toast('Adicione um produto ou item livre primeiro.');
+    resultadoCalc(); toast('Calculado.'); $('#calcRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+}
+function ligarCopiar() {
+  const bt = $('#copiar'); if (!bt) return;
+  bt.onclick = () => {
     const R = CALC.ultimo, P = CALC.p, pr = R.producao; if (!R.linhas.length) return toast('Nada para copiar.');
     const t = ['ORÇAMENTO LXL PROJETOS'].concat(R.linhas.map((x, i) => (x.qtd + 'x ' + (x.nome || 'Item ' + (i + 1)) + ': ' + brl(x.venda_un) + ' cada = ' + brl(x.venda_un * x.qtd))),
       ['Total: ' + brl(R.venda), '', 'Uso interno: custo ' + brl(R.custo) + ' | lucro ' + brl(R.lucro) + ' (' + R.margem_real.toFixed(1).replace('.', ',') + '%)', 'Produção: ' + horasTxt(pr.horas) + ', PLA ' + kgTxt(pr.gramas_pla) + (pr.gramas_petg ? ', PETG ' + kgTxt(pr.gramas_petg) : '')]).join('\n');
@@ -822,7 +837,7 @@ function escolherProdutoCalc() {
     const q = $('#q', m).value.trim().toLowerCase();
     const l = produtos.filter(p => p.ativo && (!q || p.nome.toLowerCase().includes(q) || (p.codigo || '').toLowerCase().includes(q))).slice(0, 60);
     $('#lista', m).innerHTML = l.length ? l.map(p => '<button type="button" class="sugi" data-pid="' + p.id + '"><b>' + esc(p.nome) + '</b><small>' + esc(p.codigo || '') + ' &middot; ' + brl(p.preco) + (p.peso_g > 0 ? '' : ' &middot; sem custo cadastrado') + '</small></button>').join('') : '<div class="vazio">Nada encontrado.</div>';
-    $('#lista', m).querySelectorAll('[data-pid]').forEach(b => b.onclick = () => { CALC.linhas.push({ k: 'cat', pid: +b.dataset.pid, qtd: 1, preco_un: '' }); m.fechar(); desenharCalc(); });
+    $('#lista', m).querySelectorAll('[data-pid]').forEach(b => b.onclick = () => { CALC.linhas.push({ k: 'cat', pid: +b.dataset.pid, qtd: 1, preco_un: '' }); mudouEstrutura(); m.fechar(); desenharCalc(); });
   };
   $('#q', m).addEventListener('input', des); des();
 }
