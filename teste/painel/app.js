@@ -1,3 +1,10 @@
+/* PAINEL LXL: arquivo principal da tela (um só arquivo, dividido em blocos).
+   ÍNDICE (procure pelo título do bloco, escrito entre linhas de traços):
+     utilidades de tela  | login  | pedidos (lista) | produtos (cache) | pedido novo/editar | notinha
+     categorias          | estoque | clientes        | relatórios       | calculadora de custo | rotas
+   Cada tela é uma função "tela..." (telaPedidos, telaEstoque, telaCategorias, telaClientes...).
+   As rotas (qual tela abre para cada endereço #/...) ficam no bloco "rotas", no fim do arquivo.
+   Quem fala com o banco é o api.php. As contas de custo ficam no calc.js. O visual fica no app.css. */
 (function () {
 'use strict';
 
@@ -417,7 +424,6 @@ async function telaNota(id) {
   };
 }
 
-/* ---------- estoque ---------- */
 let fEst = 'todos', bEst = '', sEst = '', cEst = '';
 /* ---------- categorias ---------- */
 const catPorId = id => categorias.find(c => c.id === id);
@@ -486,6 +492,7 @@ function escolherCategorias(atual, depois) {
   $('#ckOk', m).onclick = () => { m.fechar(); depois([...sel]); };
 }
 
+/* ---------- estoque ---------- */
 async function telaEstoque() {
   quadro('estoque', '<p class="carregando">Carregando...</p>');
   try { await Promise.all([carregarProdutos(true), carregarCatalogo()]); } catch (e) { return toast(e.message); }

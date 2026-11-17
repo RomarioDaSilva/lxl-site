@@ -7,157 +7,11 @@
 <meta name="robots" content="noindex">
 <title>LXL Projetos | Peças em impressão 3D</title><!--og--><meta property="og:type" content="website"><meta property="og:site_name" content="LXL Projetos"><meta property="og:locale" content="pt_BR"><meta property="og:title" content="LXL Projetos | Peças em impressão 3D"><meta property="og:description" content="Presentes, decoração e peças sob medida feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp."><meta property="og:url" content="https://lxlprojetos.site/teste/"><meta property="og:image" content="https://lxlprojetos.site/teste/natal/imagens/og-inicio.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="LXL Projetos, peças em impressão 3D"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="LXL Projetos | Peças em impressão 3D"><meta name="twitter:description" content="Presentes, decoração e peças sob medida feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp."><meta name="twitter:image" content="https://lxlprojetos.site/teste/natal/imagens/og-inicio.jpg"><!--/og-->
 <meta name="description" content="Presentes, decoração e peças sob medida feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp.">
-<style>
-  :root{
-    --musgo:#2F5D50; --musgo-d:#1F4036; --musgo-dd:#142B24; --terracota:#D9734E; --terracota-d:#B85A38;
-    --areia:#E6D5B8; --marfim:#FAF8F3; --cafe:#1E1E1C; --muted:#6a645a; --linha:#E9E1D1;
-  }
-  [hidden]{display:none!important}
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--cafe);background:var(--marfim);line-height:1.55;overflow-x:clip}
-  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0;font-weight:700}
-  a{color:inherit}
-  img{max-width:100%}
-  .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
-
-  /* ===== Topo ===== */
-  .hero{position:relative;overflow:hidden;color:var(--marfim);text-align:center;padding:34px 18px 96px;
-    background:
-      radial-gradient(520px 320px at 85% 10%,rgba(217,115,78,.28),transparent 70%),
-      radial-gradient(600px 360px at 8% 95%,rgba(230,213,184,.12),transparent 70%),
-      linear-gradient(165deg,var(--musgo) 0%,var(--musgo-d) 70%,var(--musgo-dd) 100%)}
-  /* camadas de impressão 3D */
-  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-    background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 7px);
-    -webkit-mask-image:linear-gradient(180deg,transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(180deg,transparent,#000 35%,#000 65%,transparent)}
-  .hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:44px;pointer-events:none;
-    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 44' preserveAspectRatio='none'%3E%3Cpath d='M0 44V26C150 4 300 4 450 22s300 24 450 6 200-22 300-10V44z' fill='%23FAF8F3'/%3E%3C/svg%3E") center bottom/100% 100% no-repeat}
-  .hero > *{position:relative;z-index:1}
-  .hero .logo{display:block;width:140px;height:auto;margin:0 auto 38px}
-  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--areia);font-weight:600}
-  .eyebrow::before,.eyebrow::after{content:"";width:28px;height:1px;background:var(--terracota)}
-  .hero h1{font-size:clamp(2.1rem,9vw,3.6rem);line-height:1.08;margin:16px auto 14px;max-width:16ch}
-  .hero h1 em{font-style:italic;color:#F2B79F}
-  .hero p.lead{margin:0 auto;max-width:34rem;font-size:1.05rem;color:#E9DFCB}
-  .acoes{display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:28px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 26px;transition:transform .15s,box-shadow .2s,filter .2s}
-  .btn-main{background:var(--terracota);color:#fff;box-shadow:0 8px 22px rgba(217,115,78,.35)}
-  .btn-ghost{border:1.5px solid rgba(250,248,243,.45);color:var(--marfim)}
-  .btn-wpp{background:#25D366;color:#073b1b}
-  @media(hover:hover){.btn:hover{transform:translateY(-2px)}.btn-main:hover{filter:brightness(1.06);box-shadow:0 12px 28px rgba(217,115,78,.45)}.btn-ghost:hover{background:rgba(250,248,243,.1)}}
-
-  /* ===== Títulos de seção ===== */
-  .sec{padding:54px 0 0}
-  .sec-head{text-align:center;margin-bottom:26px}
-  .sec-head .eyebrow{color:var(--terracota-d)}
-  .sec-head h2{font-size:clamp(1.55rem,5vw,2.1rem);color:var(--musgo);margin-top:10px}
-  .sec-head p{margin:8px auto 0;max-width:34rem;color:var(--muted)}
-
-  /* ===== Destaque: catálogo de Natal ===== */
-  .destaque{display:grid;grid-template-columns:1fr;background:#fff;border:1px solid var(--linha);border-radius:22px;overflow:hidden;text-decoration:none;
-    box-shadow:0 10px 34px rgba(30,30,28,.08);transition:transform .3s,box-shadow .3s}
-  .destaque .foto{position:relative;aspect-ratio:16/11;overflow:hidden;background:var(--areia)}
-  .destaque .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s ease}
-  .destaque .foto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,43,36,.35))}
-  .selo{position:absolute;top:14px;left:14px;z-index:2;background:var(--terracota);color:#fff;font-size:.7rem;font-weight:800;padding:5px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.08em}
-  .destaque .info{padding:24px 22px 26px;display:flex;flex-direction:column;justify-content:center;gap:10px}
-  .destaque .tag{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--terracota-d);font-weight:700}
-  .destaque h3{font-size:1.7rem;color:var(--musgo);line-height:1.15}
-  .destaque p{margin:0;color:var(--muted)}
-  .destaque .go{align-self:flex-start;margin-top:8px;background:var(--musgo);color:#fff;font-weight:700;padding:12px 22px;border-radius:999px;display:inline-flex;gap:8px;align-items:center;transition:background .2s,gap .2s}
-  @media(hover:hover){.destaque:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(30,30,28,.14)}.destaque:hover .foto img{transform:scale(1.06)}.destaque:hover .go{background:var(--terracota);gap:12px}}
-  @media(min-width:780px){
-    .destaque{grid-template-columns:1.15fr 1fr}
-    .destaque .foto{aspect-ratio:auto;min-height:340px}
-    .destaque .info{padding:34px 36px}
-    .destaque h3{font-size:2.1rem}
-  }
-
-  /* ===== Em breve ===== */
-  .breve{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .cat{position:relative;background:#fff;border:1px dashed #d9cfb9;border-radius:18px;padding:18px 16px 18px;text-align:left}
-  .cat svg{width:34px;height:34px;stroke:var(--musgo);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
-  .cat h3{font-size:1.05rem;color:var(--musgo);margin-bottom:4px}
-  .cat p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.4}
-  .cat .em{display:inline-block;margin-top:10px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--terracota-d);background:#FBEDE6;padding:3px 10px;border-radius:999px}
-  @media(min-width:780px){.breve{grid-template-columns:repeat(4,1fr);gap:16px}.cat{padding:22px 20px}}
-
-  /* ===== Como funciona ===== */
-  .passos{display:grid;grid-template-columns:1fr;gap:14px;counter-reset:p}
-  .passo{position:relative;background:#fff;border:1px solid var(--linha);border-radius:18px;padding:22px 20px 20px 74px;counter-increment:p}
-  .passo::before{content:counter(p);position:absolute;left:20px;top:20px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-family:Georgia,serif;font-weight:700;font-size:1.15rem;color:#fff;background:linear-gradient(135deg,var(--musgo),var(--musgo-d))}
-  .passo h3{font-size:1.08rem;color:var(--musgo);margin-bottom:3px}
-  .passo p{margin:0;color:var(--muted);font-size:.95rem}
-  @media(min-width:780px){.passos{grid-template-columns:repeat(3,1fr)}.passo{padding:78px 22px 24px}.passo::before{left:22px;top:22px}}
-
-  /* ===== Contato ===== */
-  .contato{position:relative;overflow:hidden;margin-top:56px;text-align:center;color:var(--marfim);padding:46px 18px 50px;
-    background:
-      radial-gradient(420px 260px at 90% 0,rgba(217,115,78,.28),transparent 70%),
-      linear-gradient(165deg,var(--musgo-d),var(--musgo-dd))}
-  .contato::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 7px)}
-  .contato > *{position:relative}
-  .contato h2{font-size:clamp(1.6rem,6vw,2.2rem);margin-bottom:8px}
-  .contato p{margin:0 auto 22px;max-width:30rem;color:#E9DFCB}
-  .redes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
-  .btn-rede{border:1.5px solid rgba(250,248,243,.35);color:var(--marfim);min-height:44px;padding:8px 22px}
-  @media(hover:hover){.btn-rede:hover{background:rgba(250,248,243,.1)}}
-
-  footer{text-align:center;color:#b9b19f;background:var(--musgo-dd);font-size:.85rem;padding:18px 16px 28px}
-
-
-  /* ===== Busca ===== */
-  .btn-buscar{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;min-height:52px;padding:0 30px;border:0;border-radius:999px;cursor:pointer;
-    background:linear-gradient(135deg,var(--musgo),var(--musgo-d));color:#fff;font:inherit;font-size:1.05rem;font-weight:700;box-shadow:0 8px 20px rgba(31,64,54,.28);transition:transform .15s,box-shadow .2s}
-  .btn-buscar svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
-  @media(hover:hover){.btn-buscar:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(31,64,54,.36)}}
-  .h-busca{display:flex;align-items:center;gap:8px;max-width:640px;margin:0 auto 22px;scroll-margin-top:20px}
-  .h-busca[hidden]{display:none}
-  .h-input{position:relative;flex:1;min-width:0}
-  .h-input > svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:22px;height:22px;stroke:var(--musgo);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
-  .h-input input{width:100%;height:54px;border-radius:999px;border:1.5px solid #dccfb4;background:#fff;padding:0 14px 0 46px;font:inherit;font-size:16px;color:var(--cafe);
-    box-shadow:0 6px 18px rgba(30,30,28,.08);-webkit-appearance:none;appearance:none;transition:border-color .2s,box-shadow .2s}
-  .h-input input:not(:placeholder-shown){padding-right:50px}
-  .h-input input::placeholder{color:#9a9183}
-  .h-input input::-webkit-search-cancel-button{display:none}
-  .h-input input:focus{outline:none;border-color:var(--musgo);box-shadow:0 0 0 4px rgba(47,93,80,.16),0 6px 18px rgba(30,30,28,.08)}
-  .h-limpar{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;border-radius:50%;background:#f0e7d4;color:var(--cafe);font-size:1.2rem;line-height:1;cursor:pointer}
-  .h-voltar{flex:0 0 auto;min-height:54px;padding:0 15px;border:1.5px solid #dccfb4;border-radius:999px;background:#fff;color:var(--musgo-d);font:inherit;font-weight:700;cursor:pointer}
-  .h-voltar:hover{background:#f6efdf}
-  #h-res .h-tit{font-family:Georgia,serif;font-size:1.35rem;color:var(--musgo);margin:6px 0 4px;text-align:center}
-  #h-res .h-sub{margin:0 0 16px;text-align:center;color:var(--muted);font-size:.95rem}
-  .h-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .h-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--linha);border-radius:16px;overflow:hidden;text-decoration:none;box-shadow:0 3px 12px rgba(30,30,28,.07);transition:transform .25s,box-shadow .25s}
-  @media(hover:hover){.h-card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(30,30,28,.13)}}
-  .h-card .f{position:relative;aspect-ratio:1/1;background:var(--areia);overflow:hidden}
-  .h-card .f img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .h-card .i{padding:10px 12px 14px;display:flex;flex-direction:column;gap:3px}
-  .h-card .c{font-size:.72rem;letter-spacing:.06em;color:var(--muted)}
-  .h-card .n{font-family:Georgia,serif;font-size:1rem;line-height:1.25;color:var(--cafe);font-weight:700}
-  .h-card .p{font-weight:800;color:var(--terracota-d);margin-top:2px}
-  .h-card .k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--musgo);margin-top:4px}
-  .h-vazio{background:#fff;border:1px dashed #d9cfb9;border-radius:18px;padding:24px 18px;text-align:center}
-  .h-vazio p{margin:0 0 14px;color:var(--muted)}
-  @media(min-width:780px){.h-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
-
-
-  .mais{text-align:center;margin:22px 0 0}
-  .btn-claro{border:1.5px solid #d9cdb3;background:#fff;color:var(--musgo-d);min-height:46px;padding:8px 24px}
-  footer a{color:#e6d5b8;text-underline-offset:3px}
-
-  /* ===== Entrada suave ===== */
-  @keyframes subir{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-  .hero > *{animation:subir .8s ease backwards}
-  .hero > *:nth-child(2){animation-delay:.08s}.hero > *:nth-child(3){animation-delay:.16s}.hero > *:nth-child(4){animation-delay:.24s}.hero > *:nth-child(5){animation-delay:.32s}
-  .rev{animation:subir .7s ease backwards}
-  @media (prefers-reduced-motion:reduce){.hero > *,.rev{animation:none!important}*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="estilo.css?v=1">
 </head>
 <body>
 
-<!-- TOPO: título, frase e os 2 botões. O número do WhatsApp dos botões é colocado pelo script lá embaixo (variável "wa"). -->
+<!-- TOPO: título, frase e os 2 botões. O número do WhatsApp dos botões é colocado pelo arquivo home.js (variável "wa"). -->
 <header class="hero">
   <img class="logo" src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
   <span class="eyebrow">Impressão 3D</span>
@@ -252,7 +106,7 @@
 
 </main>
 
-<!-- CONTATO: Instagram e TikTok são links fixos (troque o endereço no href se mudar o perfil). O botão de WhatsApp é preenchido pelo script. -->
+<!-- CONTATO: Instagram e TikTok são links fixos (troque o endereço no href se mudar o perfil). O botão de WhatsApp é preenchido pelo home.js. -->
 <section class="contato">
   <h2>Quer algo diferente?</h2>
   <p>Conte o que você precisa e a gente faz um orçamento sob medida.</p>
@@ -265,83 +119,7 @@
 
 <footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro. &middot; <a href="faq/">Perguntas frequentes</a></footer>
 
-<script>
-  /* NÚMERO DO WHATSAPP: 55 + DDD + número, só dígitos (hoje 5538992214206). Se trocar, troque aqui (3 linhas abaixo),
-     no catálogo (CONFIG, em natal/index.html), no FAQ (faq/index.html) e no painel (EMPRESA, em painel/app.js). */
-  var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
-  document.getElementById("cta").href = wa;
-  document.getElementById("cta-topo").href = wa;
-  document.getElementById("h-perso").href = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Quero fazer uma peça personalizada. Vou explicar a minha ideia:");
-</script>
-<script>
-/* ===== Busca nos catálogos ===== */
-(function(){
-  var abrir=document.getElementById("h-abrir"), campo=document.getElementById("h-campo"), q=document.getElementById("h-q"),
-      limpar=document.getElementById("h-limpar"), fechar=document.getElementById("h-fechar"), res=document.getElementById("h-res"),
-      destaque=document.getElementById("h-destaque"), breve=document.getElementById("sec-breve"), passos=document.getElementById("sec-passos");
-  var dados=null, carregando=null, falhou=false;
-  var BRL=function(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); };
-  function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
-  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
-  function termos(v){ return norm(v).split(" ").filter(Boolean).map(function(t){ return t.length>3&&/s$/.test(t)?t.slice(0,-1):t; }); }
-  function carregar(){
-    if(dados||carregando) return carregando;
-    carregando=fetch("natal/busca-indice.json").then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
-      dados=j.map(function(p){ return {p:p,
-        hn:" "+norm([p.sku,p.nome,p.tag,p.secao,p.top?"mais vendido":""].join(" "))+" ",
-        hd:" "+norm([p.desc,p.cor].join(" "))+" "}; });
-    }).catch(function(){ falhou=true; });
-    return carregando;
-  }
-  function noNome(it,t){ return it.hn.indexOf(" "+t)>-1; }
-  function naDesc(it,t){ return it.hd.indexOf(" "+t+" ")>-1||it.hd.indexOf(" "+t+"s ")>-1||it.hd.indexOf(" "+t+"es ")>-1; }
-  function buscar(v){
-    var ts=termos(v), out=[];
-    dados.forEach(function(it,i){
-      if(ts.every(function(t){return noNome(it,t)||naDesc(it,t);})) out.push({p:it.p,i:i,w:ts.every(function(t){return noNome(it,t);})?0:1});
-    });
-    return out.sort(function(a,b){return a.w-b.w||a.i-b.i;}).map(function(x){return x.p;});
-  }
-  function lista(sim){ destaque.hidden=!sim; breve.hidden=!sim; passos.hidden=!sim; res.hidden=sim; }
-  function render(){
-    var v=q.value, tem=norm(v).length>0;
-    limpar.hidden=!v.length;
-    if(!tem){ lista(true); res.innerHTML=""; return; }
-    lista(false);
-    if(falhou){ res.innerHTML='<div class="h-vazio"><p>Não foi possível carregar a busca agora. Você pode procurar direto no catálogo.</p><a class="btn btn-main" href="natal/">Abrir catálogo de Natal</a></div>'; return; }
-    if(!dados){ res.innerHTML='<p class="h-sub">Buscando...</p>'; carregar().then(render); return; }
-    var a=buscar(v);
-    var tit='<h3 class="h-tit">'+(a.length?a.length+(a.length===1?" peça encontrada":" peças encontradas"):"Nada encontrado")+'</h3><p class="h-sub">Busca por &ldquo;'+esc(v.trim())+'&rdquo;</p>';
-    if(a.length){
-      res.innerHTML=tit+'<div class="h-grid">'+a.map(function(p){
-        return '<a class="h-card" href="'+p.u+'#/p/'+p.sku+'"><div class="f"><img src="'+p.u+'imagens/'+p.foto+'.jpg" alt="'+esc(p.nome)+'" loading="lazy" onerror="this.remove()"></div>'+
-          '<div class="i"><span class="c">'+p.sku+'</span><span class="n">'+esc(p.nome)+'</span>'+(p.preco!==null?'<span class="p">'+BRL(p.preco)+'</span>':'<span class="p">Consulte o valor</span>')+'<span class="k">Ver peça</span></div></a>';
-      }).join("")+'</div>';
-    }else{
-      var msg="Olá! Procurei "+v.trim()+" no site da LXL Projetos e não encontrei. Vocês fazem?";
-      res.innerHTML=tit+'<div class="h-vazio"><p>Não achamos essa peça nos catálogos. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p><a class="btn btn-wpp" target="_blank" rel="noopener" href="https://wa.me/5538992214206?text='+encodeURIComponent(msg)+'">Perguntar no WhatsApp</a></div>';
-    }
-  }
-  function abrirBusca(){
-    abrir.hidden=true; abrir.setAttribute("aria-expanded","true"); campo.hidden=false;
-    q.focus();   /* no mesmo toque: teclado no celular e cursor no computador */
-    campo.scrollIntoView({behavior:"smooth",block:"center"});
-    carregar();
-  }
-  function fecharBusca(){
-    q.value=""; render(); campo.hidden=true; abrir.hidden=false; abrir.setAttribute("aria-expanded","false");
-  }
-  var t;
-  abrir.addEventListener("click",abrirBusca);
-  fechar.addEventListener("click",fecharBusca);
-  limpar.addEventListener("click",function(){ q.value=""; render(); q.focus(); });
-  q.addEventListener("input",function(){ clearTimeout(t); t=setTimeout(render,120); });
-  q.addEventListener("keydown",function(e){
-    if(e.key==="Escape"){ if(q.value){ q.value=""; render(); } else fecharBusca(); }
-    if(e.key==="Enter"){ e.preventDefault(); q.blur(); }
-  });
-})();
-</script>
+<script src="home.js?v=1"></script>
 <script src="/analytics.js" defer></script><script src="painel/medir.js" defer></script>
 </body>
 </html>
