@@ -306,11 +306,15 @@ rota();
 /* CATEGORIAS DO PAINEL: o painel decide em que seção de Natal cada peça aparece.
    Regras (seguras): peça que não está no painel, ou está sem categoria, continua na seção escrita em dados.js.
    Peça que o painel colocou só em categorias de FORA de Natal (ex.: Chaveiros) some deste catálogo.
+   Categoria desmarcada em "Mostrar no site" some com todas as peças dela (se a peça também estiver numa categoria visível de Natal, continua).
    Uma peça em duas subcategorias de Natal aparece nas duas seções. */
 function aplicarCategorias(d){
   if(!Array.isArray(d.categorias)||!d.categorias.length||!d.cats) return false;
   const natal=d.categorias.find(c=>c.pai===null&&c.nome==="Natal"); if(!natal) return false;
-  const filhas=d.categorias.filter(c=>c.pai===natal.id);
+  const ocultas=new Set(d.categorias.filter(c=>c.oculta).map(c=>c.id));   /* categorias desmarcadas em "Mostrar no site" (ou dentro de uma desmarcada) */
+  const filhas=d.categorias.filter(c=>c.pai===natal.id&&!ocultas.has(c.id));
+  /* seção de categoria oculta sai do catálogo */
+  d.categorias.filter(c=>c.pai===natal.id&&ocultas.has(c.id)).forEach(c=>{ const i=SECOES.findIndex(x=>x.categoria===c.nome); if(i>-1) SECOES.splice(i,1); });
   if(!filhas.length) return false;
   const desc=id=>{ const r=new Set([id]); let mais=true; while(mais){ mais=false; d.categorias.forEach(c=>{ if(c.pai!==null&&r.has(c.pai)&&!r.has(c.id)){ r.add(c.id); mais=true; } }); } return r; };
   const slug=t=>"cat-"+String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
@@ -324,8 +328,10 @@ function aplicarCategorias(d){
   const resto=SECOES.filter(s=>ordem.indexOf(s)<0); SECOES.length=0; ordem.concat(resto).forEach(s=>SECOES.push(s));
   const natalIds=desc(natal.id);
   for(let i=PRODUTOS.length-1;i>=0;i--){
-    const p=PRODUTOS[i], ids=d.cats[p.sku];
-    if(!Array.isArray(ids)||!ids.length) continue;                 /* não está no painel ou sem categoria: fica como está */
+    const p=PRODUTOS[i], todos=d.cats[p.sku];
+    if(!Array.isArray(todos)||!todos.length) continue;             /* não está no painel ou sem categoria: fica como está */
+    const ids=todos.filter(id=>!ocultas.has(id));
+    if(!ids.length){ PRODUTOS.splice(i,1); continue; }            /* todas as categorias dela estão ocultas: sai do site */
     const alvos=filhas.map(f=>secDeFilha[f.id]).filter(x=>ids.some(id=>x.ids.has(id)));
     if(alvos.length){ p.secoes=alvos.map(x=>x.s.id); p.secao=p.secoes[0]; }
     else if(!ids.some(id=>natalIds.has(id))) PRODUTOS.splice(i,1);  /* só em categorias de fora de Natal */

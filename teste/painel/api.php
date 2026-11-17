@@ -112,7 +112,7 @@ function mapaDeCategorias(): array {
 function listaDeCategorias(): array {
     $n = [];
     foreach (db()->query('SELECT categoria_id, COUNT(*) c FROM produto_categorias GROUP BY categoria_id')->fetchAll() as $x) $n[(int)$x['categoria_id']] = (int)$x['c'];
-    return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'parent_id' => $c['parent_id'] === null ? null : (int)$c['parent_id'], 'ordem' => (int)$c['ordem'], 'qtd' => $n[(int)$c['id']] ?? 0],
+    return array_map(fn($c) => ['id' => (int)$c['id'], 'nome' => $c['nome'], 'parent_id' => $c['parent_id'] === null ? null : (int)$c['parent_id'], 'ordem' => (int)$c['ordem'], 'visivel' => (int)($c['ativo'] ?? 1), 'qtd' => $n[(int)$c['id']] ?? 0],
         db()->query('SELECT * FROM categorias ORDER BY ordem, nome')->fetchAll());
 }
 function categoriaGarantir(string $nome, ?int $pai): int {
@@ -566,8 +566,9 @@ case 'categoria_salvar': {
     $q = $pai === null ? $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id IS NULL AND id <> ?') : $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id = ? AND id <> ?');
     $q->execute($pai === null ? [$nome, $id] : [$nome, $pai, $id]);
     if ($q->fetch()) fail('Já existe uma categoria com esse nome nesse lugar.');
-    if ($id) $db->prepare('UPDATE categorias SET nome = ?, parent_id = ? WHERE id = ?')->execute([$nome, $pai, $id]);
-    else $id = categoriaGarantir($nome, $pai);
+    $vis = (!array_key_exists('visivel', $in) || !empty($in['visivel'])) ? 1 : 0;
+    if ($id) $db->prepare('UPDATE categorias SET nome = ?, parent_id = ?, ativo = ? WHERE id = ?')->execute([$nome, $pai, $vis, $id]);
+    else { $id = categoriaGarantir($nome, $pai); $db->prepare('UPDATE categorias SET ativo = ? WHERE id = ?')->execute([$vis, $id]); }
     out(['categorias' => listaDeCategorias(), 'id' => $id]);
 }
 case 'categoria_ordenar': {
@@ -585,6 +586,14 @@ case 'categoria_ordenar': {
     $db->beginTransaction();
     foreach ($ids as $n => $cid) $db->prepare('UPDATE categorias SET ordem = ? WHERE id = ?')->execute([$n + 1, $cid]);
     $db->commit();
+    out(['categorias' => listaDeCategorias()]);
+}
+case 'categoria_visivel': {
+    /* liga/desliga a categoria no site. Só muda a visibilidade: os itens continuam ligados a ela e nada é apagado. */
+    $id = (int)($in['id'] ?? 0);
+    $q = $db->prepare('SELECT id FROM categorias WHERE id = ?'); $q->execute([$id]);
+    if (!$q->fetch()) fail('Categoria não encontrada. Atualize a página.');
+    $db->prepare('UPDATE categorias SET ativo = ? WHERE id = ?')->execute([empty($in['visivel']) ? 0 : 1, $id]);
     out(['categorias' => listaDeCategorias()]);
 }
 case 'categoria_itens': {

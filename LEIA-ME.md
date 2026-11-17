@@ -22,6 +22,7 @@ Como o site está organizado, para quando precisar mexer à mão.
 - No painel, aba **Categorias**: árvore sem limite de níveis. Um item pode estar em várias categorias.
 - A árvore é recolhível (setas ▸ ▾). "Ver itens" abre a tela da categoria (`#/categoria/ID`), onde dá para criar um item já dentro dela, incluir itens que já existem e tirar itens (só desliga a ligação, nunca apaga o item).
 - Mover uma categoria leva os itens junto (eles estão ligados à categoria, não ao lugar dela).
+- "Mostrar no site" (caixinha na categoria): desmarcada, a categoria e as subcategorias somem do catálogo junto com as peças. Nada é apagado. No banco usa a coluna `ativo` da tabela `categorias`.
 - O catálogo de Natal lê a categoria **Natal** do painel (por `painel/estoque.php`): as subcategorias de Natal viram as seções, na ordem do painel (setas ↑ ↓).
 - Peça que não está no painel, ou está sem categoria, continua na seção escrita em `natal/dados.js`.
 - Peça colocada só em categorias de fora de Natal (ex.: Chaveiros) some do catálogo de Natal.

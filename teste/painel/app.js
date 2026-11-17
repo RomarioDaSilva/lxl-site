@@ -429,6 +429,9 @@ let catAbertas = new Set(), catComSub = true;   /* categorias abertas na árvore
 /* ---------- categorias ---------- */
 const catPorId = id => categorias.find(c => c.id === id);
 function catCaminho(id) { const t = []; let c = catPorId(id), g = 0; while (c && g++ < 30) { t.unshift(c.nome); c = c.parent_id ? catPorId(c.parent_id) : null; } return t.join(' › '); }
+/* oculta = ela mesma ou alguma categoria de cima está desmarcada em "Mostrar no site". Devolve '' (visível), 'própria' ou o nome da de cima. */
+function catOculta(id) { const c = catPorId(id); if (!c) return ''; if (!c.visivel) return 'própria'; let x = c.parent_id ? catPorId(c.parent_id) : null, g = 0; while (x && g++ < 30) { if (!x.visivel) return x.nome; x = x.parent_id ? catPorId(x.parent_id) : null; } return ''; }
+function catSelo(id) { const o = catOculta(id); return o ? ' <span class="selo-oculta">' + (o === 'própria' ? 'oculta no site' : 'oculta (por ' + esc(o) + ')') + '</span>' : ''; }
 function catFilhas(pai) { return categorias.filter(c => (c.parent_id || null) === (pai || null)); }
 function catDescend(id) { const r = new Set([id]); const v = i => catFilhas(i).forEach(f => { r.add(f.id); v(f.id); }); v(id); return r; }
 function catLista(pai, prof, ev) { /* lista achatada em ordem de árvore, com profundidade */
@@ -438,10 +441,12 @@ function catTotal(id) { const ds = catDescend(id); return produtos ? produtos.fi
 function catOpcoes(sel, ev, vazio) { return '<option value="">' + vazio + '</option>' + catLista(null, 0, ev).map(({ c, prof }) => '<option value="' + c.id + '"' + (sel === c.id ? ' selected' : '') + '>' + '   '.repeat(prof) + (prof ? '↳ ' : '') + esc(c.nome) + '</option>').join(''); }
 
 function formCategoria(c, paiInicial, depois) {
-  const n = c || { id: 0, nome: '', parent_id: paiInicial || null };
+  const n = c || { id: 0, nome: '', parent_id: paiInicial || null, visivel: 1 };
   const m = modal('<h2>' + (c ? 'Editar categoria' : 'Nova categoria') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
     '<label>Nome *</label><input type="text" id="kn" value="' + esc(n.nome) + '" placeholder="ex: Cruzes">' +
     '<label>Fica dentro de</label><select id="kp">' + catOpcoes(n.parent_id, c ? c.id : 0, '(nenhuma, categoria principal)') + '</select>' +
+    '<div class="ck"><input type="checkbox" id="kv"' + (n.visivel ? ' checked' : '') + '><label style="margin:0;color:inherit" for="kv">Mostrar no site</label></div>' +
+    '<p class="mut" style="font-size:13px">Desmarque para tirar do site todos os itens desta categoria (e das subcategorias). Nada é apagado, é só marcar de novo para voltarem.</p>' +
     '<p class="mut" style="font-size:13px">Dá para criar categoria dentro de categoria, quantas vezes precisar.</p>' +
     '<div class="mfoot"><button class="btn" id="kok" type="button">Salvar</button></div>');
   if (c) { /* não deixa escolher ela mesma nem suas filhas como "pai" */
@@ -456,7 +461,7 @@ function formCategoria(c, paiInicial, depois) {
         if (!await confirmar('Mover "' + c.nome + '" ' + destino + '?', 'Os ' + catTotal(c.id) + ' itens dessa categoria (e das subcategorias) vão junto com ela. Nenhum item é apagado. Se ela sair de Natal, esses itens deixam de aparecer no catálogo de Natal.', 'Mover')) return;
       }
     }
-    try { const j = await api('categoria_salvar', { id: n.id, nome: $('#kn', m).value, parent_id: $('#kp', m).value || null }); categorias = j.categorias; m.fechar(); toast('Categoria salva.'); depois && depois(j.id); }
+    try { const j = await api('categoria_salvar', { id: n.id, nome: $('#kn', m).value, parent_id: $('#kp', m).value || null, visivel: $('#kv', m).checked ? 1 : 0 }); categorias = j.categorias; m.fechar(); toast('Categoria salva.'); depois && depois(j.id); }
     catch (e) { toast(e.message); }
   };
   setTimeout(() => $('#kn', m).focus(), 50);
@@ -470,7 +475,7 @@ async function telaCategorias() {
     const filhas = catFilhas(c.id).length, aberta = catAbertas.has(c.id), tot = catTotal(c.id);
     return '<div class="catl" style="margin-left:' + (prof * 18) + 'px"><div class="catn">' +
       (filhas ? '<button class="cat-tg" data-tg="' + c.id + '" type="button" aria-expanded="' + aberta + '" aria-label="' + (aberta ? 'Recolher' : 'Abrir') + ' ' + esc(c.nome) + '">' + (aberta ? '&#9662;' : '&#9656;') + '</button>' : '<span class="cat-tg vazio-tg"></span>') +
-      '<b>' + esc(c.nome) + '</b> <span class="mut">' + tot + ' ite' + (tot === 1 ? 'm' : 'ns') + (filhas ? ' &middot; ' + filhas + ' sub' : '') + '</span></div>' +
+      '<b>' + esc(c.nome) + '</b>' + catSelo(c.id) + ' <span class="mut">' + tot + ' ite' + (tot === 1 ? 'm' : 'ns') + (filhas ? ' &middot; ' + filhas + ' sub' : '') + '</span></div>' +
       '<div class="cata"><button class="btn s l" data-up="' + c.id + '" type="button" aria-label="Subir">&#8593;</button><button class="btn s l" data-dn="' + c.id + '" type="button" aria-label="Descer">&#8595;</button><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' +
       (filhas && aberta ? arvore(c.id, prof + 1) : '');
   }).join('');
@@ -513,6 +518,7 @@ async function telaCategoria(id) {
     const trilha = catCaminho(id).split(' › ').map(esc).join(' &rsaquo; ');
     $('.wrap').innerHTML = '<a class="voltar-cat" href="#/categorias">&larr; Todas as categorias</a>' +
       '<h1>' + esc(c.nome) + '</h1><p class="mut" style="margin:0 0 10px">' + trilha + ' &middot; ' + lista.length + ' ite' + (lista.length === 1 ? 'm' : 'ns') + '</p>' +
+      '<div class="ck" style="margin:0 0 10px"><input type="checkbox" id="kcVis"' + (c.visivel ? ' checked' : '') + '><label style="margin:0;color:inherit" for="kcVis">Mostrar no site' + catSelo(id) + '</label></div>' +
       '<div class="barra"><button class="btn o" id="kcNovo" type="button">Novo item aqui</button><button class="btn l" id="kcInc" type="button">Incluir item que já existe</button></div>' +
       (filhas.length ? '<div class="chips">' + filhas.map(f => '<a class="chip" href="#/categoria/' + f.id + '">' + esc(f.nome) + ' (' + catTotal(f.id) + ')</a>').join('') + '</div>' +
         '<div class="ck" style="margin:8px 0"><input type="checkbox" id="kcSub"' + (catComSub ? ' checked' : '') + '><label style="margin:0;color:inherit" for="kcSub">Mostrar também os itens das subcategorias</label></div>' : '') +
@@ -523,6 +529,11 @@ async function telaCategoria(id) {
           (em.length ? '<div class="d cats">em ' + em.map(esc).join(' &middot; ') + '</div>' : '') + '</div></div>' +
           (direto ? '<div data-stop="1"><button class="btn s l" data-tira="' + p.id + '" type="button">Tirar daqui</button></div>' : '') + '</div>';
       }).join('') : '<div class="vazio">Nenhum item nesta categoria ainda. Toque em "Novo item aqui" ou "Incluir item que já existe".</div>') + '</div>';
+    $('#kcVis').onchange = async e => {
+      const ligar = e.target.checked;
+      if (!ligar && !await confirmar('Tirar "' + c.nome + '" do site?', 'Os itens dela (e das subcategorias) deixam de aparecer no site. Nada é apagado, é só marcar de novo para voltarem.', 'Tirar do site')) { e.target.checked = true; return; }
+      try { const j = await api('categoria_visivel', { id, visivel: ligar ? 1 : 0 }); categorias = j.categorias; toast(ligar ? 'Categoria visível no site.' : 'Categoria oculta no site.'); recarrega(); } catch (er) { toast(er.message); e.target.checked = !ligar; }
+    };
     $('#kcNovo').onclick = () => formProduto(null, [id], recarrega);
     $('#kcInc').onclick = () => incluirExistentes(c, recarrega);
     const sb = $('#kcSub'); if (sb) sb.onchange = () => { catComSub = sb.checked; desenha(); };

@@ -26,8 +26,15 @@ try {
 /* Categorias (para o catálogo se organizar sozinho): a árvore e, para cada código de peça ativa, os ids das categorias dela. */
 $categorias = []; $cats = [];
 try {
-    foreach (db()->query('SELECT id, nome, parent_id, ordem FROM categorias ORDER BY ordem, nome')->fetchAll() as $c)
-        $categorias[] = ['id' => (int)$c['id'], 'nome' => $c['nome'], 'pai' => $c['parent_id'] === null ? null : (int)$c['parent_id']];
+    $todas = db()->query('SELECT id, nome, parent_id, ordem, ativo FROM categorias ORDER BY ordem, nome')->fetchAll();
+    $pais = []; $off = [];
+    foreach ($todas as $c) { $pais[(int)$c['id']] = $c['parent_id'] === null ? null : (int)$c['parent_id']; $off[(int)$c['id']] = (int)$c['ativo'] === 0; }
+    foreach ($todas as $c) {
+        /* "oculta" = a própria categoria ou alguma categoria de cima foi desmarcada em "Mostrar no site" */
+        $oculta = false; $x = (int)$c['id']; $g = 0;
+        while ($x !== null && $g++ < 50) { if (!empty($off[$x])) { $oculta = true; break; } $x = $pais[$x] ?? null; }
+        $categorias[] = ['id' => (int)$c['id'], 'nome' => $c['nome'], 'pai' => $pais[(int)$c['id']], 'oculta' => $oculta];
+    }
     foreach (db()->query("SELECT p.codigo, pc.categoria_id FROM produto_categorias pc JOIN produtos p ON p.id = pc.produto_id WHERE p.ativo = 1 AND p.codigo <> ''")->fetchAll() as $x)
         $cats[$x['codigo']][] = (int)$x['categoria_id'];
     /* peça ativa sem nenhuma categoria entra com lista vazia (assim o catálogo sabe que ela existe no painel) */
