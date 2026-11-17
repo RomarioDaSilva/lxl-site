@@ -23,11 +23,13 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
+    $db->exec("CREATE TABLE IF NOT EXISTS clientes (id $pk, nome VARCHAR(120) NOT NULL, telefone VARCHAR(30) DEFAULT '', endereco VARCHAR(255) DEFAULT '', cidade VARCHAR(80) DEFAULT '', obs VARCHAR(255) DEFAULT '', criado_em VARCHAR(19))$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS metricas (dia VARCHAR(10) NOT NULL, tipo VARCHAR(20) NOT NULL, chave VARCHAR(40) NOT NULL, qtd INT NOT NULL DEFAULT 0, PRIMARY KEY (dia, tipo, chave))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS parametros (chave VARCHAR(40) NOT NULL PRIMARY KEY, valor VARCHAR(40) NOT NULL)$fim");
     foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
-              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0']] as [$tab, $col, $def]) {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
     }
@@ -113,19 +115,31 @@ function produtoPorId(int $id): ?array {
     $p = $s->fetch();
     return $p ? produtoOut($p, mapaDeCores()) : null;
 }
+function clienteOut(array $c): array {
+    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%03d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
+            'endereco' => $c['endereco'], 'cidade' => $c['cidade'], 'obs' => $c['obs'],
+            'pedidos' => (int)($c['n_pedidos'] ?? 0), 'total' => (float)($c['total_pedidos'] ?? 0)];
+}
+function listaClientes(): array {
+    $r = db()->query("SELECT c.*, (SELECT COUNT(*) FROM pedidos p WHERE p.cliente_id = c.id AND p.status <> 'cancelado') AS n_pedidos,
+        (SELECT COALESCE(SUM(p.total),0) FROM pedidos p WHERE p.cliente_id = c.id AND p.status <> 'cancelado') AS total_pedidos
+        FROM clientes c ORDER BY c.nome")->fetchAll();
+    return array_map('clienteOut', $r);
+}
 function pedidoOut(array $p, ?array $itens = null): array {
     $r = [
         'id' => (int)$p['id'], 'data' => $p['data'], 'cliente' => $p['cliente'], 'whatsapp' => $p['whatsapp'],
         'pagamento' => $p['pagamento'], 'pago' => (int)$p['pago'], 'entrega' => $p['entrega'],
         'endereco' => $p['endereco'], 'prazo' => $p['prazo'], 'obs' => (string)$p['obs'],
         'desconto' => (float)$p['desconto'], 'frete' => (float)$p['frete'], 'total' => (float)$p['total'],
-        'status' => $p['status'],
+        'status' => $p['status'], 'cliente_id' => empty($p['cliente_id']) ? null : (int)$p['cliente_id'],
     ];
     if ($itens !== null) {
         $r['itens'] = array_map(fn($i) => [
             'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'],
             'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
             'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
+            'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''), 'custo' => (float)($i['custo'] ?? 0),
         ], $itens);
     }
     return $r;
@@ -311,6 +325,95 @@ case 'produto_ajustar': {
     out(['produto' => produtoPorId($id)]);
 }
 
+case 'relatorios': {
+    $de = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($_GET['de'] ?? '')) ? $_GET['de'] : '2000-01-01';
+    $ate = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($_GET['ate'] ?? '')) ? $_GET['ate'] : '2999-12-31';
+    $um = function (string $sql, array $p = []) use ($db) { $s = $db->prepare($sql); $s->execute($p); return $s->fetch(); };
+    $todos = function (string $sql, array $p = []) use ($db) { $s = $db->prepare($sql); $s->execute($p); return $s->fetchAll(); };
+    $per = [$de, $ate];
+    $r = $um("SELECT COUNT(*) n, COALESCE(SUM(total),0) fat, COALESCE(SUM(frete),0) frete, COALESCE(SUM(desconto),0) desc_ FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ?", $per);
+    $recebido = $um("SELECT COALESCE(SUM(total),0) v FROM pedidos WHERE status <> 'cancelado' AND pago = 1 AND data BETWEEN ? AND ?", $per)['v'];
+    $canc = $um("SELECT COUNT(*) n FROM pedidos WHERE status = 'cancelado' AND data BETWEEN ? AND ?", $per)['n'];
+    $it = $um("SELECT COALESCE(SUM(i.qtd * CASE WHEN i.produto_id IS NULL THEN COALESCE(i.custo,0) ELSE COALESCE(pr.custo,0) END),0) custo,
+        COALESCE(SUM(CASE WHEN (i.produto_id IS NULL AND COALESCE(i.custo,0) = 0) OR (i.produto_id IS NOT NULL AND COALESCE(pr.custo,0) = 0) THEN i.qtd ELSE 0 END),0) sem_custo,
+        COALESCE(SUM(i.qtd),0) pecas
+        FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id LEFT JOIN produtos pr ON pr.id = i.produto_id
+        WHERE pd.status <> 'cancelado' AND pd.data BETWEEN ? AND ?", $per);
+    $n = (int)$r['n']; $fat = (float)$r['fat'];
+    $resumo = ['pedidos' => $n, 'faturamento' => $fat, 'ticket' => $n ? round($fat / $n, 2) : 0, 'recebido' => (float)$recebido, 'a_receber' => round($fat - (float)$recebido, 2),
+        'cancelados' => (int)$canc, 'custo' => round((float)$it['custo'], 2), 'lucro' => round($fat - (float)$it['custo'], 2),
+        'sem_custo' => (int)$it['sem_custo'], 'pecas' => (int)$it['pecas'], 'frete' => (float)$r['frete'], 'desconto' => (float)$r['desc_']];
+    $dias = $todos("SELECT data, COUNT(*) n, SUM(total) v FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY data ORDER BY data", $per);
+    $topProd = $todos("SELECT COALESCE(pr.codigo,'') codigo, i.descricao nome, SUM(i.qtd) q, SUM(i.qtd * i.preco) v, SUM(i.qtd * CASE WHEN i.produto_id IS NULL THEN COALESCE(i.custo,0) ELSE COALESCE(pr.custo,0) END) c
+        FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id LEFT JOIN produtos pr ON pr.id = i.produto_id
+        WHERE pd.status <> 'cancelado' AND pd.data BETWEEN ? AND ? GROUP BY pr.codigo, i.descricao ORDER BY q DESC, v DESC LIMIT 10", $per);
+    $perso = $todos("SELECT CASE WHEN i.tipo = '' THEN 'Sem tipo' ELSE i.tipo END nome, SUM(i.qtd) q, SUM(i.qtd * i.preco) v, SUM(i.qtd * COALESCE(i.custo,0)) c
+        FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id WHERE pd.status <> 'cancelado' AND i.produto_id IS NULL AND pd.data BETWEEN ? AND ? GROUP BY nome ORDER BY v DESC", $per);
+    $topCor = $todos("SELECT i.cor nome, SUM(i.qtd) q FROM itens i JOIN pedidos pd ON pd.id = i.pedido_id
+        WHERE pd.status <> 'cancelado' AND i.cor <> '' AND pd.data BETWEEN ? AND ? GROUP BY i.cor ORDER BY q DESC LIMIT 8", $per);
+    $topCli = $todos("SELECT cliente nome, COUNT(*) n, SUM(total) v FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY cliente ORDER BY v DESC LIMIT 10", $per);
+    $porStatus = $todos("SELECT status, COUNT(*) n, SUM(total) v FROM pedidos WHERE data BETWEEN ? AND ? GROUP BY status", $per);
+    $porPag = $todos("SELECT pagamento nome, COUNT(*) n, SUM(total) v FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY pagamento ORDER BY v DESC", $per);
+    $porEnt = $todos("SELECT entrega nome, COUNT(*) n FROM pedidos WHERE status <> 'cancelado' AND data BETWEEN ? AND ? GROUP BY entrega", $per);
+    $abertos = $um("SELECT COUNT(*) n, COALESCE(SUM(total),0) v FROM pedidos WHERE status IN ('novo','producao','pronto')");
+    $est = $um("SELECT COUNT(*) n, COALESCE(SUM(estoque * custo),0) vc, COALESCE(SUM(estoque * preco),0) vv, COALESCE(SUM(estoque),0) q FROM produtos WHERE ativo = 1 AND controla = 1 AND estoque > 0");
+    $zer = $todos("SELECT codigo, nome, estoque FROM produtos WHERE ativo = 1 AND controla = 1 AND estoque <= 1 ORDER BY estoque, nome LIMIT 40");
+    $enc = $um("SELECT COUNT(*) n FROM produtos WHERE ativo = 1 AND controla = 0")['n'];
+    $semCustoProd = $um("SELECT COUNT(*) n FROM produtos WHERE ativo = 1 AND COALESCE(custo,0) = 0")['n'];
+    $mt = $todos("SELECT tipo, chave, SUM(qtd) q FROM metricas WHERE dia BETWEEN ? AND ? GROUP BY tipo, chave", $per);
+    $site = ['visitas' => 0, 'paginas' => [], 'produtos' => [], 'adds' => [], 'enviar_pedido' => 0, 'enviar_contato' => 0, 'teste' => 0];
+    foreach ($mt as $m) {
+        $q = (int)$m['q'];
+        if (strpos($m['tipo'], 't_') === 0) { $site['teste'] += $q; continue; }
+        if ($m['tipo'] === 'visita') $site['visitas'] += $q;
+        elseif ($m['tipo'] === 'pagina') $site['paginas'][$m['chave']] = $q;
+        elseif ($m['tipo'] === 'produto') $site['produtos'][] = ['k' => $m['chave'], 'q' => $q];
+        elseif ($m['tipo'] === 'add') $site['adds'][] = ['k' => $m['chave'], 'q' => $q];
+        elseif ($m['tipo'] === 'enviar') { if ($m['chave'] === 'pedido') $site['enviar_pedido'] += $q; else $site['enviar_contato'] += $q; }
+    }
+    $nomes = [];
+    foreach ($db->query("SELECT codigo, nome FROM produtos WHERE codigo <> ''")->fetchAll() as $pr) $nomes[$pr['codigo']] = $pr['nome'];
+    $rot = function (array $l) use ($nomes) { usort($l, fn($a, $b) => $b['q'] <=> $a['q']); return array_map(fn($x) => ['codigo' => $x['k'], 'nome' => $nomes[$x['k']] ?? $x['k'], 'q' => $x['q']], array_slice($l, 0, 10)); };
+    $site['produtos'] = $rot($site['produtos']); $site['adds'] = $rot($site['adds']);
+    out(['resumo' => $resumo, 'dias' => $dias, 'top_produtos' => $topProd, 'top_cores' => $topCor, 'personalizados' => $perso, 'top_clientes' => $topCli, 'por_status' => $porStatus,
+         'por_pagamento' => $porPag, 'por_entrega' => $porEnt, 'abertos' => ['n' => (int)$abertos['n'], 'v' => (float)$abertos['v']],
+         'estoque' => ['n' => (int)$est['n'], 'pecas' => (int)$est['q'], 'valor_custo' => (float)$est['vc'], 'valor_venda' => (float)$est['vv'], 'baixo' => $zer, 'sob_encomenda' => (int)$enc, 'sem_custo' => (int)$semCustoProd],
+         'site' => $site]);
+}
+
+case 'clientes':
+    out(['clientes' => listaClientes()]);
+
+case 'cliente_salvar': {
+    $id = (int)($in['id'] ?? 0);
+    $nome = txt($in['nome'] ?? '', 120);
+    if ($nome === '') fail('Informe o nome do cliente.');
+    $tel = preg_replace('/[^\d+() -]/', '', txt($in['telefone'] ?? '', 30));
+    $f = [$nome, $tel, txt($in['endereco'] ?? '', 255), txt($in['cidade'] ?? '', 80), txt($in['obs'] ?? '', 255)];
+    if ($id) {
+        $db->prepare('UPDATE clientes SET nome=?, telefone=?, endereco=?, cidade=?, obs=? WHERE id=?')->execute([...$f, $id]);
+    } else {
+        $digs = preg_replace('/\D/', '', $tel);
+        if (strlen($digs) >= 8) {
+            foreach ($db->query('SELECT id, nome, telefone FROM clientes')->fetchAll() as $c) {
+                if (preg_replace('/\D/', '', $c['telefone']) === $digs) fail('Já existe um cliente com esse telefone: ' . $c['nome'] . '.');
+            }
+        }
+        $db->prepare('INSERT INTO clientes (nome, telefone, endereco, cidade, obs, criado_em) VALUES (?,?,?,?,?,?)')->execute([...$f, date('Y-m-d H:i:s')]);
+        $id = (int)$db->lastInsertId();
+    }
+    $todos = listaClientes();
+    $um = null; foreach ($todos as $c) if ($c['id'] === $id) $um = $c;
+    out(['cliente' => $um, 'clientes' => $todos]);
+}
+
+case 'cliente_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $db->prepare('UPDATE pedidos SET cliente_id = NULL WHERE cliente_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM clientes WHERE id = ?')->execute([$id]);
+    out(['clientes' => listaClientes()]);
+}
+
 case 'custos_importar': {
     $lista = $in['lista'] ?? [];
     if (!is_array($lista)) fail('Lista inválida.');
@@ -411,9 +514,12 @@ case 'pedido_salvar': {
                 $corNome = $cr['nome'];
             }
         }
-        $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0))];
+        $itens[] = ['produto_id' => $pid, 'cor_id' => $cid, 'cor' => $corNome, 'descricao' => $desc, 'qtd' => min($qtd, 9999), 'preco' => max(0, num($i['preco'] ?? 0)),
+            'tipo' => $pid ? '' : txt($i['tipo'] ?? '', 40), 'detalhes' => $pid ? '' : txt($i['detalhes'] ?? '', 255), 'custo' => $pid ? 0 : max(0, num($i['custo'] ?? 0))];
     }
     if (!$itens) fail('Adicione pelo menos um item.');
+    $clienteId = !empty($in['cliente_id']) ? (int)$in['cliente_id'] : null;
+    if ($clienteId) { $s = $db->prepare('SELECT id FROM clientes WHERE id = ?'); $s->execute([$clienteId]); if (!$s->fetch()) $clienteId = null; }
     $sub = 0.0; foreach ($itens as $i) $sub += $i['preco'] * $i['qtd'];
     $desc = max(0, num($in['desconto'] ?? 0)); $frete = max(0, num($in['frete'] ?? 0));
     $total = max(0, round($sub - $desc + $frete, 2));
@@ -421,7 +527,7 @@ case 'pedido_salvar': {
     $data = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['data'] ?? '')) ? $in['data'] : date('Y-m-d');
     $campos = [$data, $cliente, preg_replace('/[^\d+() -]/', '', txt($in['whatsapp'] ?? '', 30)), txt($in['pagamento'] ?? '', 30),
         empty($in['pago']) ? 0 : 1, in_array($in['entrega'] ?? '', ['Retirada', 'Entrega'], true) ? $in['entrega'] : 'Retirada',
-        txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60), txt($in['obs'] ?? '', 1000), $desc, $frete, $total, $status];
+        txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60), txt($in['obs'] ?? '', 1000), $desc, $frete, $total, $status, $clienteId];
     $db->beginTransaction();
     try {
         if ($id) {
@@ -429,14 +535,14 @@ case 'pedido_salvar': {
             $velho = $s->fetch();
             if (!$velho) { $db->rollBack(); fail('Pedido não encontrado.', 404); }
             if ($velho['status'] !== 'cancelado') ajustarEstoque(itensDoPedido($id), +1);
-            $db->prepare('UPDATE pedidos SET data=?, cliente=?, whatsapp=?, pagamento=?, pago=?, entrega=?, endereco=?, prazo=?, obs=?, desconto=?, frete=?, total=?, status=? WHERE id=?')->execute([...$campos, $id]);
+            $db->prepare('UPDATE pedidos SET data=?, cliente=?, whatsapp=?, pagamento=?, pago=?, entrega=?, endereco=?, prazo=?, obs=?, desconto=?, frete=?, total=?, status=?, cliente_id=? WHERE id=?')->execute([...$campos, $id]);
             $db->prepare('DELETE FROM itens WHERE pedido_id = ?')->execute([$id]);
         } else {
-            $db->prepare('INSERT INTO pedidos (data, cliente, whatsapp, pagamento, pago, entrega, endereco, prazo, obs, desconto, frete, total, status, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([...$campos, date('Y-m-d H:i:s')]);
+            $db->prepare('INSERT INTO pedidos (data, cliente, whatsapp, pagamento, pago, entrega, endereco, prazo, obs, desconto, frete, total, status, cliente_id, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([...$campos, date('Y-m-d H:i:s')]);
             $id = (int)$db->lastInsertId();
         }
         foreach ($itens as $i) {
-            $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco) VALUES (?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco']]);
+            $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco, tipo, detalhes, custo) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco'], $i['tipo'], $i['detalhes'], $i['custo']]);
         }
         if ($status !== 'cancelado') ajustarEstoque($itens, -1);
         $db->commit();

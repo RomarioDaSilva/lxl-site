@@ -11,6 +11,7 @@ const parseNum = v => { if (typeof v === 'number') return v; const n = parseFloa
 const fmtIn = n => (n || n === 0) ? String(Number(n).toFixed(2)).replace('.', ',') : '';
 const STATUS = { novo: 'Novo', producao: 'Em produção', pronto: 'Pronto', entregue: 'Entregue', cancelado: 'Cancelado' };
 const PROXIMO = { novo: 'producao', producao: 'pronto', pronto: 'entregue' };
+const TIPOS_PERSO = ['Miniatura', 'Chaveiro', 'Placa / letreiro', 'Topo de bolo', 'Decoração', 'Reparo / peça sob medida', 'Outro'];
 const PAGTO = ['Pix', 'Cartão', 'Dinheiro', 'A combinar'];
 const EMPRESA = { fone: '(38) 99221-4206', insta: '@lxlprojetos', site: 'lxlprojetos.site', cidade: 'Montes Claros, MG' };
 
@@ -48,12 +49,13 @@ function modal(html) {
 
 function quadro(ativo, corpo) {
   app.innerHTML =
-    '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL"><b>Painel</b><button id="sair" type="button">Sair</button></div>' +
+    '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL"><b>Painel</b><a class="vsite" href="../" target="_blank" rel="noopener">Ver site</a><button id="sair" type="button">Sair</button></div>' +
     '<div class="wrap">' + corpo + '</div>' +
     '<nav class="nav"><a href="#/pedidos" class="' + (ativo === 'pedidos' ? 'on' : '') + '"><span>&#128203;</span>Pedidos</a>' +
     '<a href="#/novo" class="novo ' + (ativo === 'novo' ? 'on' : '') + '"><span>&#10133;</span>Novo pedido</a>' +
+    '<a href="#/clientes" class="' + (ativo === 'clientes' ? 'on' : '') + '"><span>&#128100;</span>Clientes</a>' +
     '<a href="#/estoque" class="' + (ativo === 'estoque' ? 'on' : '') + '"><span>&#128230;</span>Estoque</a>' +
-    '<a href="../" target="_blank" rel="noopener"><span>&#127876;</span>Ver catálogo</a></nav>';
+    '<a href="#/relatorios" class="' + (ativo === 'relatorios' ? 'on' : '') + '"><span>&#128200;</span>Relatórios</a></nav>';
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
 }
 
@@ -114,6 +116,12 @@ async function telaPedidos() {
 /* ---------- produtos (cache) ---------- */
 let coresLista = [];
 let paramsCusto = {};
+let clientes = null;
+async function carregarClientes(forcar) { if (!clientes || forcar) clientes = (await api('clientes')).clientes; return clientes; }
+const acharCliente = (nome, tel) => {
+  const d = String(tel || '').replace(/\D/g, ''), n = String(nome || '').trim().toLowerCase();
+  return (clientes || []).find(c => (d.length >= 8 && c.telefone.replace(/\D/g, '') === d) || (n && c.nome.trim().toLowerCase() === n)) || null;
+};
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
 async function carregarCatalogo() {
@@ -149,7 +157,7 @@ async function carregarProdutos(forcar) {
 /* ---------- pedido: novo / editar ---------- */
 let P = null;
 function pedidoVazio() {
-  return { id: 0, data: hoje(), cliente: '', whatsapp: '', itens: [], desconto: 0, frete: 0, entrega: 'Retirada', endereco: '', prazo: '', pagamento: 'Pix', pago: 0, status: 'novo', obs: '' };
+  return { id: 0, cliente_id: null, data: hoje(), cliente: '', whatsapp: '', itens: [], desconto: 0, frete: 0, entrega: 'Retirada', endereco: '', prazo: '', pagamento: 'Pix', pago: 0, status: 'novo', obs: '' };
 }
 const subtotal = () => P.itens.reduce((s, i) => s + (Number(i.preco) || 0) * (Number(i.qtd) || 0), 0);
 const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Number(P.frete) || 0));
@@ -157,7 +165,7 @@ const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Num
 async function telaPedidoForm(id) {
   quadro(id ? '' : 'novo', '<p class="carregando">Carregando...</p>');
   try {
-    await Promise.all([carregarProdutos(), carregarCatalogo()]);
+    await Promise.all([carregarProdutos(), carregarCatalogo(), carregarClientes()]);
     if (id) { P = (await api('pedido', null, '&id=' + id)).pedido; }
     else if (!P || P.id) P = pedidoVazio();
   } catch (e) { return toast(e.message); }
@@ -165,11 +173,13 @@ async function telaPedidoForm(id) {
   $('.wrap').innerHTML =
     '<h1>' + (P.id ? 'Editar pedido #' + numPed(P.id) : 'Novo pedido') + '</h1>' +
     '<div class="barra"><button class="btn l" id="colar" type="button">Colar pedido do WhatsApp</button></div>' +
-    '<div class="card"><h2>Cliente</h2><label>Nome *</label><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off">' +
+    '<div class="card"><h2>Cliente</h2><label>Nome * (digite para buscar ou toque na seta)</label>' +
+    '<div class="cli-linha"><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off" placeholder="Buscar cliente ou digitar nome"><button class="btn s l" id="cliLista" type="button" aria-label="Ver lista de clientes">&#9662;</button><button class="btn s o" id="cliNovo" type="button" aria-label="Cadastrar novo cliente">+</button></div>' +
+    '<div id="cliSug" class="sug" hidden></div><div id="cliTag" class="clitag"></div>' +
     '<div class="l2"><div><label>WhatsApp</label><input type="tel" id="whatsapp" value="' + esc(P.whatsapp) + '" placeholder="(38) 9...."></div>' +
     '<div><label>Data do pedido</label><input type="date" id="data" value="' + esc(P.data) + '"></div></div></div>' +
     '<div class="card"><h2>Itens</h2><div id="itens"></div>' +
-    '<div class="acoes"><button class="btn o" id="add" type="button">Adicionar peça</button><button class="btn l" id="avulso" type="button">Item avulso</button></div></div>' +
+    '<div class="acoes"><button class="btn o" id="add" type="button">Adicionar peça</button><button class="btn l" id="avulso" type="button">Item personalizado</button></div></div>' +
     '<div class="card"><h2>Valores</h2><div class="l2"><div><label>Desconto (R$)</label><input type="text" inputmode="decimal" id="desconto" value="' + (P.desconto ? fmtIn(P.desconto) : '') + '" placeholder="0,00"></div>' +
     '<div><label>Frete (R$)</label><input type="text" inputmode="decimal" id="frete" value="' + (P.frete ? fmtIn(P.frete) : '') + '" placeholder="0,00"></div></div>' +
     '<div class="l2"><div><label>Pagamento</label><select id="pagamento">' + opt(PAGTO, P.pagamento) + '</select></div>' +
@@ -181,19 +191,51 @@ async function telaPedidoForm(id) {
     '<label>Observações (aparecem na notinha)</label><textarea id="obs">' + esc(P.obs) + '</textarea></div>' +
     '<div class="total"><div class="v" id="tot"></div><button class="btn" id="salvar" type="button">Salvar pedido</button></div>';
   const bind = (id, key, conv) => { $('#' + id).addEventListener('input', e => { P[key] = conv ? conv(e.target) : e.target.value; if (id === 'desconto' || id === 'frete') totais(); }); };
-  bind('cliente', 'cliente'); bind('whatsapp', 'whatsapp'); bind('data', 'data'); bind('endereco', 'endereco'); bind('prazo', 'prazo'); bind('obs', 'obs');
+  bind('whatsapp', 'whatsapp'); bind('data', 'data'); bind('endereco', 'endereco'); bind('prazo', 'prazo'); bind('obs', 'obs');
   bind('desconto', 'desconto', el => parseNum(el.value)); bind('frete', 'frete', el => parseNum(el.value));
   bind('pagamento', 'pagamento'); bind('status', 'status'); bind('pago', 'pago', el => el.checked ? 1 : 0);
+  ligarCliente();
   $('#entrega').addEventListener('change', e => { P.entrega = e.target.value; endBox(); });
   endBox();
   desenharItens();
   $('#add').onclick = abrirPicker;
-  $('#avulso').onclick = () => { P.itens.push({ produto_id: null, descricao: '', qtd: 1, preco: 0 }); desenharItens(); const l = document.querySelectorAll('.desc'); if (l.length) l[l.length - 1].focus(); };
+  $('#avulso').onclick = () => { P.itens.push({ produto_id: null, tipo: '', descricao: '', detalhes: '', custo: 0, qtd: 1, preco: 0 }); desenharItens(); const l = document.querySelectorAll('.desc'); if (l.length) l[l.length - 1].focus(); };
   $('#colar').onclick = abrirColar;
   $('#salvar').onclick = salvarPedido;
 }
+function tagCliente() {
+  const c = P.cliente_id && (clientes || []).find(x => x.id === P.cliente_id);
+  $('#cliTag').innerHTML = c ? '<span>' + esc(c.codigo) + ' &middot; cliente cadastrado</span>' : '';
+}
+function escolherCliente(c) {
+  P.cliente_id = c.id; P.cliente = c.nome;
+  if (c.telefone) P.whatsapp = c.telefone;
+  const end = [c.endereco, c.cidade].filter(Boolean).join(' - ');
+  if (end) P.endereco = end;
+  $('#cliente').value = P.cliente; $('#whatsapp').value = P.whatsapp || ''; $('#endereco').value = P.endereco || '';
+  $('#cliSug').hidden = true; tagCliente();
+}
+function ligarCliente() {
+  const inp = $('#cliente'), sug = $('#cliSug');
+  const mostrar = todos => {
+    const q = inp.value.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    let l = (clientes || []).filter(c => todos || !q || c.nome.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q) || (qd.length >= 3 && c.telefone.replace(/\D/g, '').includes(qd)));
+    const total = l.length; l = l.slice(0, todos ? 50 : 6);
+    sug.innerHTML = l.length ? l.map(c => '<button type="button" class="sugi" data-cid="' + c.id + '"><b>' + esc(c.nome) + '</b><small>' + esc(c.codigo) + (c.telefone ? ' &middot; ' + esc(c.telefone) : '') + '</small></button>').join('') + (total > l.length ? '<div class="mut sugm">mais ' + (total - l.length) + '... continue digitando</div>' : '')
+      : '<div class="mut sugm">Nenhum cliente encontrado. Toque no + para cadastrar.</div>';
+    sug.hidden = false;
+    sug.querySelectorAll('[data-cid]').forEach(b => b.onmousedown = e => { e.preventDefault(); escolherCliente(clientes.find(x => x.id === +b.dataset.cid)); });
+  };
+  inp.addEventListener('input', () => { P.cliente = inp.value; if (P.cliente_id) { const c = clientes.find(x => x.id === P.cliente_id); if (!c || c.nome !== inp.value) { P.cliente_id = null; tagCliente(); } } mostrar(false); });
+  inp.addEventListener('focus', () => { if ((clientes || []).length) mostrar(false); });
+  inp.addEventListener('blur', () => setTimeout(() => { sug.hidden = true; }, 150));
+  $('#cliLista').onclick = () => { if (sug.hidden) mostrar(true); else sug.hidden = true; };
+  $('#cliNovo').onclick = () => formCliente({ id: 0, nome: P.cliente || '', telefone: P.whatsapp || '', endereco: '', cidade: '', obs: '' }, c => escolherCliente(c));
+  tagCliente();
+}
 function endBox() { $('#endbox').style.display = P.entrega === 'Entrega' ? '' : 'none'; }
-function totais() { const t = $('#tot'); if (t) t.textContent = 'Total ' + brl(totalPed()); document.querySelectorAll('[data-sub]').forEach(el => { const i = P.itens[+el.dataset.sub]; el.textContent = brl((Number(i.preco) || 0) * (Number(i.qtd) || 0)); }); }
+function totais() { const t = $('#tot'); if (t) t.textContent = 'Total ' + brl(totalPed()); document.querySelectorAll('[data-lu]').forEach(el => { const i = P.itens[+el.dataset.lu]; const l = ((Number(i.preco) || 0) - (Number(i.custo) || 0)) * (Number(i.qtd) || 0); el.textContent = Number(i.custo) > 0 ? 'Lucro neste item: ' + brl(l) : 'Informe o custo para ver o lucro.'; });
+  document.querySelectorAll('[data-sub]').forEach(el => { const i = P.itens[+el.dataset.sub]; el.textContent = brl((Number(i.preco) || 0) * (Number(i.qtd) || 0)); }); }
 
 function desenharItens() {
   const box = $('#itens');
@@ -204,7 +246,14 @@ function desenharItens() {
     const disp = cq ? cq.qtd : (p ? p.estoque : 0);
     const aviso = p && p.controla && disp < i.qtd ? '<div class="neg" style="font-size:13px">Estoque atual' + (cq ? ' (' + esc(cq.nome) + ')' : '') + ': ' + disp + '</div>' : '';
     const seletor = p && p.usa_cores ? '<select class="corsel" data-cs="' + n + '"><option value="">Escolha a cor</option>' + p.cores.map(c => '<option value="' + c.cor_id + '"' + (c.cor_id === i.cor_id ? ' selected' : '') + '>' + esc(c.nome) + ' (' + c.qtd + ' em estoque)</option>').join('') + '</select>' : '';
-    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="Descrição do item">') + '</div>' + seletor + aviso +
+    const perso = !i.produto_id;
+    const tipoOk = TIPOS_PERSO.includes(i.tipo) || !i.tipo;
+    const persoHTML = perso ? '<div class="perso"><label>Tipo de personalização</label><select class="ptipo" data-n="' + n + '"><option value="">Escolha o tipo</option>' + TIPOS_PERSO.map(x => '<option' + (x === i.tipo || (!tipoOk && x === 'Outro') ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' +
+      (!tipoOk || i.tipo === 'Outro' ? '<input type="text" class="poutro" data-n="' + n + '" value="' + (tipoOk ? '' : esc(i.tipo)) + '" placeholder="Qual tipo? (ex: Troféu)">' : '') +
+      '<label>Nome do item</label><input type="text" class="desc" data-n="' + n + '" value="' + esc(i.descricao) + '" placeholder="ex: Miniatura da Ana">' +
+      '<label>Descrição / detalhes</label><input type="text" class="pdet" data-n="' + n + '" value="' + esc(i.detalhes || '') + '" placeholder="medidas, cores, referência...">' +
+      '<label>Custo (R$ por unidade)</label><input type="text" inputmode="decimal" class="pcusto" data-n="' + n + '" value="' + (i.custo ? fmtIn(i.custo) : '') + '" placeholder="0,00"><div class="mut plucro" data-lu="' + n + '" style="font-size:13px;margin-top:4px"></div></div>' : '';
+    return '<div class="item"><div class="nm">' + (i.produto_id ? esc(i.descricao) : '<b>Item personalizado</b>') + '</div>' + persoHTML + seletor + aviso +
       '<div class="lin"><div class="qtd"><button type="button" data-menos="' + n + '">&minus;</button><span>' + i.qtd + '</span><button type="button" data-mais="' + n + '">+</button></div>' +
       '<input type="text" inputmode="decimal" class="preco" data-p="' + n + '" value="' + fmtIn(i.preco) + '" placeholder="Preço un.">' +
       '<span class="sub" data-sub="' + n + '"></span><button class="x" type="button" data-rm="' + n + '" aria-label="Remover">&times;</button></div></div>';
@@ -221,6 +270,10 @@ function desenharItens() {
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { P.itens.splice(+b.dataset.rm, 1); desenharItens(); });
   box.querySelectorAll('[data-p]').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.p].preco = parseNum(el.value); totais(); }));
   box.querySelectorAll('.desc').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].descricao = el.value; }));
+  box.querySelectorAll('.pdet').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].detalhes = el.value; }));
+  box.querySelectorAll('.pcusto').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].custo = parseNum(el.value); totais(); }));
+  box.querySelectorAll('.ptipo').forEach(el => el.onchange = () => { const i = P.itens[+el.dataset.n]; i.tipo = el.value === 'Outro' ? 'Outro' : el.value; desenharItens(); });
+  box.querySelectorAll('.poutro').forEach(el => el.addEventListener('input', () => { P.itens[+el.dataset.n].tipo = el.value.trim() || 'Outro'; }));
   totais();
 }
 
@@ -231,7 +284,7 @@ function abrirPicker() {
     const l = produtos.filter(p => p.ativo && (!q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q))).slice(0, 60);
     $('#pl', m).innerHTML = l.length ? l.map(p =>
       '<div class="prod" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + (p.controla ? (p.estoque > 0 ? 'Pronta entrega: ' + (p.usa_cores ? p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') : p.estoque) : '<span class="neg">Sem estoque</span>') : 'Sob encomenda') + '</div></div></div><b>' + brl(p.preco) + '</b></div>').join('')
-      : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item avulso".</div>';
+      : '<div class="vazio">Nada encontrado. Cadastre a peça em Estoque ou use "Item personalizado".</div>';
     m.querySelectorAll('.prod').forEach(el => el.onclick = () => {
       const p = produtos.find(x => x.id === +el.dataset.id);
       const ex = p.usa_cores ? null : P.itens.find(i => i.produto_id === p.id);
@@ -258,7 +311,7 @@ function abrirColar() {
     const r = lerWhats($('#txt', m).value);
     if (!r.itens.length) return toast('Não encontrei itens na mensagem.');
     P.itens = r.itens;
-    if (r.nome) P.cliente = r.nome;
+    if (r.nome) { P.cliente = r.nome; const ex = acharCliente(r.nome, ''); if (ex) { P.cliente_id = ex.id; if (ex.telefone) P.whatsapp = ex.telefone; } }
     if (r.obs) P.obs = r.obs;
     m.fechar(); telaPedidoForm(0);
     toast(r.itens.length + ' item(ns) preenchido(s). Confira e complete o WhatsApp.');
@@ -297,7 +350,7 @@ async function salvarPedido() {
 /* ---------- notinha ---------- */
 function notaHTML(p) {
   const sub = p.itens.reduce((s, i) => s + i.preco * i.qtd, 0);
-  const lin = p.itens.map(i => '<tr><td class="c">' + i.qtd + 'x</td><td>' + esc(i.descricao) + '</td><td class="r">' + brl(i.preco) + '</td><td class="r">' + brl(i.preco * i.qtd) + '</td></tr>').join('');
+  const lin = p.itens.map(i => '<tr><td class="c">' + i.qtd + 'x</td><td>' + esc(i.descricao) + (i.detalhes ? '<br><small>' + esc(i.detalhes) + '</small>' : '') + '</td><td class="r">' + brl(i.preco) + '</td><td class="r">' + brl(i.preco * i.qtd) + '</td></tr>').join('');
   return '<div class="nota" id="nota"><div class="cab"><img src="/natal/imagens/logo-colorida.png" alt="LXL Projetos"><div>Peças em impressão 3D &middot; ' + EMPRESA.cidade + '<br>WhatsApp ' + EMPRESA.fone + ' &middot; ' + EMPRESA.insta + '<br>' + EMPRESA.site + '</div></div>' +
     '<div class="tit">COMPROVANTE DE VENDA<span>Nº ' + numPed(p.id) + ' &middot; ' + dataBR(p.data) + '</span></div>' +
     '<div class="cli"><b>Cliente:</b> ' + esc(p.cliente) + (p.whatsapp ? '<br><b>WhatsApp:</b> ' + esc(p.whatsapp) : '') +
@@ -544,6 +597,107 @@ async function importarCatalogo() {
   } catch (e) { toast('Não consegui ler o catálogo.'); }
 }
 
+/* ---------- clientes ---------- */
+let fCli = '';
+async function telaClientes() {
+  quadro('clientes', '<p class="carregando">Carregando...</p>');
+  try { await carregarClientes(true); } catch (e) { return toast(e.message); }
+  $('.wrap').innerHTML = '<h1>Clientes</h1><div class="barra"><button class="btn o" id="cNovo" type="button">Novo cliente</button></div>' +
+    '<input type="search" id="cBusca" placeholder="Buscar por nome, telefone ou código" value="' + esc(fCli) + '" style="margin-bottom:12px"><div id="cLista"></div>';
+  const desenha = () => {
+    const q = fCli.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    const l = clientes.filter(c => !q || c.nome.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q) || (qd.length >= 3 && c.telefone.replace(/\D/g, '').includes(qd)));
+    $('#cLista').innerHTML = l.length ? l.map(c => '<div class="card cli" data-id="' + c.id + '"><div><b>' + esc(c.nome) + '</b><small>' + esc(c.codigo) + (c.telefone ? ' &middot; ' + esc(c.telefone) : '') + (c.cidade ? ' &middot; ' + esc(c.cidade) : '') + '</small></div><div class="cr">' + c.pedidos + ' pedido(s)<small>' + brl(c.total) + '</small></div></div>').join('')
+      : '<div class="vazio">' + (clientes.length ? 'Nenhum cliente encontrado.' : 'Nenhum cliente ainda. Toque em "Novo cliente".') + '</div>';
+    document.querySelectorAll('.cli').forEach(el => el.onclick = () => formCliente(clientes.find(x => x.id === +el.dataset.id), () => telaClientes()));
+  };
+  $('#cBusca').addEventListener('input', e => { fCli = e.target.value; desenha(); });
+  $('#cNovo').onclick = () => formCliente({ id: 0, nome: '', telefone: '', endereco: '', cidade: '', obs: '' }, () => telaClientes());
+  desenha();
+}
+function formCliente(c, aoSalvar) {
+  const m = modal('<h2>' + (c.id ? 'Editar cliente ' + esc(c.codigo) : 'Novo cliente') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
+    '<label>Nome *</label><input type="text" id="cn" value="' + esc(c.nome) + '">' +
+    '<label>Telefone / WhatsApp</label><input type="tel" id="ct" value="' + esc(c.telefone) + '" placeholder="(38) 9....">' +
+    '<label>Endereço</label><input type="text" id="ce" value="' + esc(c.endereco) + '" placeholder="Rua, número, bairro">' +
+    '<label>Cidade</label><input type="text" id="cc" value="' + esc(c.cidade) + '" placeholder="Montes Claros">' +
+    '<label>Observações</label><input type="text" id="co" value="' + esc(c.obs) + '">' +
+    '<div class="acoes"><button class="btn" id="ok" type="button">Salvar</button>' + (c.id ? '<button class="btn s r" id="ex" type="button">Excluir</button>' : '') + '</div>');
+  $('#ok', m).onclick = async () => {
+    try {
+      const j = await api('cliente_salvar', { id: c.id, nome: $('#cn', m).value, telefone: $('#ct', m).value, endereco: $('#ce', m).value, cidade: $('#cc', m).value, obs: $('#co', m).value });
+      clientes = j.clientes; m.fechar(); toast('Cliente salvo.'); if (aoSalvar) aoSalvar(j.cliente);
+    } catch (e) { toast(e.message); }
+  };
+  if (c.id) $('#ex', m).onclick = async () => {
+    if (!confirm('Excluir o cliente "' + c.nome + '"? Os pedidos dele continuam salvos.')) return;
+    try { const j = await api('cliente_excluir', { id: c.id }); clientes = j.clientes; m.fechar(); toast('Cliente excluído.'); if (aoSalvar) aoSalvar(null); } catch (e) { toast(e.message); }
+  };
+}
+
+/* ---------- relatórios ---------- */
+let relPer = '30', relAba = 'vendas';
+const isoD = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function periodoRel() {
+  const h = new Date(), ini = new Date(h);
+  if (relPer === '7') ini.setDate(h.getDate() - 6);
+  else if (relPer === '30') ini.setDate(h.getDate() - 29);
+  else if (relPer === 'mes') ini.setDate(1);
+  else if (relPer === 'mesant') { const a = new Date(h.getFullYear(), h.getMonth() - 1, 1), b = new Date(h.getFullYear(), h.getMonth(), 0); return { de: isoD(a), ate: isoD(b) }; }
+  else if (relPer === 'tudo') return { de: '2000-01-01', ate: '2999-12-31' };
+  return { de: isoD(ini), ate: isoD(h) };
+}
+const PERS = { 7: '7 dias', 30: '30 dias', mes: 'Este mês', mesant: 'Mês passado', tudo: 'Tudo' };
+const ABAS = { vendas: 'Vendas', itens: 'Peças e clientes', estoque: 'Estoque', site: 'Site' };
+async function telaRelatorios() {
+  quadro('relatorios', '<p class="carregando">Carregando...</p>');
+  const pr = periodoRel();
+  let d;
+  try { d = await api('relatorios', null, '&de=' + pr.de + '&ate=' + pr.ate); } catch (e) { return toast(e.message); }
+  const kpi = (r, v, s, cls) => '<div class="card kpi"><small>' + r + '</small><b class="' + (cls || '') + '">' + v + '</b>' + (s ? '<small>' + s + '</small>' : '') + '</div>';
+  const barras = (lin, fmt) => { const mx = Math.max(1, ...lin.map(x => x.v)); return lin.length ? '<div class="bars">' + lin.map(x => '<div class="bar"><span class="bl">' + esc(x.r) + '</span><div class="bt"><div class="bf" style="width:' + Math.max(2, x.v / mx * 100) + '%"></div></div><span class="bv">' + fmt(x.v) + '</span></div>').join('') + '</div>' : '<div class="vazio">Sem dados no período.</div>'; };
+  const tab = (cab, linhas) => linhas.length ? '<table class="rt"><tr>' + cab.map(c => '<th' + (c.r ? ' class="r"' : '') + '>' + c.t + '</th>').join('') + '</tr>' + linhas.join('') + '</table>' : '<div class="vazio">Sem dados no período.</div>';
+  const R = d.resumo, S = d.site, E = d.estoque;
+  let corpo = '';
+  if (relAba === 'vendas') {
+    const dd = new Date(pr.ate) - new Date(pr.de) > 70 * 864e5 || relPer === 'tudo';
+    const g = {}; d.dias.forEach(x => { const k = dd ? x.data.slice(0, 7) : x.data; g[k] = (g[k] || 0) + Number(x.v); });
+    const lin = Object.keys(g).sort().map(k => ({ r: dd ? k.slice(5) + '/' + k.slice(2, 4) : k.slice(8) + '/' + k.slice(5, 7), v: g[k] }));
+    const mg = R.faturamento > 0 ? Math.round(R.lucro / R.faturamento * 100) : 0;
+    const stN = { novo: 'Novo', producao: 'Em produção', pronto: 'Pronto', entregue: 'Entregue', cancelado: 'Cancelado' };
+    corpo = '<div class="kpis">' + kpi('Faturamento', brl(R.faturamento), R.pedidos + ' pedido(s)') + kpi('Ticket médio', brl(R.ticket)) +
+      kpi('Lucro estimado', brl(R.lucro), mg + '% de margem', R.lucro < 0 ? 'neg' : '') + kpi('Custo das peças', brl(R.custo), R.sem_custo ? R.sem_custo + ' peça(s) sem custo cadastrado' : '') +
+      kpi('Já recebido', brl(R.recebido)) + kpi('A receber', brl(R.a_receber), '', R.a_receber > 0 ? 'neg' : '') + '</div>' +
+      '<div class="card"><h2>' + (dd ? 'Vendas por mês' : 'Vendas por dia') + '</h2>' + barras(lin, brl) + '</div>' +
+      '<div class="card"><h2>Pedidos por situação</h2>' + tab([{ t: 'Situação' }, { t: 'Pedidos', r: 1 }, { t: 'Valor', r: 1 }], d.por_status.map(x => '<tr><td>' + (stN[x.status] || x.status) + '</td><td class="r">' + x.n + '</td><td class="r">' + brl(x.v) + '</td></tr>')) +
+      '<p class="mut" style="margin:8px 0 0;font-size:13px">Em aberto agora (todas as datas): <b>' + d.abertos.n + '</b> pedido(s), ' + brl(d.abertos.v) + '</p></div>' +
+      '<div class="card"><h2>Forma de pagamento</h2>' + tab([{ t: 'Forma' }, { t: 'Pedidos', r: 1 }, { t: 'Valor', r: 1 }], d.por_pagamento.map(x => '<tr><td>' + esc(x.nome || '-') + '</td><td class="r">' + x.n + '</td><td class="r">' + brl(x.v) + '</td></tr>')) +
+      '<p class="mut" style="margin:8px 0 0;font-size:13px">' + d.por_entrega.map(x => esc(x.nome) + ': ' + x.n).join(' &middot; ') + (R.cancelados ? ' &middot; Cancelados: ' + R.cancelados : '') + '</p></div>';
+  } else if (relAba === 'itens') {
+    corpo = '<div class="card"><h2>Peças mais vendidas</h2>' + tab([{ t: 'Peça' }, { t: 'Qtd', r: 1 }, { t: 'Vendido', r: 1 }, { t: 'Lucro', r: 1 }],
+        d.top_produtos.map(x => '<tr><td>' + esc(x.nome) + (x.codigo ? '<small>' + esc(x.codigo) + '</small>' : '') + '</td><td class="r">' + x.q + '</td><td class="r">' + brl(x.v) + '</td><td class="r">' + (Number(x.c) > 0 ? brl(x.v - x.c) : '-') + '</td></tr>')) + '</div>' +
+      '<div class="card"><h2>Itens personalizados</h2>' + tab([{ t: 'Tipo' }, { t: 'Qtd', r: 1 }, { t: 'Vendido', r: 1 }, { t: 'Lucro', r: 1 }], (d.personalizados || []).map(x => '<tr><td>' + esc(x.nome) + '</td><td class="r">' + x.q + '</td><td class="r">' + brl(x.v) + '</td><td class="r">' + (Number(x.c) > 0 ? brl(x.v - x.c) : '-') + '</td></tr>')) + '</div>' +
+      '<div class="card"><h2>Cores mais pedidas</h2>' + barras(d.top_cores.map(x => ({ r: x.nome, v: Number(x.q) })), v => v + ' un.') + '</div>' +
+      '<div class="card"><h2>Melhores clientes</h2>' + tab([{ t: 'Cliente' }, { t: 'Pedidos', r: 1 }, { t: 'Total', r: 1 }], d.top_clientes.map(x => '<tr><td>' + esc(x.nome) + '</td><td class="r">' + x.n + '</td><td class="r">' + brl(x.v) + '</td></tr>')) + '</div>';
+  } else if (relAba === 'estoque') {
+    corpo = '<p class="mut" style="margin-top:0;font-size:13px">O estoque mostra a situação de agora, não depende do período.</p><div class="kpis">' + kpi('Peças em pronta entrega', E.pecas, E.n + ' modelo(s)') + kpi('Valor a custo', brl(E.valor_custo)) + kpi('Valor a preço de venda', brl(E.valor_venda)) + kpi('Sob encomenda', E.sob_encomenda, 'modelo(s)') + '</div>' +
+      (E.sem_custo ? '<div class="card"><small class="mut">' + E.sem_custo + ' produto(s) ativo(s) ainda sem custo cadastrado. O lucro dessas peças não é calculado.</small></div>' : '') +
+      '<div class="card"><h2>Acabando ou zerados (pronta entrega)</h2>' + tab([{ t: 'Peça' }, { t: 'Estoque', r: 1 }], E.baixo.map(x => '<tr><td>' + esc(x.nome) + '<small>' + esc(x.codigo) + '</small></td><td class="r' + (x.estoque <= 0 ? ' neg' : '') + '">' + x.estoque + '</td></tr>')) + '</div>';
+  } else {
+    const tv = S.paginas.natal || 0, ad = S.adds.reduce((s, x) => s + x.q, 0);
+    corpo = '<p class="mut" style="margin-top:0;font-size:13px">Contagem própria, sem cookies. Começa a contar a partir de quando o site novo foi publicado.</p><div class="kpis">' + kpi('Visitantes', S.visitas, 'por dia, por aparelho') + kpi('Visitas ao catálogo', tv) +
+      kpi('Adicionaram ao pedido', ad, 'toques em adicionar') + kpi('Enviaram o pedido', S.enviar_pedido, 'toques em enviar pelo WhatsApp') + kpi('Pedidos no painel', R.pedidos, 'no período') + kpi('Outros WhatsApp', S.enviar_contato, 'botões de contato') + '</div>' +
+      '<div class="card"><h2>Páginas mais abertas</h2>' + barras(Object.keys(S.paginas).map(k => ({ r: ({ home: 'Início', natal: 'Catálogo de Natal', faq: 'Dúvidas' })[k] || k, v: S.paginas[k] })), v => v) + '</div>' +
+      '<div class="card"><h2>Peças mais vistas</h2>' + barras(S.produtos.map(x => ({ r: x.nome, v: x.q })), v => v) + '</div>' +
+      '<div class="card"><h2>Mais adicionadas ao pedido</h2>' + barras(S.adds.map(x => ({ r: x.nome, v: x.q })), v => v) + '</div>' +
+      (S.teste ? '<p class="mut" style="font-size:12px">Acessos de teste (não entram nas contas): ' + S.teste + '</p>' : '');
+  }
+  $('.wrap').innerHTML = '<h1>Relatórios</h1><div class="chips">' + Object.keys(PERS).map(k => '<button type="button" class="chip' + (k === relPer ? ' on' : '') + '" data-per="' + k + '">' + PERS[k] + '</button>').join('') + '</div>' +
+    '<div class="chips ab">' + Object.keys(ABAS).map(k => '<button type="button" class="chip' + (k === relAba ? ' on' : '') + '" data-aba="' + k + '">' + ABAS[k] + '</button>').join('') + '</div>' + corpo;
+  document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { relPer = b.dataset.per; telaRelatorios(); });
+  document.querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { relAba = b.dataset.aba; telaRelatorios(); });
+}
+
 /* ---------- rotas ---------- */
 function rota() {
   if (!csrf) return;
@@ -554,6 +708,8 @@ function rota() {
     case 'editar': return telaPedidoForm(+h[1]);
     case 'nota': return telaNota(+h[1]);
     case 'estoque': return telaEstoque();
+    case 'clientes': return telaClientes();
+    case 'relatorios': return telaRelatorios();
     default: return telaPedidos();
   }
 }
