@@ -451,16 +451,16 @@ async function telaCategorias() {
     '<div class="cata"><button class="btn s l" data-sub="' + c.id + '" type="button">+ Sub</button><button class="btn s l" data-ed="' + c.id + '" type="button">Editar</button><button class="btn s l" data-ver="' + c.id + '" type="button">Ver itens</button><button class="btn s l" data-ex="' + c.id + '" type="button">Excluir</button></div></div>' + arvore(c.id, prof + 1)).join('');
   const desenha = () => {
     $('.wrap').innerHTML = '<h1>Categorias</h1><p class="mut" style="margin:0 0 10px">Organize os itens em categorias e subcategorias. Um item pode ficar em mais de uma. Para colocar um item numa categoria, abra o item no Estoque e escolha em "Categorias".</p>' +
-      '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button><button class="btn l" id="kSug" type="button">Criar estrutura sugerida</button><button class="btn l" id="kNat" type="button">Organizar pelo catálogo de Natal</button></div>' +
-      '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Nova categoria" ou em "Criar estrutura sugerida" (Religioso, Chaveiros, Decoração, Natal, Peças personalizadas).</div>') + '</div>';
+      '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button><button class="btn l" id="kSug" type="button">Criar categorias sugeridas e organizar meus itens</button></div>' +
+      '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Criar categorias sugeridas e organizar meus itens".</div>') + '</div>';
     $('#kNova').onclick = () => formCategoria(null, null, desenha);
-    $('#kSug').onclick = async () => { try { const j = await api('categorias_sugeridas', {}); categorias = j.categorias; toast('Estrutura criada.'); desenha(); } catch (e) { toast(e.message); } };
-    $('#kNat').onclick = async () => {
-      if (!await confirmar('Organizar pelo catálogo de Natal?', 'Vou criar a categoria Natal com uma subcategoria para cada seção do catálogo e colocar os itens que já existem no painel dentro delas. Não apaga nada.', 'Organizar')) return;
+    $('#kSug').onclick = async () => {
+      if (!await confirmar('Criar as categorias sugeridas?', 'Vou criar Natal (com as subcategorias), Chaveiros, Brinquedos, Decoração, Religioso e outras, e colocar os itens que já estão no painel nas subcategorias de Natal. Não apaga nada e não duplica o que já existe.', 'Criar')) return;
       try {
+        let j = await api('categorias_sugeridas', {});
         const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
-        const j = await api('categorias_do_catalogo', { lista: d.map(x => ({ sku: x.sku, secao: x.secao || '' })) });
-        categorias = j.categorias; produtos = null; await carregarProdutos(true); toast(j.ligados + ' itens organizados.'); desenha();
+        j = await api('categorias_do_catalogo', { lista: d.map(x => ({ sku: x.sku, secao: x.secao || '' })) });
+        categorias = j.categorias; produtos = null; await carregarProdutos(true); toast('Pronto. ' + j.ligados + ' itens organizados.'); desenha();
       } catch (e) { toast(e.message); }
     };
     document.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => formCategoria(null, +b.dataset.sub, desenha));
@@ -497,9 +497,7 @@ async function telaEstoque() {
   $('.wrap').innerHTML =
     '<h1>Estoque</h1><div class="barra"><button class="btn o" id="novo" type="button">Novo produto</button><button class="btn l" id="imp" type="button">Importar do catálogo</button><button class="btn l" id="cores" type="button">Cores</button><button class="btn l" id="impc" type="button">Importar custos</button></div>' +
     '<div class="chips">' + [['todos', 'Todos'], ['pronta', 'Pronta entrega'], ['encomenda', 'Sob encomenda'], ['inativos', 'Inativos']].map(([k, t]) => '<button class="chip ' + (fEst === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('') + '</div>' +
-    '<div class="l2"><select id="sec"><option value="">Todas as seções</option>' +
-    catalogo.secoes.map(s => '<option value="' + esc(s) + '"' + (sEst === s ? ' selected' : '') + '>' + esc(s) + ' (' + produtos.filter(p => p.ativo && secaoDe(p) === s).length + ')</option>').join('') +
-    '<option value="__outros"' + (sEst === '__outros' ? ' selected' : '') + '>Fora do catálogo (' + produtos.filter(p => p.ativo && !secaoDe(p)).length + ')</option></select>' +
+    '<div class="l2">' +
     '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div>' +
     '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div><div class="card" style="margin-top:12px" id="lista"></div>';
   const desenha = () => {
@@ -509,7 +507,6 @@ async function telaEstoque() {
       if (fEst === 'encomenda' && !(!p.controla && p.ativo)) return false;
       if (fEst === 'inativos' && p.ativo) return false;
       if (fEst === 'todos' && !p.ativo) return false;
-      if (sEst === '__outros' ? secaoDe(p) : (sEst && secaoDe(p) !== sEst)) return false;
       if (cEst === '__sem') { if ((p.categorias || []).length) return false; }
       else if (cEst) { const ds = catDescend(+cEst); if (!(p.categorias || []).some(x => ds.has(x))) return false; }
       return !q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q);
@@ -528,7 +525,6 @@ async function telaEstoque() {
   };
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fEst = b.dataset.f; telaEstoque(); });
   $('#q').oninput = e => { bEst = e.target.value; desenha(); };
-  $('#sec').onchange = e => { sEst = e.target.value; desenha(); };
   $('#cat').onchange = e => { cEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;

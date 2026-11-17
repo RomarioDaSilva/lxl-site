@@ -529,9 +529,16 @@ case 'categoria_excluir': {
     out(['categorias' => listaDeCategorias()]);
 }
 case 'categorias_sugeridas': {
-    $arvore = ['Religioso' => ['Santos', 'Cruzes', 'Imagens', 'Presépios', 'Porta-textos'],
-               'Chaveiros' => ['Pet', 'Academia', 'Brinquedos', 'Sensoriais'],
-               'Decoração' => [], 'Natal' => [], 'Peças personalizadas' => []];
+    $arvore = [
+        'Natal' => ['Árvores de Natal', 'Decoração de árvore', 'Feliz Natal', 'Mini Papais Noel', 'Decoração de mesa', 'Bomboniere e lembrancinhas', 'Presépios'],
+        'Chaveiros' => ['Pet', 'Academia', 'Brinquedos', 'Sensoriais', 'Profissões', 'Times e hobbies'],
+        'Brinquedos' => ['Articulados', 'Sensoriais', 'Educativos', 'Miniaturas'],
+        'Decoração' => ['Sala', 'Quarto', 'Cozinha', 'Escritório', 'Parede', 'Vasos e suportes'],
+        'Religioso' => ['Santos', 'Cruzes', 'Imagens', 'Presépios', 'Porta-textos', 'Terços e suportes'],
+        'Utilidades' => ['Organização', 'Suportes', 'Cozinha'],
+        'Datas comemorativas' => ['Páscoa', 'Dia das Mães', 'Dia dos Pais', 'Dia das Crianças'],
+        'Peças personalizadas' => [],
+    ];
     foreach ($arvore as $pai => $filhas) {
         $pid = categoriaGarantir($pai, null);
         foreach ($filhas as $f) categoriaGarantir($f, $pid);
@@ -539,18 +546,27 @@ case 'categorias_sugeridas': {
     out(['categorias' => listaDeCategorias()]);
 }
 case 'categorias_do_catalogo': {
+    /* liga os itens às subcategorias de Natal usando as seções do catálogo antigo */
     $lista = $in['lista'] ?? [];
     if (!is_array($lista)) fail('Lista inválida.');
+    $mapa = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
+             'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
     $db->beginTransaction();
-    $natal = categoriaGarantir('Natal', null); $lig = 0;
+    $natal = categoriaGarantir('Natal', null); $relig = categoriaGarantir('Religioso', null); $lig = 0;
     foreach (array_slice($lista, 0, 1000) as $x) {
         $sku = strtoupper(txt($x['sku'] ?? '', 40)); $sec = txt($x['secao'] ?? '', 80);
         if ($sku === '') continue;
         $q = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $q->execute([$sku]);
         $pid = $q->fetchColumn(); if (!$pid) continue;
-        $cid = $sec === '' ? $natal : categoriaGarantir($sec, $natal);
-        $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $cid]);
-        $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
+        $alvos = [];
+        if ($sec !== '' && isset($mapa[$sec])) {
+            $alvos[] = categoriaGarantir($mapa[$sec], $natal);
+            if ($sec === 'Presépio') $alvos[] = categoriaGarantir('Presépios', $relig);
+        } else $alvos[] = $natal;
+        foreach ($alvos as $cid) {
+            $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $cid]);
+            $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
+        }
         $lig++;
     }
     $db->commit();
