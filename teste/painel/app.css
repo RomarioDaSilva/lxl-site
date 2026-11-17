@@ -187,3 +187,6 @@ input[type=color]{width:46px;height:42px;padding:2px;border:1px solid var(--line
 a.chip{text-decoration:none;color:inherit}
 
 .selo-oculta{background:var(--danger-bg);color:var(--danger-d);border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700;margin-left:4px}
+
+.sec-aj{margin-bottom:12px;padding:14px}.sec-aj h2{margin:0 0 6px;font-size:17px}
+.hist{padding:9px 0;border-bottom:1px solid var(--line)}.hh{display:flex;justify-content:space-between;gap:8px}.ha{font-weight:600}.hd{color:var(--ink);font-size:14px;overflow-wrap:anywhere}

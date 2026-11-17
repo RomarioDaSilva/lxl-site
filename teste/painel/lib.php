@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 function out($d, int $code = 200): void {
+    $GLOBALS['__saida'] = is_array($d) ? $d : [];   /* guardado para o histórico (seguranca.php) saber o resultado */
     http_response_code($code);
     echo json_encode($d, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
     exit;

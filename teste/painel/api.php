@@ -9,6 +9,8 @@ header('X-Robots-Tag: noindex, nofollow');
 const STATUS = ['novo', 'producao', 'pronto', 'entregue', 'cancelado'];
 
 require __DIR__ . '/lib.php';
+require __DIR__ . '/seguranca.php';   /* histórico, avisos por e-mail e aparelhos conhecidos */
+require __DIR__ . '/backup.php';      /* cópia de segurança do banco */
 
 /* Cria as tabelas sozinho na primeira vez. Para adicionar uma coluna nova no futuro, coloque uma linha na lista
    de colunas logo abaixo das tabelas ([tabela, coluna, tipo]). O painel faz o ALTER TABLE sozinho, sem precisar do phpMyAdmin. */
@@ -25,6 +27,8 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS itens (id $pk, pedido_id INT NOT NULL, produto_id INT NULL, descricao VARCHAR(200), qtd INT DEFAULT 1, preco DECIMAL(10,2) DEFAULT 0)$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS cores (id $pk, nome VARCHAR(40) NOT NULL, hex VARCHAR(7) DEFAULT '#cccccc')$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_cores (id $pk, produto_id INT NOT NULL, cor_id INT NOT NULL, qtd INT DEFAULT 0)$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS auditoria (id $pk, quando VARCHAR(19), usuario VARCHAR(60) DEFAULT '', ip VARCHAR(45) DEFAULT '', acao VARCHAR(40), alvo VARCHAR(200) DEFAULT '', detalhe TEXT)$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS dispositivos (id $pk, hash VARCHAR(64) NOT NULL, usuario VARCHAR(60), primeiro VARCHAR(19), ultimo VARCHAR(19), ip VARCHAR(45), agente VARCHAR(160))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS categorias (id $pk, nome VARCHAR(80) NOT NULL, parent_id INT NULL, ordem INT DEFAULT 0, ativo TINYINT DEFAULT 1)$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_categorias (produto_id INT NOT NULL, categoria_id INT NOT NULL, PRIMARY KEY (produto_id, categoria_id))$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
@@ -251,6 +255,9 @@ if (!in_array($a, $publicas, true)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') exigirCsrf();
 }
 $db = db();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset(ROTULOS_ACAO[$a])) {
+    register_shutdown_function('auditarRequisicao', $a, $in, lerAlvo($a, $in));   /* grava no histórico, depois que a ação termina com sucesso */
+}
 
 switch ($a) {
 
@@ -273,6 +280,8 @@ case 'setup': {
     session_regenerate_id(true);
     $_SESSION['uid'] = (int)$db->lastInsertId(); $_SESSION['usuario'] = $u;
     $_SESSION['csrf'] = bin2hex(random_bytes(24));
+    auditar('Painel configurado', $u, 'primeiro usuário criado');
+    registrarDispositivo($u);
     out(['ok' => true, 'csrf' => $_SESSION['csrf'], 'usuario' => $u]);
 }
 
@@ -282,17 +291,77 @@ case 'login': {
     $s->execute([txt($in['usuario'] ?? '', 60)]);
     $u = $s->fetch();
     if (!$u || !password_verify((string)($in['senha'] ?? ''), $u['senha'])) {
-        registrarFalha(); fail('Usuário ou senha incorretos.', 401);
+        registrarFalha();
+        auditar('Login falhou', txt($in['usuario'] ?? '', 60), 'senha ou usuário incorretos', 'visitante');
+        $n = falhasRecentes();   /* avisa no 3º erro seguido e quando o acesso é bloqueado (8º) */
+        if ($n === 3 || $n === 8) enviarAviso($n === 8 ? 'Acesso bloqueado por muitas tentativas' : 'Tentativas erradas de entrar no painel', "Houve $n tentativas erradas de login em 15 minutos para o usuário \"" . txt($in['usuario'] ?? '', 60) . "\".");
+        fail('Usuário ou senha incorretos.', 401);
     }
     session_regenerate_id(true);
     $_SESSION['uid'] = (int)$u['id']; $_SESSION['usuario'] = $u['usuario'];
     $_SESSION['csrf'] = bin2hex(random_bytes(24));
+    auditar('Login', $u['usuario'], 'entrou no painel');
+    if (registrarDispositivo($u['usuario'])) enviarAviso('Entrada de um aparelho novo', 'O usuário "' . $u['usuario'] . '" entrou no painel de um aparelho ou rede que nunca tinha usado. Se não foi você, troque a senha em Ajustes.');
     out(['ok' => true, 'csrf' => $_SESSION['csrf'], 'usuario' => $u['usuario']]);
 }
 
 case 'logout': {
+    auditar('Saída', (string)($_SESSION['usuario'] ?? ''), 'saiu do painel');
     $_SESSION = [];
     session_destroy();
+    out(['ok' => true]);
+}
+
+/* ----- ajustes: backup, histórico, segurança ----- */
+case 'ajustes': {
+    $s = $db->prepare('SELECT valor FROM parametros WHERE chave = ?'); $s->execute(['ult_backup']);
+    $ub = $s->fetchColumn();
+    $d = $db->query('SELECT primeiro, ultimo, ip, agente FROM dispositivos WHERE usuario = ' . $db->quote((string)$_SESSION['usuario']) . ' ORDER BY ultimo DESC LIMIT 8')->fetchAll(PDO::FETCH_ASSOC);
+    out(['usuario' => $_SESSION['usuario'], 'email_avisos' => emailAvisos(), 'ult_backup' => $ub ?: '', 'dispositivos' => $d]);
+}
+case 'backup': {
+    $b = montarBackup();
+    $agora = date('Y-m-d H:i');
+    $s = $db->prepare('SELECT 1 FROM parametros WHERE chave = ?'); $s->execute(['ult_backup']);
+    if ($s->fetch()) $db->prepare('UPDATE parametros SET valor = ? WHERE chave = ?')->execute([$agora, 'ult_backup']);
+    else $db->prepare('INSERT INTO parametros (chave, valor) VALUES (?, ?)')->execute(['ult_backup', $agora]);
+    auditar('Backup baixado', '', 'linhas por tabela: ' . json_encode($b['contagem']));
+    out($b);
+}
+case 'historico': {
+    $q = txt($_GET['q'] ?? '', 60); $antes = (int)($_GET['antes'] ?? 0);
+    $w = []; $p = [];
+    if ($q !== '') { $w[] = '(acao LIKE ? OR alvo LIKE ? OR detalhe LIKE ? OR usuario LIKE ?)'; array_push($p, "%$q%", "%$q%", "%$q%", "%$q%"); }
+    if ($antes > 0) { $w[] = 'id < ?'; $p[] = $antes; }
+    $st = $db->prepare('SELECT id, quando, usuario, ip, acao, alvo, detalhe FROM auditoria' . ($w ? ' WHERE ' . implode(' AND ', $w) : '') . ' ORDER BY id DESC LIMIT 101');
+    $st->execute($p); $r = $st->fetchAll(PDO::FETCH_ASSOC);
+    $mais = count($r) > 100; if ($mais) array_pop($r);
+    out(['itens' => $r, 'tem_mais' => $mais]);
+}
+case 'email_salvar': {
+    $e = txt($in['email'] ?? '', 40);
+    if ($e !== '' && !filter_var($e, FILTER_VALIDATE_EMAIL)) fail('Esse e-mail não parece certo. Confira e tente de novo.');
+    $s = $db->prepare('SELECT 1 FROM parametros WHERE chave = ?'); $s->execute(['email_avisos']);
+    if ($s->fetch()) $db->prepare('UPDATE parametros SET valor = ? WHERE chave = ?')->execute([$e, 'email_avisos']);
+    else $db->prepare('INSERT INTO parametros (chave, valor) VALUES (?, ?)')->execute(['email_avisos', $e]);
+    auditar('E-mail de avisos alterado', '', $e === '' ? 'removido' : 'definido');
+    out(['email_avisos' => emailAvisos()]);
+}
+case 'email_teste': {
+    if (emailAvisos() === '') fail('Digite e salve um e-mail primeiro.');
+    $ok = enviarAviso('Teste de aviso', 'Se você recebeu esta mensagem, os avisos de segurança do painel estão funcionando.');
+    out(['enviado' => $ok]);
+}
+case 'senha_trocar': {
+    $atual = (string)($in['atual'] ?? ''); $nova = (string)($in['nova'] ?? '');
+    $s = $db->prepare('SELECT * FROM usuarios WHERE id = ?'); $s->execute([(int)$_SESSION['uid']]);
+    $u = $s->fetch();
+    if (!$u || !password_verify($atual, $u['senha'])) { auditar('Troca de senha falhou', (string)$_SESSION['usuario'], 'senha atual incorreta'); fail('A senha atual não confere.', 400); }
+    if (mb_strlen($nova) < 10) fail('A nova senha precisa ter pelo menos 10 caracteres.');
+    if ($nova === $atual) fail('A nova senha precisa ser diferente da atual.');
+    $db->prepare('UPDATE usuarios SET senha = ? WHERE id = ?')->execute([password_hash($nova, PASSWORD_DEFAULT), (int)$u['id']]);
+    auditar('Senha alterada', (string)$_SESSION['usuario'], 'senha trocada pelo painel');
+    enviarAviso('Senha do painel alterada', 'A senha do usuário "' . $u['usuario'] . '" foi trocada. Se não foi você, entre em contato com a hospedagem e restaure o acesso.');
     out(['ok' => true]);
 }
 
