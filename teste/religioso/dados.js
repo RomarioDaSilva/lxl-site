@@ -1,4 +1,4 @@
-/* CATÁLOGO DE IMAGENS RELIGIOSAS: DADOS. É aqui que você edita à mão: seções e produtos.
+/* CATÁLOGO RELIGIOSO: DADOS. É aqui que você edita à mão: seções e produtos.
    A lógica (montar a lista, pedido, WhatsApp, estoque ao vivo) fica em ../natal/catalogo.js e é a mesma do catálogo de Natal.
    Carregado antes do catalogo.js. Não coloque lógica aqui. */
 const CONFIG = {
@@ -6,15 +6,19 @@ const CONFIG = {
   instagram: LXL_EMPRESA.instagram,
   prazo: "",
   mes: "",                           /* sem aviso de "preço especial do mês" */
-  nome: "catálogo de imagens religiosas",
-  titulo: "Imagens religiosas",
+  nome: "catálogo religioso",
+  titulo: "Religioso",
   chave: "lxl_religioso_pedido_v1",  /* memória do pedido no celular, separada da do Natal */
   raiz: "Religioso"                  /* categoria do painel que manda neste catálogo */
 };
 
-/* Seções na ordem em que aparecem (só aparecem as que tiverem produtos). "categoria" = subcategoria de Religioso no painel. */
+/* Seções na ordem em que aparecem. Só aparecem as que tiverem produtos, então já ficam prontas para quando você cadastrar peças nelas.
+   "categoria" = subcategoria de Religioso no painel (o nome precisa ser igual). Seção nova: copie uma linha, troque id, categoria, titulo e sub. */
 const SECOES = [
-  {id:"imagens", categoria:"Imagens", titulo:"Imagens religiosas", sub:"Imagens para o oratório, o altar da família e para presentear com fé."}
+  {id:"imagens", categoria:"Imagens", titulo:"Imagens", sub:"Nossa Senhora e outras imagens para o oratório, o altar da família e para presentear com fé."},
+  {id:"santos", categoria:"Santos", titulo:"Santos", sub:"Imagens de santos de devoção para a sua casa."},
+  {id:"cruzes", categoria:"Cruzes", titulo:"Cruzes", sub:"Cruzes para parede, mesa e presente."},
+  {id:"porta-textos", categoria:"Porta-textos", titulo:"Porta-textos", sub:"Para apoiar o texto da oração, o salmo ou a mensagem do dia."}
 ];
 
 /* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/REL-001.jpg). Código: REL + número.
