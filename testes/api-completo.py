@@ -18,13 +18,15 @@ adm=S(); st,j=call(adm,'estado'); adm.csrf=j['csrf']
 st,j=call(adm,'setup',{'codigo':'segredo123','usuario':'romas','senha':'senha12345'}); adm.csrf=j['csrf']
 st,j=call(adm,'estado'); ok(j['perfil']=='admin' and j['permitidas'] is None,'estado admin')
 # importar do catálogo: peça do catálogo religioso entra na categoria Religioso > Imagens, peça de Natal em Natal
-st,j=call(adm,'produto_importar',{'lista':[{'codigo':'0054','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'0001','nome':'Presépio','preco':14.9}]}); ok(j.get('novos')==2,'importar do catálogo (2 peças)')
+st,j=call(adm,'produto_importar',{'lista':[{'codigo':'0054','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'0001','nome':'Presépio','preco':14.9},{'codigo':'0055','nome':'Crocodilo Articulado','preco':3.9},{'codigo':'0056','nome':'Mini Batman','preco':2.9}]}); ok(j.get('novos')==4,'importar do catálogo (4 peças)')
 st,j=call(adm,'produtos'); cats={c['id']:c for c in j['categorias']}
 def nomes(cod):
     p=[x for x in j['produtos'] if x['codigo']==cod][0]; ids=p.get('categorias') or p.get('cats') or []
     return [ (cats[i if isinstance(i,int) else i.get('id')]['nome']) for i in ids if (i if isinstance(i,int) else i.get('id')) in cats]
 ok('Imagens' in nomes('0054') and 'Natal' not in nomes('0054'),'0054 cai em Religioso > Imagens, não em Natal')
 ok('Presépios' in nomes('0001'),'0001 continua em Presépios')
+ok('Patch' in nomes('0055') and 'Natal' not in nomes('0055'),'0055 cai em Chaveiros > Patch')
+ok('Heróis' in nomes('0056'),'0056 cai em Chaveiros > Heróis')
 id_rel=[x for x in j['produtos'] if x['codigo']=='0054'][0]['id']
 st,j2=call(adm,'produto_excluir',{'id':id_rel}); ok(st==200,'excluir produto sem uso')
 st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0054'],'produto excluído sumiu da lista')
@@ -32,7 +34,7 @@ st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo A','codigo':'','preco':5,'ativo':1}); ca=j['produto']['codigo']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo B','codigo':'','preco':5,'ativo':1}); cb=j['produto']['codigo']
-ok(ca=='0055' and cb=='0056','produto novo sem código recebe o próximo número (0055, 0056): '+ca+' '+cb)
+ok(ca=='0057' and cb=='0058','produto novo sem código recebe o próximo número (0057, 0058): '+ca+' '+cb)
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
 # orcamento
 st,j=call(adm,'orcamento_salvar',{'cliente':'Sem validade','data':'2026-11-18','itens':[{'descricao':'x','qtd':1,'preco':5,'tipo':'Avulso'}]}); st2,j2=call(adm,'orcamento',q='&id=%s'%j.get('id')); ok(j2['orcamento']['validade']=='2026-12-03','orçamento sem validade fica com 15 dias: '+str(j2['orcamento']['validade']))

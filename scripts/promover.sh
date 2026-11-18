@@ -11,7 +11,7 @@ VALENDO=0; GOOGLE=0
 for a in "$@"; do [ "$a" = "--valendo" ] && VALENDO=1; [ "$a" = "--google" ] && GOOGLE=1; done
 
 echo "== O que é diferente entre teste/ e produção (arquivos que não são HTML) =="
-for par in "teste/painel painel" "teste/natal natal" "teste/religioso religioso" "teste/faq faq"; do
+for par in "teste/painel painel" "teste/natal natal" "teste/religioso religioso" "teste/chaveiros chaveiros" "teste/faq faq"; do
   set -- $par; diff -rq "$1" "$2" 2>/dev/null | grep -v "\.html" || true
 done
 for f in estilo.css home.js empresa.js; do cmp -s "teste/$f" "$f" 2>/dev/null || echo "Diferente: $f"; done
@@ -23,12 +23,13 @@ cp -a teste/estilo.css teste/home.js teste/empresa.js .
 cp -a teste/faq/. faq/
 cp -a teste/natal/. natal/
 mkdir -p religioso && cp -a teste/religioso/. religioso/
+mkdir -p chaveiros && cp -a teste/chaveiros/. chaveiros/
 cp -a teste/painel/. painel/
 cp -a teste/index.html index.html
 
 # 2) endereços: /teste/ vira / nas páginas HTML. Nas 3 páginas públicas também sai o aviso de "teste" (noindex,nofollow).
-for f in index.html faq/index.html natal/index.html religioso/index.html; do sed -i 's#/teste/#/#g; s#<meta name="robots" content="noindex,nofollow">##' "$f"; done
-find natal religioso -name '*.html' | while read -r f; do sed -i 's#/teste/#/#g' "$f"; done
+for f in index.html faq/index.html natal/index.html religioso/index.html chaveiros/index.html; do sed -i 's#/teste/#/#g; s#<meta name="robots" content="noindex,nofollow">##' "$f"; done
+find natal religioso chaveiros -name '*.html' | while read -r f; do sed -i 's#/teste/#/#g' "$f"; done
 sed -i 's#/teste/#/#g' painel/index.html
 
 # 3) números de versão dos .css/.js
@@ -36,9 +37,9 @@ python3 scripts/atualizar-versoes.py --producao
 
 # 4) conferências
 RUIM=0
-if grep -rln "/teste" index.html faq natal religioso painel empresa.js home.js --include=*.html --include=*.js --include=*.php 2>/dev/null | grep -v "^painel/medir.js"; then echo "ATENÇÃO: sobrou /teste nos arquivos acima."; RUIM=1; fi
+if grep -rln "/teste" index.html faq natal religioso chaveiros painel empresa.js home.js --include=*.html --include=*.js --include=*.php 2>/dev/null | grep -v "^painel/medir.js"; then echo "ATENÇÃO: sobrou /teste nos arquivos acima."; RUIM=1; fi
 for f in $(find painel -name '*.php'); do php -l "$f" >/dev/null 2>&1 || { echo "ERRO de PHP em $f"; RUIM=1; }; done
-for f in $(find painel/js natal religioso home.js empresa.js -name '*.js'); do node --check "$f" >/dev/null 2>&1 || { echo "ERRO de JavaScript em $f"; RUIM=1; }; done
+for f in $(find painel/js natal religioso chaveiros home.js empresa.js -name '*.js'); do node --check "$f" >/dev/null 2>&1 || { echo "ERRO de JavaScript em $f"; RUIM=1; }; done
 echo "== Arquivos que existem em painel/ mas não existem mais em teste/painel/ (não apaguei; apague você se quiser) =="
 (cd painel && find . -type f | sort) > /tmp/prod-painel.txt; (cd teste/painel && find . -type f | sort) > /tmp/teste-painel.txt
 comm -23 /tmp/prod-painel.txt /tmp/teste-painel.txt || true

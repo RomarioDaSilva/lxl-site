@@ -59,10 +59,12 @@ const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvo
     'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
 /* Seção do catálogo religioso -> subcategoria de Religioso no painel */
 const SECOES_RELIGIOSO = ['Imagens' => 'Imagens', 'Santos' => 'Santos', 'Cruzes' => 'Cruzes', 'Porta-textos' => 'Porta-textos'];
-/* Lê o índice de cada catálogo do site (natal e religioso): código => [catálogo, seção]. Catálogo novo: acrescente a pasta na lista. */
+/* Seção do catálogo de chaveiros -> subcategoria de Chaveiros no painel */
+const SECOES_CHAVEIROS = ['Patch' => 'Patch', 'Heróis' => 'Heróis'];
+/* Lê o índice de cada catálogo do site (natal, religioso e chaveiros): código => [catálogo, seção]. Catálogo novo: acrescente a pasta na lista. */
 function secoesDoCatalogo(): array {
     $m = [];
-    foreach (['natal', 'religioso'] as $cat) {
+    foreach (['natal', 'religioso', 'chaveiros'] as $cat) {
         $f = __DIR__ . '/../' . $cat . '/busca-indice.json';
         $d = is_file($f) ? json_decode((string)file_get_contents($f), true) : null;
         if (is_array($d)) foreach ($d as $x) { $k = strtoupper(trim((string)($x['sku'] ?? ''))); if ($k !== '') $m[$k] = ['cat' => $cat, 'sec' => trim((string)($x['secao'] ?? ''))]; }
@@ -82,6 +84,8 @@ function ligarAoCatalogo(int $pid, string $codigo, array $secoes): void {
     $alvos = [];
     if ($x['cat'] === 'religioso') {
         $alvos[] = categoriaGarantir(SECOES_RELIGIOSO[$x['sec']] ?? 'Imagens', categoriaGarantir('Religioso', null));
+    } elseif ($x['cat'] === 'chaveiros') {
+        $alvos[] = categoriaGarantir(SECOES_CHAVEIROS[$x['sec']] ?? 'Patch', categoriaGarantir('Chaveiros', null));
     } else {
         $sec = $x['sec']; $natal = categoriaGarantir('Natal', null);
         if (isset(SECOES_NATAL[$sec])) {
