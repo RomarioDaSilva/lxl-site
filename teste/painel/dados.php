@@ -60,7 +60,7 @@ const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvo
 /* Seção do catálogo religioso -> subcategoria de Religioso no painel */
 const SECOES_RELIGIOSO = ['Imagens' => 'Imagens', 'Santos' => 'Santos', 'Cruzes' => 'Cruzes', 'Porta-textos' => 'Porta-textos'];
 /* Seção do catálogo de chaveiros -> subcategoria de Chaveiros no painel */
-const SECOES_CHAVEIROS = ['Patch' => 'Patch', 'Heróis' => 'Heróis'];
+const SECOES_CHAVEIROS = ['Patch' => 'Patch', 'Pet' => 'Pet', 'Heróis' => 'Heróis'];
 /* Lê o índice de cada catálogo do site (natal, religioso e chaveiros): código => [catálogo, seção]. Catálogo novo: acrescente a pasta na lista. */
 function secoesDoCatalogo(): array {
     $m = [];
