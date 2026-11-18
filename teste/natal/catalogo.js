@@ -18,8 +18,8 @@ function precoHTML(p){
     ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+'</div>'
     : '<div class="preco consulte">Consulte o valor</div>';
 }
-function limiteHTML(){
-  var L=CONFIG.limitePedido; if(!L||!L.ate) return "";
+function limiteHTML(p){
+  var L=CONFIG.limitePedido; if(!L||!L.ate||(p&&p.semLimite)) return "";   /* semLimite:true na peça = não mostra o prazo de Natal */
   var f=new Date(L.ate+"T23:59:59"); if(new Date()>f) return "";
   return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
 }
@@ -99,7 +99,7 @@ function detalheHTML(p){
       (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+
-      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+pronta+
+      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML(p)+precoHTML(p)+pronta+
       '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>'+
       '<button type="button" class="btn btn-comp" data-comp="'+p.sku+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar</button>'+
       '<a class="link-wpp" target="_blank" rel="noopener" href="'+wppLink(msgProduto(p))+'">'+(temPreco?'Pedir só este pelo WhatsApp':'Perguntar o valor pelo WhatsApp')+'</a>'+

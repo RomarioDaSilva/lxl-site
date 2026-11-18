@@ -23,11 +23,12 @@ const SECOES = [
   {id:"decoracoes-mesa", categoria:"Decoração de mesa", titulo:"Decorações de mesa",  sub:"Rena, boneco de neve, gnomo e mais para enfeitar mesa, aparador e estante."},
   {id:"feliz-natal", categoria:"Feliz Natal", titulo:"Feliz Natal",             sub:"Letreiros e placas para decorar e presentear."},
   {id:"bombonieri", categoria:"Bomboniere e lembrancinhas",  titulo:"Bombonieri e lembrancinhas", sub:"Para ceia de empresa, igreja, escola e família. Quanto mais unidades, melhor o valor."},
-  {id:"kits", categoria:"Kits de Natal",        titulo:"Kits de Natal",           sub:"Peças que combinam entre si. No kit você paga menos do que comprando separado."}
+  {id:"kits", categoria:"Kits de Natal",        titulo:"Kits de Natal",           sub:"Peças que combinam entre si. No kit você paga menos do que comprando separado."},
+  {id:"religioso", categoria:"Religioso", titulo:"Imagens religiosas",      sub:"Imagens para o oratório, o altar da família e para presentear com fé."}
 ];
 
 /* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/PRE-001.jpg).
-   Códigos: PRE presépio, ARV árvore, PAP Papai Noel, FEL Feliz Natal, KIT kits, BOM bombonieri.
+   Códigos: PRE presépio, ARV árvore, PAP Papai Noel, FEL Feliz Natal, KIT kits, BOM bombonieri, REL imagens religiosas.
    preco: deixe de fora para mostrar "Consulte o valor".
    entrega: "Pronta entrega" ou "Sob encomenda" (pode escrever o prazo, ex.: "Sob encomenda, 3 dias").
    Campos opcionais: tag (etiqueta), antes (preço separado, usado nos kits). */
@@ -117,6 +118,7 @@ const PRODUTOS = [
   {sku:"BOM-009", top:true, secao:"bombonieri", nome:"Cestinha Rena com Alça", desc:"Cestinha com a carinha da rena e alça para carregar. Lembrancinha fofa para as crianças.", cor:"Vermelho", preco:14.90, entrega:"Sob encomenda"},
   {sku:"BOM-010", secao:"bombonieri", nome:"Potinho Rosto do Papai Noel", desc:"Potinho com o rosto sorridente do Papai Noel, de barba e gorro.", cor:"Branco", preco:39.90, entrega:"Sob encomenda"},
   {sku:"BOM-011", top:true, secao:"bombonieri", nome:"Potinho Papai Noel com Botas", desc:"Potinho com borda branca ondulada e as botas do Papai Noel. Combina com biscoitos e doces.", cor:"Vermelho, branco, amarelo e preto", preco:33.90, entrega:"Sob encomenda"},
-  {sku:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"}
+  {sku:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"REL-001", semLimite:true, secao:"religioso", nome:"Nossa Senhora das Graças", desc:"Imagem de Nossa Senhora das Graças com os braços abertos, em acabamento branco liso e base redonda. Para o oratório, a estante ou um presente de fé.", cor:"Branco", preco:6.90, entrega:"Sob encomenda"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */
