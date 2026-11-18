@@ -9,14 +9,14 @@ SAIDA = sys.argv[1] if len(sys.argv) > 1 else '/tmp/videos-natal'
 ESCOLHA = sys.argv[2:]
 os.makedirs(SAIDA, exist_ok=True)
 FPS = int(os.environ.get('FPS', '30'))
-SECOES = [  # (titulo no índice, slug, texto curto)
- ('Presépio', 'presepio', 'Celebre o nascimento de Jesus em família'),
- ('Árvores de Natal', 'arvores', 'Para mesa, balcão e estante'),
- ('Decoração de árvore', 'decoracao-arvore', 'Enfeites para deixar a árvore ainda mais bonita'),
- ('Mini Papais Noel', 'mini-papais-noel', 'Pequenos, charmosos e feitos para decorar qualquer cantinho'),
- ('Decorações de mesa', 'decoracoes-mesa', 'Para enfeitar mesa, aparador e estante'),
- ('Feliz Natal', 'feliz-natal', 'Letreiros e placas para decorar e presentear'),
- ('Bombonieri e lembrancinhas', 'bombonieri', 'Para ceia, igreja, escola e família'),
+SECOES = [  # (titulo no índice, slug, frase de abertura, curta e direta; o | marca a quebra de linha)
+ ('Presépio', 'presepio', 'Leve a tradição do Natal|para a sua casa'),
+ ('Árvores de Natal', 'arvores', 'Sem espaço para árvore grande?|Temos uma para você'),
+ ('Decoração de árvore', 'decoracao-arvore', 'Deixe sua árvore de Natal|ainda mais bonita'),
+ ('Mini Papais Noel', 'mini-papais-noel', 'O Papai Noel mais fofo|da sua decoração'),
+ ('Decorações de mesa', 'decoracoes-mesa', 'Decoração de Natal|para sua casa, sua loja|ou sua clínica'),
+ ('Feliz Natal', 'feliz-natal', 'Letreiros para|decorar e presentear'),
+ ('Bombonieri e lembrancinhas', 'bombonieri', 'Lembrancinhas de Natal|que encantam'),
 ]
 dados = [d for d in json.load(open(os.path.join(NAT, 'busca-indice.json'), encoding='utf-8')) if d['c'] == 'natal']
 
@@ -28,7 +28,7 @@ canvas{position:absolute;left:0;top:0}
 .abs{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
 .serif{font-family:Lora,Georgia,serif;font-weight:700}
 #cab{position:absolute;left:0;top:0;width:1080px}
-#cab img{position:absolute;left:48px;top:150px;width:170px}
+#cab img{position:absolute;left:48px;top:150px;width:120px}
 #cab .ano{position:absolute;right:52px;top:158px;font:700 32px Lora,Georgia,serif;letter-spacing:.1em;color:#E8C547}
 #cab .sec{position:absolute;left:0;width:1080px;top:232px;text-align:center}
 #cab .sec span{display:inline-block;background:rgba(255,255,255,.12);border:2px solid rgba(232,197,71,.7);color:#FFF8EC;border-radius:999px;padding:10px 30px;font:600 28px Inter,sans-serif}
@@ -46,13 +46,12 @@ canvas{position:absolute;left:0;top:0}
 #rod b{display:block;font:700 34px Inter,sans-serif}
 #rod span{display:block;font:500 25px Inter,sans-serif;opacity:.9;margin-top:6px}
 #intro{position:absolute;left:0;top:0;width:1080px;height:1920px;color:#fff;text-align:center}
-#intro img{position:absolute;left:340px;top:400px;width:400px}
-#intro .ano{position:absolute;left:0;width:1080px;top:610px;font:700 40px Lora,Georgia,serif;letter-spacing:.25em;color:#E8C547}
-#intro h1{position:absolute;left:60px;width:960px;top:700px;font:700 112px/1.05 Lora,Georgia,serif}
-#intro h1 .w{display:inline-block;margin:0 .12em}
-#intro .sub{position:absolute;left:100px;width:880px;top:1060px;font:500 38px/1.35 Inter,sans-serif;opacity:.95}
-#intro .qtd{position:absolute;left:0;width:1080px;top:1280px}
-#intro .qtd span{display:inline-block;background:#B3202A;border:4px solid #E8C547;border-radius:999px;padding:16px 44px;font:700 44px Inter,sans-serif}
+#intro .logo{position:absolute;left:48px;top:150px;width:120px}
+#intro .ano{position:absolute;left:0;width:1080px;top:690px;font:700 104px Lora,Georgia,serif;letter-spacing:.14em;color:#E8C547;text-shadow:0 0 40px rgba(232,197,71,.55)}
+#intro .fio{position:absolute;left:390px;width:300px;top:840px;height:6px;border-radius:6px;background:linear-gradient(90deg,transparent,#E8C547,transparent)}
+#intro h1{position:absolute;left:40px;width:1000px;top:910px;font:700 80px/1.16 Lora,Georgia,serif}
+#intro h1 .l{display:block}
+#intro h1 .w{display:inline-block;margin:0 .13em}
 #grade{position:absolute;left:0;top:0;width:1080px;height:1920px}
 #grade .tit{position:absolute;left:0;width:1080px;top:270px;text-align:center;color:#fff;font:700 62px Lora,Georgia,serif}
 #grade .g{position:absolute;width:300px;height:300px;border-radius:26px;overflow:hidden;border:5px solid #FFF8EC;background:#eee;box-shadow:0 10px 26px rgba(0,0,0,.4)}
@@ -72,13 +71,13 @@ canvas{position:absolute;left:0;top:0}
 <div id="card"><div class="foto"><img id="fImg"></div><div class="nome" id="fNome"></div><div class="tags"><span class="cod" id="fCod"></span><span class="ent" id="fEnt"></span></div><div id="preco"></div></div>
 <div id="barra"><i id="barraI"></i></div>
 <div id="rod"><b>Peça pelo WhatsApp (38) 99221-4206</b><span>@lxlprojetos &middot; lxlprojetos.site/natal</span></div>
-<div id="intro"><img src="file://__NAT__/imagens/logo-branca.png"><div class="ano">NATAL 2026</div><h1 id="iTit"></h1><div class="sub" id="iSub"></div><div class="qtd"><span id="iQtd"></span></div></div>
+<div id="intro"><img class="logo" src="file://__NAT__/imagens/logo-branca.png"><div class="ano">NATAL 2026</div><div class="fio"></div><h1 id="iTit"></h1></div>
 <div id="grade"><div class="tit">Todas as peças</div></div>
 <div id="cta"><img src="file://__NAT__/imagens/logo-branca.png"><div class="l1">Gostou?<br>Peça a sua!</div><div class="zap">(38) 99221-4206</div><div class="l3">Chame no WhatsApp</div><div class="l4">@lxlprojetos &middot; lxlprojetos.site/natal</div><div class="prazo"><span>Pedidos até 15/12</span></div></div>
 <script>
 const D = __DADOS__;
 const W=1080, H=1920;
-const IT=2.4, INTRO=3.0, GRADE=D.itens.length>=4?2.8:0, CTA=3.2;
+const IT=2.4, INTRO=2.2, GRADE=D.itens.length>=4?2.8:0, CTA=3.2;
 const total = INTRO + D.itens.length*IT + GRADE + CTA;
 window.DURACAO = total;
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
@@ -115,8 +114,8 @@ function fundo(t){
 }
 const $=id=>document.getElementById(id);
 const cab=$('cab'),card=$('card'),barra=$('barra'),rod=$('rod'),intro=$('intro'),grade=$('grade'),cta=$('cta'),preco=$('preco');
-$('secTxt').textContent=D.titulo; $('iSub').textContent=D.sub; $('iQtd').textContent=D.itens.length+(D.itens.length>1?' peças':' peça');
-$('iTit').innerHTML=D.titulo.split(' ').map((p,i)=>'<span class="w" data-i="'+i+'">'+p+'</span>').join(' ');
+$('secTxt').textContent=D.titulo;
+let _k=0;$('iTit').innerHTML=D.sub.split('|').map(l=>'<span class="l">'+l.split(' ').map(p=>'<span class="w" data-i="'+(_k++)+'">'+p+'</span>').join(' ')+'</span>').join('');
 // grade
 (function(){const n=D.itens.length;const cols=3, tam=300, gap=24;const rows=Math.ceil(n/cols);const hTot=rows*tam+(rows-1)*gap;const y0=Math.max(380,(H-hTot)/2+40);
  D.itens.forEach((it,i)=>{const lin=Math.floor(i/cols), col=i%cols, noLin=Math.min(cols,n-lin*cols);const x0=(W-(noLin*tam+(noLin-1)*gap))/2;
@@ -126,14 +125,13 @@ let atual=-1;
 function render(t){
  fundo(t);
  const tIntro=t, tItens=t-INTRO, tGrade=t-INTRO-D.itens.length*IT, tCta=tGrade-GRADE;
- // intro
+ // intro (rápido: NATAL 2026 com brilho e a frase palavra por palavra)
  let vi=t<INTRO;intro.style.display=vi?'block':'none';
- if(vi){const o=1-easeIn(seg(t,INTRO-.4,INTRO));intro.style.opacity=o;
-  intro.querySelector('img').style.transform='scale('+(.3+.7*back(seg(t,0,.7)))+')';intro.querySelector('img').style.opacity=clamp(t/.3);
-  intro.querySelector('.ano').style.opacity=easeOut(seg(t,.5,1));
-  intro.querySelectorAll('.w').forEach((w,i)=>{const p=back(seg(t,.8+i*.18,1.4+i*.18));w.style.opacity=clamp(p*2);w.style.transform='translateY('+(60*(1-p))+'px) scale('+(.6+.4*p)+')'});
-  const s=easeOut(seg(t,1.6,2.1));intro.querySelector('.sub').style.opacity=s;intro.querySelector('.sub').style.transform='translateY('+(30*(1-s))+'px)';
-  const q=back(seg(t,2.0,2.5));intro.querySelector('.qtd').style.opacity=clamp(q*2);intro.querySelector('.qtd').style.transform='scale('+(.5+.5*q)+')';}
+ if(vi){intro.style.opacity=1-easeIn(seg(t,INTRO-.3,INTRO));
+  const lg=intro.querySelector('.logo');lg.style.opacity=easeOut(seg(t,0,.3));
+  const an=intro.querySelector('.ano'),pa=back(seg(t,.05,.55));an.style.opacity=clamp(pa*2);an.style.transform='scale('+(.6+.4*pa)+')';
+  const fi=intro.querySelector('.fio');fi.style.opacity=easeOut(seg(t,.35,.7));fi.style.transform='scaleX('+easeOut(seg(t,.35,.8))+')';
+  intro.querySelectorAll('.w').forEach((w,i)=>{const p=back(seg(t,.5+i*.09,.95+i*.09));w.style.opacity=clamp(p*2);w.style.transform='translateY('+(50*(1-p))+'px) scale('+(.7+.3*p)+')'});}
  // itens
  const emItens=tItens>=0&&tItens<D.itens.length*IT;
  cab.style.display=card.style.display=barra.style.display=rod.style.display=emItens?'block':'none';
