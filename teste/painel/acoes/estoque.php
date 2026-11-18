@@ -17,6 +17,7 @@ case 'produto_salvar': {
     $nome = txt($in['nome'] ?? '', 160);
     if ($nome === '') fail('Informe o nome do produto.');
     $codigo = strtoupper(txt($in['codigo'] ?? '', 40));
+    if ($codigo === '' && $id === 0) $codigo = proximoCodigo();   /* produto novo sem código: número seguinte */
     if ($codigo !== '') {
         $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? AND id <> ?');
         $s->execute([$codigo, $id]);
@@ -162,6 +163,7 @@ case 'produto_importar': {
     foreach (array_slice($lista, 0, 500) as $p) {
         $cod = strtoupper(txt($p['codigo'] ?? '', 40)); $nome = txt($p['nome'] ?? '', 160);
         if ($nome === '') continue;
+        if ($cod === '') $cod = proximoCodigo();   /* sem código no catálogo: número seguinte */
         if ($cod !== '') {
             $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
             if ($s->fetch()) { $pulados++; continue; }

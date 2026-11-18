@@ -69,6 +69,13 @@ function secoesDoCatalogo(): array {
     }
     return $m;
 }
+/* Próximo código livre (0001, 0002...): maior número já usado no painel OU nos catálogos do site, mais 1. Não reaproveita código. */
+function proximoCodigo(): string {
+    $max = 0;
+    foreach (db()->query("SELECT codigo FROM produtos")->fetchAll(PDO::FETCH_COLUMN) as $c) if (preg_match('/^\d+$/', (string)$c)) $max = max($max, (int)$c);
+    foreach (array_keys(secoesDoCatalogo()) as $c) if (preg_match('/^\d+$/', (string)$c)) $max = max($max, (int)$c);
+    return str_pad((string)($max + 1), 4, '0', STR_PAD_LEFT);
+}
 /* coloca o produto nas categorias conforme a seção que ele tinha no catálogo (só junta, nunca tira) */
 function ligarAoCatalogo(int $pid, string $codigo, array $secoes): void {
     $x = $secoes[strtoupper($codigo)] ?? null; if ($x === null) return;

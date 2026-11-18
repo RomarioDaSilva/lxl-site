@@ -30,6 +30,9 @@ st,j2=call(adm,'produto_excluir',{'id':id_rel}); ok(st==200,'excluir produto sem
 st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0054'],'produto excluído sumiu da lista')
 # produto + cliente
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
+st,j=call(adm,'produto_salvar',{'nome':'Sem codigo A','codigo':'','preco':5,'ativo':1}); ca=j['produto']['codigo']
+st,j=call(adm,'produto_salvar',{'nome':'Sem codigo B','codigo':'','preco':5,'ativo':1}); cb=j['produto']['codigo']
+ok(ca=='0055' and cb=='0056','produto novo sem código recebe o próximo número (0055, 0056): '+ca+' '+cb)
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
 # orcamento
 orc={'cliente':'Maria','cliente_id':cid,'itens':[{'produto_id':pid,'descricao':'Peca X','qtd':2,'preco':20},{'descricao':'Topo de bolo','qtd':1,'preco':50,'custo':10,'tipo':'Topo de bolo'}],'frete':10,'desconto':0,'validade':'2026-12-01'}
