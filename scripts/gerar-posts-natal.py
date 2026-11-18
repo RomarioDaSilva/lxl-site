@@ -1,11 +1,15 @@
 # Gera as imagens do catálogo de Natal para as redes sociais (1080 x 1350), uma sequência por seção.
-# Uso: python3 scripts/gerar-posts-natal.py <pasta_de_saida>   (precisa de playwright e chromium)
+# Uso: python3 scripts/gerar-posts-natal.py <pasta_de_saida> [feed|story]   feed = 1080x1350 (3 peças por imagem), story = 1080x1920 (4 peças, com áreas seguras)
+# (precisa de playwright e chromium)
 import json, sys, os, html, math
 from playwright.sync_api import sync_playwright
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NAT = os.path.join(RAIZ, 'teste', 'natal')
 SAIDA = sys.argv[1] if len(sys.argv) > 1 else '/tmp/posts-natal'
 os.makedirs(SAIDA, exist_ok=True)
+STORY = len(sys.argv) > 2 and sys.argv[2] == 'story'
+W, H = (1080, 1920) if STORY else (1080, 1350)
+TOPO, RODAPE, POR_IMG = (330, 300, 4) if STORY else (240, 112, 3)
 SECOES = [  # (titulo no índice, nome do arquivo, texto curto)
  ('Presépio', 'presepio', 'Celebre o nascimento de Jesus em família.'),
  ('Árvores de Natal', 'arvores', 'Para mesa, balcão e estante.'),
@@ -22,8 +26,8 @@ e = html.escape
 CSS = """
 *{box-sizing:border-box;margin:0}
 :root{--red:#B3202A;--green:#1F5B3F;--green-d:#143D2A;--gold:#C9A227;--cream:#FFF8EC;--ink:#2A1A14;--muted:#6B5A50}
-body{width:1080px;height:1350px;background:var(--cream);font-family:Inter,system-ui,sans-serif;color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
-.top{height:240px;flex:none;color:#fff;padding:34px 48px 0;position:relative;
+body{width:1080px;height:__H__px;background:var(--cream);font-family:Inter,system-ui,sans-serif;color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.top{height:__TOPO__px;flex:none;color:#fff;padding:34px 48px 0;position:relative;
  background:radial-gradient(circle at 12% 20%,rgba(255,255,255,.35) 0 3px,transparent 4px),radial-gradient(circle at 78% 18%,rgba(255,255,255,.3) 0 3px,transparent 4px),radial-gradient(circle at 40% 80%,rgba(255,255,255,.25) 0 3px,transparent 4px),radial-gradient(circle at 92% 70%,rgba(255,255,255,.3) 0 3px,transparent 4px),radial-gradient(circle at 25% 92%,rgba(255,255,255,.25) 0 3px,transparent 4px),linear-gradient(160deg,var(--green),var(--green-d))}
 .top img{position:absolute;left:44px;top:26px;width:150px}
 .top .ano{position:absolute;right:48px;top:30px;font:700 30px Lora,Georgia,serif;letter-spacing:.08em;color:var(--gold)}
@@ -44,12 +48,17 @@ body{width:1080px;height:1350px;background:var(--cream);font-family:Inter,system
 .ent{display:block;margin-top:8px;font-size:20px;color:var(--green);font-weight:600}
 .pre{font:700 50px/1 Lora,Georgia,serif;color:var(--red);white-space:nowrap}
 .pre small{display:block;font:600 19px Inter,sans-serif;color:var(--muted);text-align:right;margin-bottom:4px}
-.rod{height:112px;flex:none;background:var(--green-d);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 48px}
+.rod{height:__ROD__px;flex:none;background:var(--green-d);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 48px}
 .rod b{font-size:30px;display:block}.rod span{font-size:22px;opacity:.9}
 .rod .prazo{background:var(--red);border-radius:999px;padding:12px 26px;font-weight:700;font-size:25px;white-space:nowrap}
 """
+EXTRA = '''
+.top img{top:96px}.top .ano{top:100px}.top .pg{top:140px}.top h1{padding-top:178px}.um .card .f{height:820px!important}.um .card p{font-size:30px}
+.rod{align-items:flex-start;padding-top:44px}
+''' if STORY else ''
+CSS = CSS.replace('__H__', str(H)).replace('__TOPO__', str(TOPO)).replace('__ROD__', str(RODAPE)) + EXTRA
 def pagina(titulo, sub, itens, n, total):
-    disp = 1350 - 240 - 112 - 48 - 20 * (len(itens) - 1)   # altura livre para os cards
+    disp = H - TOPO - RODAPE - 48 - 20 * (len(itens) - 1)   # altura livre para os cards
     h = min(disp // len(itens), disp if len(itens) == 1 else 470); foto = h - 28
     cards = ''.join(f'''<div class="card" style="height:{h}px"><img class="f" style="width:{foto}px;height:{foto}px" src="file://{NAT}/imagens/{i["foto"]}.jpg"><div class="t"><h2>{e(i["nome"])}</h2><p>{e(i["desc"])}</p>
 <div class="b"><div><span class="cod">Cód. {e(i["sku"])}</span><span class="ent">{e(i["entrega"])}</span></div><div class="pre">{brl(i["preco"]) if i["preco"] else "Consulte"}</div></div></div></div>''' for i in itens)
@@ -59,15 +68,15 @@ def pagina(titulo, sub, itens, n, total):
 <div class="rod"><div><b>Peça pelo WhatsApp (38) 99221-4206</b><span>@lxlprojetos &middot; lxlprojetos.site/natal</span></div><div class="prazo">Pedidos até 15/12</div></div>'''
 arquivos = []
 with sync_playwright() as p:
-    b = p.chromium.launch(); pg = b.new_page(viewport={'width': 1080, 'height': 1350})
+    b = p.chromium.launch(); pg = b.new_page(viewport={'width': W, 'height': H})
     for k, (titulo, slug, sub) in enumerate(SECOES, 1):
         itens = [d for d in dados if d['secao'] == titulo]
         if not itens: continue
-        total = math.ceil(len(itens) / 3); base, resto = divmod(len(itens), total); pos = 0
+        total = math.ceil(len(itens) / POR_IMG); base, resto = divmod(len(itens), total); pos = 0
         for n in range(total):
             tam = base + (1 if n < resto else 0); parte = itens[pos:pos + tam]; pos += tam
             tmp = os.path.join(SAIDA, '_tmp.html'); open(tmp, 'w', encoding='utf-8').write(pagina(titulo, sub, parte, n + 1, total)); pg.goto('file://' + tmp); pg.wait_for_load_state('load')
-            nome = f'natal_{k:02d}-{slug}_{n + 1}de{total}.png'; pg.screenshot(path=os.path.join(SAIDA, nome)); arquivos.append(nome)
+            nome = f'{"story" if STORY else "natal"}_{k:02d}-{slug}_{n + 1}de{total}.png'; pg.screenshot(path=os.path.join(SAIDA, nome)); arquivos.append(nome)
     b.close()
 os.remove(os.path.join(SAIDA, '_tmp.html'))
 print(len(arquivos), 'imagens em', SAIDA); print('\n'.join(arquivos))
