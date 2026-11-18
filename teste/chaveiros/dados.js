@@ -25,6 +25,7 @@ const SECOES = [
 const PRODUTOS = [
   {sku:"0055", secao:"patch", nome:"Crocodilo Articulado", desc:"Chaveiro de crocodilo articulado em PLA verde, com o corpo em gomos que se mexe e olhinhos pretos. Leve, divertido e ótimo para presentear.", cor:"Verde", preco:3.90, entrega:"Pronta entrega"},
   {sku:"0056", secao:"herois", nome:"Mini Batman", desc:"Mini Batman em estilo fofinho, impresso em PLA preto, com capa e detalhes no peito e no cinto. Para colecionar, enfeitar a mesa ou presentear.", cor:"Preto", preco:2.90, entrega:"Pronta entrega"},
-  {sku:"0057", secao:"pet", nome:"Gato Articulado", desc:"Chaveiro de gatinho articulado em PLA vermelho, com o corpo em gomos que se mexe e rabinho curvado. Leve, divertido e perfeito para quem ama gatos.", cor:"Vermelho", preco:2.90, entrega:"Pronta entrega"}
+  {sku:"0057", secao:"pet", nome:"Gato Articulado", desc:"Chaveiro de gatinho articulado em PLA vermelho, com o corpo em gomos que se mexe e rabinho curvado. Leve, divertido e perfeito para quem ama gatos.", cor:"Vermelho", preco:2.90, entrega:"Pronta entrega"},
+  {sku:"0058", secao:"pet", nome:"Cachorro Salsicha Articulado", desc:"Chaveiro de cachorrinho salsicha (dachshund) articulado, com o corpo em gomos que se mexe, orelhas caídas e focinho preto. Leve, divertido e ótimo para quem ama pets.", cor:"Cinza e preto", preco:7.90, entrega:"Pronta entrega"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */

@@ -59,4 +59,5 @@ return [
     '0055' => 'https://makerworld.com/pt/models/2783835-flexi-crocodile-6g#profileId-3094324',
     '0056' => 'https://makerworld.com/pt/models/3190090-the-cutest-superheroes-ironman-and-batman#profileId-3608911',
     '0057' => 'https://makerworld.com/pt/models/1905366-flexi-cat-keychain#profileId-2042594',
+    '0058' => 'https://makerworld.com/pt/models/2789254-flexi-dachshund-keychain#profileId-3101209',
 ];

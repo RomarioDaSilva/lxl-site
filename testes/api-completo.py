@@ -18,7 +18,7 @@ adm=S(); st,j=call(adm,'estado'); adm.csrf=j['csrf']
 st,j=call(adm,'setup',{'codigo':'segredo123','usuario':'romas','senha':'senha12345'}); adm.csrf=j['csrf']
 st,j=call(adm,'estado'); ok(j['perfil']=='admin' and j['permitidas'] is None,'estado admin')
 # importar do catálogo: peça do catálogo religioso entra na categoria Religioso > Imagens, peça de Natal em Natal
-st,j=call(adm,'produto_importar',{'lista':[{'codigo':'0054','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'0001','nome':'Presépio','preco':14.9},{'codigo':'0055','nome':'Crocodilo Articulado','preco':3.9},{'codigo':'0056','nome':'Mini Batman','preco':2.9},{'codigo':'0057','nome':'Gato Articulado','preco':2.9}]}); ok(j.get('novos')==5,'importar do catálogo (5 peças)')
+st,j=call(adm,'produto_importar',{'lista':[{'codigo':'0054','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'0001','nome':'Presépio','preco':14.9},{'codigo':'0055','nome':'Crocodilo Articulado','preco':3.9},{'codigo':'0056','nome':'Mini Batman','preco':2.9},{'codigo':'0057','nome':'Gato Articulado','preco':2.9},{'codigo':'0058','nome':'Cachorro Salsicha Articulado','preco':7.9}]}); ok(j.get('novos')==6,'importar do catálogo (6 peças)')
 st,j=call(adm,'produtos'); cats={c['id']:c for c in j['categorias']}
 def nomes(cod):
     p=[x for x in j['produtos'] if x['codigo']==cod][0]; ids=p.get('categorias') or p.get('cats') or []
@@ -27,7 +27,7 @@ ok('Imagens' in nomes('0054') and 'Natal' not in nomes('0054'),'0054 cai em Reli
 ok('Presépios' in nomes('0001'),'0001 continua em Presépios')
 ok('Patch' in nomes('0055') and 'Natal' not in nomes('0055'),'0055 cai em Chaveiros > Patch')
 ok('Heróis' in nomes('0056'),'0056 cai em Chaveiros > Heróis')
-ok('Pet' in nomes('0057'),'0057 cai em Chaveiros > Pet')
+ok('Pet' in nomes('0057') and 'Pet' in nomes('0058'),'0057 e 0058 caem em Chaveiros > Pet')
 lk={x['codigo']:x.get('link','') for x in j['produtos']}
 ok(lk['0055'].startswith('https://makerworld.com/pt/models/2783835') and lk['0057'].endswith('#profileId-2042594'),'importar já traz o link do MakerWorld')
 pid55=[x for x in j['produtos'] if x['codigo']=='0055'][0]['id']
@@ -42,7 +42,7 @@ st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo A','codigo':'','preco':5,'ativo':1}); ca=j['produto']['codigo']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo B','codigo':'','preco':5,'ativo':1}); cb=j['produto']['codigo']
-ok(ca=='0058' and cb=='0059','produto novo sem código recebe o próximo número (0058, 0059): '+ca+' '+cb)
+ok(ca=='0059' and cb=='0060','produto novo sem código recebe o próximo número (0059, 0060): '+ca+' '+cb)
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
 # orcamento
 st,j=call(adm,'orcamento_salvar',{'cliente':'Sem validade','data':'2026-11-18','itens':[{'descricao':'x','qtd':1,'preco':5,'tipo':'Avulso'}]}); st2,j2=call(adm,'orcamento',q='&id=%s'%j.get('id')); ok(j2['orcamento']['validade']=='2026-12-03','orçamento sem validade fica com 15 dias: '+str(j2['orcamento']['validade']))
