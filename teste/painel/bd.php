@@ -64,6 +64,21 @@ function instalar(): void {
         foreach ((require __DIR__ . '/links-origem.php') as $cod => $lk) $up->execute([$lk, (string)$cod]);
         $registra('links-origem', 'links do MakerWorld preenchidos nas peças');
     }
+    /* Crocodilo (18/11/2026): o Romas decidiu que ele é da subcategoria Pet, não Patch. Põe em Chaveiros > Pet e tira só o vínculo com Patch (nada é apagado). */
+    if (!in_array('croc-para-pet', $feitas, true)) {
+        $pid = $db->query("SELECT id FROM produtos WHERE codigo = '0055' LIMIT 1")->fetchColumn();
+        $raiz = $db->query("SELECT id FROM categorias WHERE nome = 'Chaveiros' AND parent_id IS NULL LIMIT 1")->fetchColumn();
+        if ($pid && $raiz) {
+            $filha = function (string $nome) use ($db, $raiz) { $q = $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id = ? LIMIT 1'); $q->execute([$nome, $raiz]); return $q->fetchColumn(); };
+            $pet = $filha('Pet');
+            if (!$pet) { $db->prepare('INSERT INTO categorias (nome, parent_id, ordem, ativo) VALUES (?, ?, 0, 1)')->execute(['Pet', $raiz]); $pet = $filha('Pet'); }
+            $q = $db->prepare('SELECT 1 FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?'); $q->execute([$pid, $pet]);
+            if (!$q->fetch()) $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?, ?)')->execute([$pid, $pet]);
+            $patch = $filha('Patch');
+            if ($patch) $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $patch]);
+        }
+        $registra('croc-para-pet', 'crocodilo 0055 movido de Patch para Pet');
+    }
     foreach (MIGRACOES_SQL as $id => [$desc, $sql]) {
         if (in_array($id, $feitas, true)) continue;
         $db->exec($sql); $registra($id, $desc);
