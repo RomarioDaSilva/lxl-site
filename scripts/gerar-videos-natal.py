@@ -10,7 +10,7 @@ ESCOLHA = sys.argv[2:]
 os.makedirs(SAIDA, exist_ok=True)
 FPS = int(os.environ.get('FPS', '30'))
 SECOES = [  # (titulo no índice, slug, frase de abertura, curta e direta; o | marca a quebra de linha)
- ('Presépio', 'presepio', 'Leve a tradição do Natal|para sua casa'),
+ ('Presépio', 'presepio', 'Leve a tradição|do Natal para sua casa'),
  ('Árvores de Natal', 'arvores', 'Sem espaço para|árvore grande?|Temos uma para você'),
  ('Decoração de árvore', 'decoracao-arvore', 'Deixe sua árvore|de Natal ainda|mais bonita'),
  ('Mini Papais Noel', 'mini-papais-noel', 'O Papai Noel mais fofo|da sua decoração'),
