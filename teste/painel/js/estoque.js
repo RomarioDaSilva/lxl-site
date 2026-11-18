@@ -69,7 +69,7 @@ function formProduto(p, catsIniciais, depois) {
     '<div class="l2"><div><label>Extras (R$)</label><input type="text" inputmode="decimal" id="cExtra" value="' + fmtIn(n.extras) + '" placeholder="argola, LED..."></div>' +
     '<div><label>Embalagem (R$)</label><input type="text" inputmode="decimal" id="cEmb" value="' + fmtIn(n.embalagem) + '"></div></div>' +
     '<div id="cRes" class="cres"></div></div>' +
-    '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button></div>');
+    '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button>' + (n.id ? '<button class="btn l" id="excl" type="button" style="color:#b3202a">Excluir produto</button>' : '') + '</div>');
   const calcCusto = () => {
     const P = paramsCusto, v = id => parseNum($('#' + id, m).value) || 0;
     const peso = v('cPeso'), h = v('cTempo'), perda = v('cPerda');
@@ -131,6 +131,10 @@ function formProduto(p, catsIniciais, depois) {
   $('#usaCores', m).onchange = desenhaCores;
   $('#estoque', m).addEventListener('input', contador);
   desenhaCores();
+  if (n.id) $('#excl', m).onclick = async () => {
+    if (!await confirmar('Excluir produto', 'Tem certeza que deseja excluir "' + n.nome + '"? Não dá para desfazer. Se ele já tiver pedidos, o painel pede para desativar em vez de excluir.')) return;
+    try { await api('produto_excluir', { id: n.id }); m.fechar(); (depois || telaEstoque)(); toast('Produto excluído.'); } catch (e) { toast(e.message); }
+  };
   $('#ok', m).onclick = async () => {
     const usa = $('#controla', m).value === '1' && $('#usaCores', m).checked;
     if (usa && soma() !== total()) return toast('As cores somam ' + soma() + ', mas o estoque total é ' + total() + '. Ajuste para ficarem iguais.');

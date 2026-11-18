@@ -103,6 +103,22 @@ case 'cor_excluir': {
     out(['cores' => listaDeCores()]);
 }
 
+case 'produto_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $s = $db->prepare('SELECT id FROM produtos WHERE id = ?'); $s->execute([$id]);
+    if (!$s->fetch()) fail('Produto não encontrado.', 404);
+    /* peça que já foi vendida ou orçada não se exclui: apagar sumiria o nome dela do histórico. Nesse caso, desative. */
+    $uso = 0;
+    foreach (['itens', 'orcamento_itens'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE produto_id = ?"); $q->execute([$id]); $uso += (int)$q->fetchColumn(); }
+    if ($uso > 0) fail('Essa peça já está em pedidos ou orçamentos. Para não perder o histórico, edite e desmarque "Produto ativo".');
+    $db->beginTransaction();
+    $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM produtos WHERE id = ?')->execute([$id]);
+    $db->commit();
+    out(['ok' => true]);
+}
+
 case 'produto_ajustar': {
     $id = (int)($in['id'] ?? 0); $delta = (int)($in['delta'] ?? 0);
     $s = $db->prepare('SELECT usa_cores FROM produtos WHERE id = ?'); $s->execute([$id]);

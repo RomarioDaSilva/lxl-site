@@ -25,6 +25,9 @@ def nomes(cod):
     return [ (cats[i if isinstance(i,int) else i.get('id')]['nome']) for i in ids if (i if isinstance(i,int) else i.get('id')) in cats]
 ok('Imagens' in nomes('REL-001') and 'Natal' not in nomes('REL-001'),'REL-001 cai em Religioso > Imagens, não em Natal')
 ok('Presépios' in nomes('PRE-001'),'PRE-001 continua em Presépios')
+id_rel=[x for x in j['produtos'] if x['codigo']=='REL-001'][0]['id']
+st,j2=call(adm,'produto_excluir',{'id':id_rel}); ok(st==200,'excluir produto sem uso')
+st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='REL-001'],'produto excluído sumiu da lista')
 # produto + cliente
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
@@ -36,6 +39,7 @@ st,j=call(adm,'produtos'); ok([p for p in j['produtos'] if p['id']==pid][0]['est
 st,j=call(adm,'orcamento_gerar_pedido',{'id':oid,'sinal':30}); ped=j['pedido_id']; ok(st==200,'virou pedido #%s'%ped)
 st,j=call(adm,'orcamento_gerar_pedido',{'id':oid}); ok(st==400,'nao gera 2x: '+j['erro'])
 st,j=call(adm,'produtos'); ok([p for p in j['produtos'] if p['id']==pid][0]['estoque']==3,'estoque baixou 5->3')
+st,j=call(adm,'produto_excluir',{'id':pid}); ok(st>=400 and 'histórico' in str(j),'produto com pedido não pode ser excluído (só desativar)')
 st,j=call(adm,'pedido',q='&id=%d'%ped); p=j['pedido']; ok(p['pago_valor']==30 and p['saldo']==70 and not p['pago'],'sinal 30 saldo 70')
 st,j=call(adm,'pedidos'); ok(j['resumo']['a_receber']==70,'a receber 70 (%s)'%j['resumo']['a_receber'])
 st,j=call(adm,'pedido_receber',{'id':ped,'valor':20}); ok(j['saldo']==50,'recebeu 20 saldo 50')
