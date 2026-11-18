@@ -25,9 +25,12 @@ with sync_playwright() as p:
     pg.click('#avulso'); pg.wait_for_timeout(300)
     pg.fill('.desc','Miniatura da Ana'); pg.select_option('.ptipo',index=1); pg.fill('.preco','45'); 
     pg.fill('#cliente','Maria Souza') if pg.query_selector('#cliente') else None
+    print('validade padrao:',pg.input_value('#validade'),'| rotulo data:',pg.inner_text('label[for=data], .l2 label:last-of-type') if False else '')
     pg.fill('#validade','2026-12-30'); pg.click('#salvar'); pg.wait_for_timeout(900)
     print('depois salvar:',pg.inner_text('.wrap')[:200].replace('\n',' | '))
     pg.screenshot(path='/tmp/orc_lista.png',full_page=True)
+    pg.click('text=Ver orçamento'); pg.wait_for_timeout(1200); print('ver orcamento:',pg.inner_text('.nota .tit').replace('\n',' '),'| msg:',pg.input_value('#msg')[:60].replace('\n',' / '),'| wa:',pg.get_attribute('#wa','href')[:40])
+    pg.screenshot(path='/tmp/orc_ver.png',full_page=True); pg.goto(P+'#/orcamentos'); pg.wait_for_timeout(800)
     pg.click('[data-ger]'); pg.wait_for_timeout(300); pg.fill('#gs','15'); pg.click('#gok'); pg.wait_for_timeout(1000)
     print('nota:',pg.inner_text('.pg')); 
     print('card pag:',pg.inner_text('#rec'))

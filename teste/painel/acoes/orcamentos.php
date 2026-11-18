@@ -55,7 +55,7 @@ case 'orcamento_salvar': {
     $desc = max(0, num($in['desconto'] ?? 0)); $frete = max(0, num($in['frete'] ?? 0));
     $total = max(0, round($sub - $desc + $frete, 2));
     $data = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['data'] ?? '')) ? $in['data'] : date('Y-m-d');
-    $val = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['validade'] ?? '')) ? $in['validade'] : '';
+    $val = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['validade'] ?? '')) ? $in['validade'] : date('Y-m-d', strtotime($data . ' +15 days'));   /* sem validade: 15 dias */
     $campos = [$data, $val, $cliente, $clienteId, preg_replace('/[^\d+() -]/', '', txt($in['whatsapp'] ?? '', 30)),
         in_array($in['entrega'] ?? '', ['Retirada', 'Entrega'], true) ? $in['entrega'] : 'Retirada', txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60),
         txt($in['obs'] ?? '', 1000), $desc, $frete, $total];
