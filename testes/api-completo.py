@@ -42,7 +42,7 @@ st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo A','codigo':'','preco':5,'ativo':1}); ca=j['produto']['codigo']
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo B','codigo':'','preco':5,'ativo':1}); cb=j['produto']['codigo']
-ok(ca=='0069' and cb=='0070','produto novo sem código recebe o próximo número (0069, 0070): '+ca+' '+cb)
+ok(ca=='0070' and cb=='0071','produto novo sem código recebe o próximo número (0070, 0071): '+ca+' '+cb)
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
 # orcamento
 st,j=call(adm,'orcamento_salvar',{'cliente':'Sem validade','data':'2026-11-18','itens':[{'descricao':'x','qtd':1,'preco':5,'tipo':'Avulso'}]}); st2,j2=call(adm,'orcamento',q='&id=%s'%j.get('id')); ok(j2['orcamento']['validade']=='2026-12-03','orçamento sem validade fica com 15 dias: '+str(j2['orcamento']['validade']))

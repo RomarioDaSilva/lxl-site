@@ -127,6 +127,7 @@ const PRODUTOS = [
   {sku:"0065", secao:"anjos", nome:"Anjinho Celestial", desc:"Anjinho de mãos postas, todo branco, com ar de escultura. Uma peça delicada para a mesa, o aparador ou a estante.", cor:"Branco", preco:4.90, entrega:"Sob encomenda"},
   {sku:"0066", secao:"anjos", nome:"Anjo Renda de Fio", desc:"Anjo de asas e saia rendadas, com cara de crochê. Um enfeite delicado para a mesa, a estante ou a árvore.", cor:"Branco", preco:10.90, entrega:"Sob encomenda"},
   {sku:"0067", secao:"anjos", nome:"Anjo Trança de Lã", desc:"Anjo com saia de tranças e asas em camadas, com cara de tricô. Uma peça aconchegante para a mesa ou o aparador.", cor:"Branco", preco:9.90, entrega:"Sob encomenda"},
-  {sku:"0068", secao:"anjos", nome:"Anjinho Tímido", desc:"Anjinho de olhar tímido, mãos para trás e asas bem marcadas. Pequeno e fofo para a mesa de Natal.", cor:"Branco", preco:6.90, entrega:"Sob encomenda"}
+  {sku:"0068", secao:"anjos", nome:"Anjinho Tímido", desc:"Anjinho de olhar tímido, mãos para trás e asas bem marcadas. Pequeno e fofo para a mesa de Natal.", cor:"Branco", preco:6.90, entrega:"Sob encomenda"},
+  {sku:"0069", secao:"anjos", nome:"Anjo Leque de Renda", desc:"Anjo de saia em leque e asas de renda, com aspecto de crochê. Uma peça delicada e elegante para a mesa ou o aparador.", cor:"Branco", preco:9.90, entrega:"Sob encomenda"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */
