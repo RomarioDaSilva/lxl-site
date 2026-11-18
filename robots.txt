@@ -1,2 +1,5 @@
 User-agent: *
 Disallow: /teste/
+Disallow: /painel/
+
+Sitemap: https://lxlprojetos.site/sitemap.xml

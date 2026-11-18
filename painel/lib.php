@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 function out($d, int $code = 200): void {
+    $GLOBALS['__saida'] = is_array($d) ? $d : [];   /* guardado para o histórico (seguranca.php) saber o resultado */
     http_response_code($code);
     echo json_encode($d, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
     exit;
@@ -10,6 +11,8 @@ function out($d, int $code = 200): void {
 function fail(string $m, int $code = 400): void { out(['erro' => $m], $code); }
 
 /* ---------- configuração (fica FORA do public_html) ---------- */
+/* O arquivo lxl-config.php (com a senha do banco) fica UM nível acima da pasta public_html, nunca dentro dela.
+   O modelo está em config.example.php. Para trocar a senha do banco, edite só o lxl-config.php na Hostinger. */
 function cfg(): array {
     static $c = null;
     if ($c !== null) return $c;
