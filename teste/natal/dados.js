@@ -17,6 +17,7 @@ const CONFIG = {
    Para criar uma seção nova: copie uma linha, troque id, titulo e sub, e use o mesmo id nos produtos dela. */
 const SECOES = [
   {id:"presepio", categoria:"Presépios",    titulo:"Presépio",                sub:"Celebre o nascimento de Jesus em família. Peças delicadas para montar o seu presépio e preparar o coração para o Natal."},
+  {id:"anjos", categoria:"Anjos", titulo:"Anjos", sub:"Anjos para iluminar e abençoar a casa no Natal."},
   {id:"arvores", categoria:"Árvores de Natal",     titulo:"Árvores de Natal",        sub:"Para mesa, balcão e estante."},
   {id:"enfeites-arvore", categoria:"Decoração de árvore", titulo:"Decoração de árvore", sub:"Enfeites para pendurar e deixar a árvore de Natal ainda mais bonita."},
   {id:"papai-noel", categoria:"Mini Papais Noel",  titulo:"Mini Papais Noel",        sub:"Pequenos, charmosos e feitos para decorar qualquer cantinho."},
@@ -118,6 +119,7 @@ const PRODUTOS = [
   {sku:"0050", antigo:"BOM-009", top:true, secao:"bombonieri", nome:"Cestinha Rena com Alça", desc:"Cestinha com a carinha da rena e alça para carregar. Lembrancinha fofa para as crianças.", cor:"Vermelho", preco:14.90, entrega:"Sob encomenda"},
   {sku:"0051", antigo:"BOM-010", secao:"bombonieri", nome:"Potinho Rosto do Papai Noel", desc:"Potinho com o rosto sorridente do Papai Noel, de barba e gorro.", cor:"Branco", preco:39.90, entrega:"Sob encomenda"},
   {sku:"0052", antigo:"BOM-011", top:true, secao:"bombonieri", nome:"Potinho Papai Noel com Botas", desc:"Potinho com borda branca ondulada e as botas do Papai Noel. Combina com biscoitos e doces.", cor:"Vermelho, branco, amarelo e preto", preco:33.90, entrega:"Sob encomenda"},
-  {sku:"0053", antigo:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"}
+  {sku:"0053", antigo:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"},
+  {sku:"0061", secao:"anjos", nome:"Anjo Voronoi Luminária", desc:"Anjo de estrutura vazada em padrão Voronoi. Coloque uma vela de LED por dentro e ele vira uma luminária que desenha sombras lindas na parede. Vela de LED não inclusa.", cor:"Branco", preco:7.90, entrega:"Sob encomenda"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */

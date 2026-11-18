@@ -60,7 +60,7 @@ function categoriaGarantir(string $nome, ?int $pai): int {
 }
 /* Liga o nome da seção do catálogo antigo à subcategoria de Natal. Só é usado na criação inicial das categorias
    e quando se importa itens do catálogo. Mudar aqui não altera o que já está salvo. */
-const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
+const SECOES_NATAL = ['Anjos' => 'Anjos', 'Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
     'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
 /* Seção do catálogo religioso -> subcategoria de Religioso no painel */
 const SECOES_RELIGIOSO = ['Imagens' => 'Imagens', 'Santos' => 'Santos', 'Cruzes' => 'Cruzes', 'Porta-textos' => 'Porta-textos'];
