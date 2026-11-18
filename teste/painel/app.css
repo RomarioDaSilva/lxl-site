@@ -200,3 +200,6 @@ a.chip{text-decoration:none;color:inherit}
 .logl{text-align:center;margin:10px 0 0;font-size:14px}
 
 .linha-link{display:flex;gap:8px;align-items:center}.linha-link input{flex:1;min-width:0}.linha-link .btn{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;text-decoration:none;touch-action:manipulation}
+
+/* fotos extras do produto */
+.fgrade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}.fitem img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:var(--tint)}.facoes{display:flex;gap:4px;margin-top:4px}.facoes .btn{flex:1;min-height:40px;padding:4px 0;touch-action:manipulation}

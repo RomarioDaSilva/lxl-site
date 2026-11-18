@@ -22,6 +22,17 @@ with sync_playwright() as p:
         pg.select_option('#ord',v); pg.wait_for_timeout(200); return pg.inner_text('.prod .nm')
     print('ordenar preço maior ->',primeiro('preco-'),'| preço menor ->',primeiro('preco'),'| nome A-Z ->',primeiro('nome'),'| código maior ->',primeiro('cod-'))
     assert primeiro('preco-')=='Anjo caro' and primeiro('preco')=='Zebra barata' and primeiro('nome')=='Anjo caro' and primeiro('cod-')=='Bola azul' and primeiro('cod')=='Zebra barata', 'ordenação do estoque falhou'
+    # fotos extras: abre o produto, envia 2 fotos pelo botão, apaga uma
+    import base64
+    png=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
+    open('/tmp/f1.png','wb').write(png); open('/tmp/f2.png','wb').write(png)
+    pg.click('.prod .nm >> text=Anjo caro'); pg.wait_for_selector('#fotos')
+    pg.set_input_files('#fArq',['/tmp/f1.png','/tmp/f2.png']); pg.wait_for_selector('.fitem >> nth=1',timeout=15000)
+    assert pg.locator('.fitem').count()==2,'fotos extras: esperava 2 miniaturas'
+    pg.screenshot(path='/tmp/fotos-ed.png'); pg.once('dialog',lambda d:d.accept()); pg.click('[data-fx] >> nth=0'); pg.wait_for_timeout(600)
+    assert pg.locator('.fitem').count()==1,'fotos extras: apagar falhou'
+    print('fotos extras no painel ok, overflowX=',pg.evaluate('document.documentElement.scrollWidth>innerWidth'))
+    pg.keyboard.press('Escape'); pg.goto(P+'#/estoque'); pg.wait_for_timeout(500)
     pg.set_viewport_size({'width':420,'height':900}); pg.wait_for_timeout(200); pg.screenshot(path='/tmp/estoque-ordenar.png'); print('ordenar select visível no celular', pg.is_visible('#ord'))
     pg.set_viewport_size({'width':1280,'height':800})
     # produto: campo de link e botão "Abrir link" no editar

@@ -44,6 +44,18 @@ st,j=call(adm,'produto_salvar',{'nome':'Sem codigo A','codigo':'','preco':5,'ati
 st,j=call(adm,'produto_salvar',{'nome':'Sem codigo B','codigo':'','preco':5,'ativo':1}); cb=j['produto']['codigo']
 ok(ca=='0070' and cb=='0071','produto novo sem código recebe o próximo número (0070, 0071): '+ca+' '+cb)
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']
+# fotos extras do produto: até 6, só admin, aparecem no JSON público
+PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+for i in range(6):
+    st,jf=call(adm,'foto_enviar',{'id':pid,'imagem':PNG})
+ok(st==200 and len(jf['fotos'])==6,'envia 6 fotos')
+st,jf7=call(adm,'foto_enviar',{'id':pid,'imagem':PNG}); ok(st>=400,'7a foto é recusada')
+st,jf8=call(adm,'foto_enviar',{'id':pid,'imagem':'data:image/png;base64,AAAA'}); ok(st>=400,'arquivo que não é imagem é recusado')
+pub=requests.get(B.replace('api.php','estoque.php')).json()
+fp=pub.get('fotos',{}).get('XX-1',[]); ok(len(fp)==6 and fp[0]['u'].startswith('/fotos/') and fp[0]['m'].endswith('-m.jpg'),'JSON público traz as 6 fotos')
+primeira=jf['fotos'][0]['id']; segunda=jf['fotos'][1]['id']
+st,jm=call(adm,'foto_mover',{'id':primeira,'dir':1}); ok(jm['fotos'][1]['id']==primeira and jm['fotos'][0]['id']==segunda,'mover foto para frente')
+st,jd=call(adm,'foto_apagar',{'id':primeira}); ok(len(jd['fotos'])==5,'apagar foto')
 # orcamento
 st,j=call(adm,'orcamento_salvar',{'cliente':'Sem validade','data':'2026-11-18','itens':[{'descricao':'x','qtd':1,'preco':5,'tipo':'Avulso'}]}); st2,j2=call(adm,'orcamento',q='&id=%s'%j.get('id')); ok(j2['orcamento']['validade']=='2026-12-03','orçamento sem validade fica com 15 dias: '+str(j2['orcamento']['validade']))
 orc={'cliente':'Maria','cliente_id':cid,'itens':[{'produto_id':pid,'descricao':'Peca X','qtd':2,'preco':20},{'descricao':'Topo de bolo','qtd':1,'preco':50,'custo':10,'tipo':'Topo de bolo'}],'frete':10,'desconto':0,'validade':'2026-12-01'}

@@ -11,7 +11,9 @@ const msgGeral = "Olá! Vi o "+NOME+" da LXL Projetos e quero saber mais.";
 const porSku = k => PRODUTOS.find(p=>p.sku===k) || PRODUTOS.find(p=>p.antigo===k);   /* "antigo" = código de antes de 18/11/2026: links e pedidos salvos antigos continuam funcionando */
 const temCores = p => !!(p && p.coresPronta && p.coresPronta.length);
 const fotosDe = p => p.fotos || [p.sku];
-const foto = (k,nome,lazy) => '<img src="imagens/'+k+'.jpg" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
+const fotoSrc = k => k.charAt(0)==="/" ? k : 'imagens/'+k+'.jpg';
+const miniFoto = k => k.charAt(0)==="/" ? k.replace(/\.jpg$/,"-m.jpg") : k;
+const foto = (k,nome,lazy) => '<img src="'+fotoSrc(k)+'" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
 const msgProduto = p => typeof p.preco==="number"
   ? "Olá! Vi o "+NOME+" e quero o "+p.nome+" ("+p.sku+"). Pode me passar os detalhes?"
   : "Olá! Vi o "+NOME+" e quero saber o valor do "+p.nome+" ("+p.sku+").";
@@ -99,7 +101,7 @@ function detalheHTML(p){
   '<div class="det">'+
     '<div class="gal">'+
       '<div class="foto" id="foto-grande">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fs[0],p.nome,false)+'</div>'+
-      (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
+      (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(miniFoto(k),p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+
       '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+pronta+
@@ -355,6 +357,8 @@ fetch("../painel/estoque.php",{cache:"no-store"}).then(r=>r.ok?r.json():null).th
     const n=d.itens[p.sku], v=d.precos&&d.precos[p.sku];
     if(n>0){ p.estoque=n; p.entrega="Pronta entrega"; mudou=true; }
     if(v>0 && v!==p.preco){ p.preco=v; mudou=true; }
+    const fx=d.fotos&&d.fotos[p.sku];
+    if(Array.isArray(fx)&&fx.length){ p.fotos=[p.sku].concat(fx.map(f=>f&&f.u).filter(u=>typeof u==="string"&&/^\/fotos\/[\w\/-]+\.jpg$/.test(u))); mudou=true; }
     const cs=d.cores&&d.cores[p.sku];
     p.coresPronta = Array.isArray(cs) ? cs.filter(c=>c&&c.q>0).map(c=>({n:String(c.n||""),h:/^#[0-9a-fA-F]{6}$/.test(c.h)?c.h:"#cccccc",q:c.q|0})) : null;
     if(p.coresPronta&&p.coresPronta.length) mudou=true;
