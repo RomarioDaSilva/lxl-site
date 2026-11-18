@@ -120,6 +120,6 @@ const PRODUTOS = [
   {sku:"0051", antigo:"BOM-010", secao:"bombonieri", nome:"Potinho Rosto do Papai Noel", desc:"Potinho com o rosto sorridente do Papai Noel, de barba e gorro.", cor:"Branco", preco:39.90, entrega:"Sob encomenda"},
   {sku:"0052", antigo:"BOM-011", top:true, secao:"bombonieri", nome:"Potinho Papai Noel com Botas", desc:"Potinho com borda branca ondulada e as botas do Papai Noel. Combina com biscoitos e doces.", cor:"Vermelho, branco, amarelo e preto", preco:33.90, entrega:"Sob encomenda"},
   {sku:"0053", antigo:"BOM-012", secao:"bombonieri", nome:"Saquinho do Papai Noel", desc:"Peça em formato do saco de presentes do Papai Noel, para lembrancinhas e mimos.", cor:"Vermelho", preco:19.90, entrega:"Sob encomenda"},
-  {sku:"0061", secao:"anjos", nome:"Anjo Voronoi Luminária", desc:"Anjo de estrutura vazada em padrão Voronoi. Coloque uma vela de LED por dentro e ele vira uma luminária que desenha sombras lindas na parede. Acompanha vela de LED.", cor:"Branco", preco:11.90, entrega:"Sob encomenda"}
+  {sku:"0061", secao:"anjos", nome:"Anjo Lanterna Rendada", desc:"Anjo de estrutura toda vazada, como uma renda. Coloque uma vela de LED por dentro e ele vira uma luminária que desenha sombras lindas na parede. Acompanha vela de LED.", cor:"Branco", preco:11.90, entrega:"Sob encomenda"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */
