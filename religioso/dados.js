@@ -2,6 +2,7 @@
    A lógica (montar a lista, pedido, WhatsApp, estoque ao vivo) fica em ../natal/catalogo.js e é a mesma do catálogo de Natal.
    Carregado antes do catalogo.js. Não coloque lógica aqui. */
 const CONFIG = {
+  cores: [["#EEF2FA","#1F3A68"],["#FFF7DC","#C9A227"],["#F5F7FB","#3B5C99"]],   /* faixas de cada seção: [fundo suave, cor de destaque] */
   whatsapp: LXL_EMPRESA.whatsapp,   /* vem do empresa.js */
   instagram: LXL_EMPRESA.instagram,
   prazo: "",

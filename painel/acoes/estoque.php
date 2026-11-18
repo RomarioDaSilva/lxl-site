@@ -43,13 +43,13 @@ case 'produto_salvar': {
     $material = ($in['material'] ?? 'PLA') === 'PETG' ? 'PETG' : 'PLA';
     $d = [$codigo, $nome, num($in['preco'] ?? 0), $controla, $estoque, empty($in['ativo']) ? 0 : 1, txt($in['obs'] ?? '', 255), $usa,
           max(0, num($in['peso_g'] ?? 0)), max(0, (int)($in['tempo_min'] ?? 0)), $material, max(0, num($in['perda_pct'] ?? 10)),
-          max(0, num($in['extras'] ?? 0)), max(0, num($in['embalagem'] ?? 0)), max(0, num($in['custo'] ?? 0)), max(0, num($in['preco_kg'] ?? 0))];
+          max(0, num($in['extras'] ?? 0)), max(0, num($in['embalagem'] ?? 0)), max(0, num($in['custo'] ?? 0)), max(0, num($in['preco_kg'] ?? 0)), linkOk($in['link'] ?? '')];
     $db->beginTransaction();
     try {
         if ($id) {
-            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=?, peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, custo=?, preco_kg=? WHERE id=?')->execute([...$d, $id]);
+            $db->prepare('UPDATE produtos SET codigo=?, nome=?, preco=?, controla=?, estoque=?, ativo=?, obs=?, usa_cores=?, peso_g=?, tempo_min=?, material=?, perda_pct=?, extras=?, embalagem=?, custo=?, preco_kg=?, link=? WHERE id=?')->execute([...$d, $id]);
         } else {
-            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores, peso_g, tempo_min, material, perda_pct, extras, embalagem, custo, preco_kg) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute($d);
+            $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, usa_cores, peso_g, tempo_min, material, perda_pct, extras, embalagem, custo, preco_kg, link) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute($d);
             $id = (int)$db->lastInsertId();
         }
         $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
@@ -158,7 +158,7 @@ case 'custos_importar': {
 case 'produto_importar': {
     $lista = $in['lista'] ?? [];
     if (!is_array($lista)) fail('Lista inválida.');
-    $novos = 0; $pulados = 0; $secImp = secoesDoCatalogo();
+    $novos = 0; $pulados = 0; $secImp = secoesDoCatalogo(); $mapaLinks = require __DIR__ . '/../links-origem.php';
     $db->beginTransaction();
     foreach (array_slice($lista, 0, 500) as $p) {
         $cod = strtoupper(txt($p['codigo'] ?? '', 40)); $nome = txt($p['nome'] ?? '', 160);
@@ -168,8 +168,8 @@ case 'produto_importar': {
             $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
             if ($s->fetch()) { $pulados++; continue; }
         }
-        $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs) VALUES (?,?,?,?,?,?,?)')
-           ->execute([$cod, $nome, num($p['preco'] ?? 0), 0, 0, 1, 'Do catálogo (sob encomenda)']);
+        $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs, link) VALUES (?,?,?,?,?,?,?,?)')
+           ->execute([$cod, $nome, num($p['preco'] ?? 0), 0, 0, 1, 'Do catálogo (sob encomenda)', (string)($mapaLinks[$cod] ?? '')]);
         if ($cod !== '') ligarAoCatalogo((int)$db->lastInsertId(), $cod, $secImp);
         $novos++;
     }

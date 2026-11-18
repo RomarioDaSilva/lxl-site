@@ -34,7 +34,7 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS migracoes (id VARCHAR(80) NOT NULL PRIMARY KEY, descricao VARCHAR(200), aplicada_em VARCHAR(19))$fim");
     $feitas = $db->query('SELECT id FROM migracoes')->fetchAll(PDO::FETCH_COLUMN);
     $registra = fn(string $id, string $desc) => $db->prepare('INSERT INTO migracoes (id, descricao, aplicada_em) VALUES (?,?,?)')->execute([$id, $desc, date('Y-m-d H:i:s')]);
-    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['produtos', 'codigo_antigo', "VARCHAR(40) DEFAULT ''"], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
+    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['produtos', 'codigo_antigo', "VARCHAR(40) DEFAULT ''"], ['produtos', 'link', "VARCHAR(500) DEFAULT ''"], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
               ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0'],
@@ -57,6 +57,27 @@ function instalar(): void {
             $up->execute([$novo, $velho, $velho]);
         }
         $registra('codigos-numericos', 'códigos das peças trocados por numeração sequencial');
+    }
+    /* Links do MakerWorld (18/11/2026): preenche só os produtos que estão sem link, nunca troca um link que você colou. */
+    if (!in_array('links-origem', $feitas, true)) {
+        $up = $db->prepare("UPDATE produtos SET link = ? WHERE codigo = ? AND (link IS NULL OR link = '')");
+        foreach ((require __DIR__ . '/links-origem.php') as $cod => $lk) $up->execute([$lk, (string)$cod]);
+        $registra('links-origem', 'links do MakerWorld preenchidos nas peças');
+    }
+    /* Crocodilo (18/11/2026): o Romas decidiu que ele é da subcategoria Pet, não Patch. Põe em Chaveiros > Pet e tira só o vínculo com Patch (nada é apagado). */
+    if (!in_array('croc-para-pet', $feitas, true)) {
+        $pid = $db->query("SELECT id FROM produtos WHERE codigo = '0055' LIMIT 1")->fetchColumn();
+        $raiz = $db->query("SELECT id FROM categorias WHERE nome = 'Chaveiros' AND parent_id IS NULL LIMIT 1")->fetchColumn();
+        if ($pid && $raiz) {
+            $filha = function (string $nome) use ($db, $raiz) { $q = $db->prepare('SELECT id FROM categorias WHERE nome = ? AND parent_id = ? LIMIT 1'); $q->execute([$nome, $raiz]); return $q->fetchColumn(); };
+            $pet = $filha('Pet');
+            if (!$pet) { $db->prepare('INSERT INTO categorias (nome, parent_id, ordem, ativo) VALUES (?, ?, 0, 1)')->execute(['Pet', $raiz]); $pet = $filha('Pet'); }
+            $q = $db->prepare('SELECT 1 FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?'); $q->execute([$pid, $pet]);
+            if (!$q->fetch()) $db->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?, ?)')->execute([$pid, $pet]);
+            $patch = $filha('Patch');
+            if ($patch) $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?')->execute([$pid, $patch]);
+        }
+        $registra('croc-para-pet', 'crocodilo 0055 movido de Patch para Pet');
     }
     foreach (MIGRACOES_SQL as $id => [$desc, $sql]) {
         if (in_array($id, $feitas, true)) continue;

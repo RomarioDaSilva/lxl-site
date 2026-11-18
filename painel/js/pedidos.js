@@ -55,7 +55,7 @@ const acharCliente = (nome, tel) => {
 };
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
-const CATALOGOS = ['natal', 'religioso'];   /* pastas dos catálogos do site (catálogo novo: acrescente a pasta aqui) */
+const CATALOGOS = ['natal', 'religioso', 'chaveiros'];   /* pastas dos catálogos do site (catálogo novo: acrescente a pasta aqui) */
 async function carregarCatalogo() {
   if (catalogo) return catalogo;
   catalogo = { porCodigo: {}, secoes: [] };

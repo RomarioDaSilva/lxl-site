@@ -18,6 +18,10 @@ SECOES = [  # (titulo no índice, slug, frase de abertura, curta e direta; o | m
  ('Feliz Natal', 'feliz-natal', 'Letreiros para|decorar e presentear'),
  ('Bombonieri e lembrancinhas', 'bombonieri', 'Lembrancinhas de Natal|que encantam'),
 ]
+# o que o preço cobre, nas peças que não são "1 peça só": sku -> (texto no cartão, texto curto na grade)
+ETIQ = {'0004': ('o kit com 3 peças', 'kit'), '0019': ('o kit com 10 peças', 'kit'), '0025': ('o casal (2 renas)', 'casal'), '0027': ('cada corça', 'cada'),
+        '0028': ('a dupla (os dois)', 'dupla'), '0029': ('cada rena', 'cada'), '0030': ('o trio (os três)', 'trio'), '0031': ('cada rena', 'cada'),
+        '0032': ('cada rena', 'cada'), '0033': ('cada rena', 'cada'), '0035': ('cada rena', 'cada')}
 dados = [d for d in json.load(open(os.path.join(NAT, 'busca-indice.json'), encoding='utf-8')) if d['c'] == 'natal']
 
 PAGINA = r'''<!doctype html><meta charset="utf-8"><title>video</title>
@@ -39,6 +43,7 @@ canvas{position:absolute;left:0;top:0}
 #card .tags{position:absolute;left:44px;top:1090px;display:flex;gap:16px;align-items:center}
 #card .cod{background:#F1E9DA;color:#6B5A50;border-radius:999px;padding:8px 22px;font:700 26px Inter,sans-serif}
 #card .ent{color:#1F5B3F;font:700 28px Inter,sans-serif}
+#preco small{display:block;font:700 30px Inter,sans-serif;color:#FFE08A;margin-bottom:6px;text-align:center}
 #preco{position:absolute;right:44px;top:800px;background:#B3202A;color:#fff;border:5px solid #E8C547;border-radius:30px;padding:14px 34px;font:700 76px/1 Lora,Georgia,serif;white-space:nowrap;box-shadow:0 10px 26px rgba(0,0,0,.4)}
 #barra{position:absolute;left:60px;top:1528px;width:960px;height:10px;border-radius:9px;background:rgba(255,255,255,.18)}
 #barra i{display:block;height:100%;border-radius:9px;background:#E8C547}
@@ -120,7 +125,7 @@ let _k=0;$('iTit').innerHTML=D.sub.split('|').map(l=>'<span class="l">'+l.split(
 (function(){const n=D.itens.length;const cols=3, tam=300, gap=24;const rows=Math.ceil(n/cols);const hTot=rows*tam+(rows-1)*gap;const y0=Math.max(380,(H-hTot)/2+40);
  D.itens.forEach((it,i)=>{const lin=Math.floor(i/cols), col=i%cols, noLin=Math.min(cols,n-lin*cols);const x0=(W-(noLin*tam+(noLin-1)*gap))/2;
   const d=document.createElement('div');d.className='g';d.style.left=(x0+col*(tam+gap))+'px';d.style.top=(y0+lin*(tam+gap))+'px';
-  d.innerHTML='<img src="file://'+D.nat+'/imagens/'+it.foto+'.jpg"><b>'+it.pr+'</b>';grade.appendChild(d)})})();
+  d.innerHTML='<img src="file://'+D.nat+'/imagens/'+it.foto+'.jpg"><b>'+it.pr+(it.cur?' <i style="font:600 22px Inter,sans-serif;font-style:normal">'+it.cur+'</i>':'')+'</b>';grade.appendChild(d)})})();
 let atual=-1;
 function render(t){
  fundo(t);
@@ -136,7 +141,7 @@ function render(t){
  const emItens=tItens>=0&&tItens<D.itens.length*IT;
  cab.style.display=card.style.display=barra.style.display=rod.style.display=emItens?'block':'none';
  if(emItens){const i=Math.floor(tItens/IT), l=tItens-i*IT;const it=D.itens[i];
-  if(i!==atual){atual=i;$('fImg').src='file://'+D.nat+'/imagens/'+it.foto+'.jpg';$('fNome').textContent=it.nome;$('fCod').textContent='Cód. '+it.sku;$('fEnt').textContent=it.entrega;preco.textContent=it.pr;
+  if(i!==atual){atual=i;$('fImg').src='file://'+D.nat+'/imagens/'+it.foto+'.jpg';$('fNome').textContent=it.nome;$('fCod').textContent='Cód. '+it.sku;$('fEnt').textContent=it.entrega;preco.innerHTML=(it.lab?'<small>'+it.lab+'</small>':'')+it.pr;preco.style.top=(it.lab?'760px':'800px');
    $('secTxt').textContent=D.titulo+'  ·  '+(i+1)+' de '+D.itens.length}
   const ent=back(seg(l,0,.6)), sai=easeIn(seg(l,IT-.35,IT));
   const dx=(1-ent)*1150-sai*1150, rot=(1-ent)*7-sai*7;
@@ -169,7 +174,7 @@ def brl(v): return 'R$ ' + f'{v:,.2f}'.replace(',', 'X').replace('.', ',').repla
 def gerar(pg, titulo, slug, sub, k):
     itens = [d for d in dados if d['secao'] == titulo]
     if not itens: return None
-    pacote = {'titulo': titulo, 'sub': sub, 'nat': NAT, 'itens': [{'sku': i['sku'], 'nome': i['nome'], 'foto': i['foto'], 'entrega': i['entrega'], 'pr': brl(i['preco'])} for i in itens]}
+    pacote = {'titulo': titulo, 'sub': sub, 'nat': NAT, 'itens': [{'sku': i['sku'], 'nome': i['nome'], 'foto': i['foto'], 'entrega': i['entrega'], 'pr': brl(i['preco']), 'lab': ETIQ.get(i['sku'], ('', ''))[0], 'cur': ETIQ.get(i['sku'], ('', ''))[1]} for i in itens]}
     tmp = os.path.join(SAIDA, f'_tmp_{slug}.html')
     open(tmp, 'w', encoding='utf-8').write(PAGINA.replace('__DADOS__', json.dumps(pacote, ensure_ascii=False)).replace('__NAT__', NAT))
     pg.goto('file://' + tmp); pg.wait_for_load_state('load'); pg.wait_for_timeout(400)

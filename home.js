@@ -20,7 +20,7 @@
   function carregar(){
     if(dados||carregando) return carregando;
     /* junta a busca de todos os catálogos (catálogo novo: acrescente a pasta nesta lista). Um que falhar não derruba os outros. */
-    carregando=Promise.all(["natal","religioso"].map(function(c){
+    carregando=Promise.all(["natal","religioso","chaveiros"].map(function(c){
       return fetch(c+"/busca-indice.json").then(function(r){ if(!r.ok) throw 0; return r.json(); }).catch(function(){ return null; });
     })).then(function(rs){ var j=[]; rs.forEach(function(x){ if(x) j=j.concat(x); }); if(!j.length) throw 0; return j; }).then(function(j){
       dados=j.map(function(p){ return {p:p,
@@ -38,7 +38,7 @@
     });
     return out.sort(function(a,b){return a.w-b.w||a.i-b.i;}).map(function(x){return x.p;});
   }
-  function lista(sim){ destaque.hidden=!sim; document.getElementById("h-religioso").hidden=!sim; breve.hidden=!sim; passos.hidden=!sim; res.hidden=sim; }
+  function lista(sim){ destaque.hidden=!sim; document.getElementById("h-religioso").hidden=!sim; document.getElementById("h-chaveiros").hidden=!sim; breve.hidden=!sim; passos.hidden=!sim; res.hidden=sim; }
   function render(){
     var v=q.value, tem=norm(v).length>0;
     limpar.hidden=!v.length;

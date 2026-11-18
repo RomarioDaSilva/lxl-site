@@ -1,0 +1,9 @@
+/* Catálogo Chaveiros: usa o estilo de ../natal/estilo.css e só tira os enfeites de Natal (flocos, pontinhos de neve). */
+:root{--green:#2A2D34; --green-d:#16181D; --red:#E8590C; --red-d:#C24A08; --gold:#FF9F1C; --cream:#FFF5EA}   /* paleta propria: grafite e laranja */
+.entrega.pronta{background:#FFE6D2;color:#8A3205}
+.cor-op.on{box-shadow:0 0 0 3px rgba(232,89,12,.22)}
+.busca input:focus{box-shadow:0 0 0 4px rgba(232,89,12,.18),0 6px 18px rgba(40,30,20,.08)}
+.nav a.nav-busca{box-shadow:0 4px 12px rgba(22,24,29,.3)}
+.hero{background:linear-gradient(160deg,rgba(42,45,52,.70) 0%,rgba(22,24,29,.88) 100%),url(imagens/capa.jpg) center 80%/cover no-repeat,var(--green-d)}   /* foto do mostruário na capa, com camada verde para o texto ler bem */
+.hero h1 span{animation:none;background:none;-webkit-text-fill-color:var(--gold);color:var(--gold)}
+.sec-head h2::before,section:nth-of-type(even) .sec-head h2::before{content:"\2726"}   /* estrelinha em todas as seções (sem floco de neve) */
