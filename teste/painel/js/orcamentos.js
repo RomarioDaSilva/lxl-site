@@ -63,8 +63,9 @@ async function telaOrcamentoVer(id) {
   $('.wrap').innerHTML =
     '<div class="barra"><a class="btn l s" href="#/orcamentos">&larr; Orçamentos</a>' + (o.status === 'aprovado' ? '' : '<a class="btn l s" href="#/orcamento-editar/' + o.id + '">Editar</a>') +
     '<span class="pill ' + (o.status === 'aprovado' ? 'pago' : o.status === 'recusado' ? 'cancelado' : 'apagar') + '" style="align-self:center">' + STATUS_ORC[o.status] + '</span></div>' +
-    '<div class="barra"><button class="btn o" id="png" type="button">Baixar imagem</button><button class="btn l" id="cmp" type="button">Compartilhar</button></div>' +
+    '<div class="barra"><button class="btn o" id="png" type="button">Baixar imagem</button><button class="btn l" id="cmp" type="button">Compartilhar imagem</button></div>' +
     '<div class="notaarea">' + notaHTML(o, true) + '</div>' +
+    '<div class="barra"><button class="btn o" data-img="png" type="button">Baixar imagem</button><button class="btn l" data-img="cmp" type="button">Compartilhar imagem</button></div>' +
     '<div class="card"><h2>Mensagem para o WhatsApp</h2><textarea id="msg" rows="12"></textarea>' +
     '<div class="acoes"><button class="btn o" id="cpy" type="button">Copiar mensagem</button>' +
     '<a class="btn l" id="wa" target="_blank" rel="noopener" href="#">' + (fone ? 'Abrir no WhatsApp do cliente' : 'Abrir no WhatsApp') + '</a></div></div>';
