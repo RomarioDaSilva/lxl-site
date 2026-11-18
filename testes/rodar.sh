@@ -18,6 +18,7 @@ passo() {   # passo "nome" comando...  (mostra só as linhas com problema; guard
 }
 
 passo "Sintaxe, contas da calculadora e versões" sh testes/conferir.sh
+passo "Migração dos códigos numéricos" php testes/migracao-codigos.php
 passo "API (permissões, orçamentos, pagamento parcial, usuários, backup)" python3 testes/api-completo.py
 rm -f /tmp/lxl-testes.db   # a API deixa o banco usado; as telas precisam de um novo
 passo "Telas do painel no celular" python3 testes/telas-painel.py

@@ -14,9 +14,9 @@ const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const b=await chromium.launch(); const pg=await b.newPage();
   await pg.goto('file://'+path.join(raiz,'index.html'));
   const titulo=await pg.evaluate(()=>TITULO);
-  const prods=await pg.evaluate(()=>PRODUTOS.map(p=>({sku:p.sku,nome:p.nome,desc:p.desc,preco:p.preco,foto:fotosDe(p)[0]})));
+  const prods=await pg.evaluate(()=>PRODUTOS.map(p=>({sku:p.sku,antigo:p.antigo||'',nome:p.nome,desc:p.desc,preco:p.preco,foto:fotosDe(p)[0]})));
   /* índice usado pela busca da página inicial (<catálogo>/busca-indice.json) */
-  const indice=await pg.evaluate(CAT=>PRODUTOS.map(p=>{const s=SECOES.find(x=>x.id===p.secao);return {c:CAT,u:CAT+'/',sku:p.sku,nome:p.nome,desc:p.desc||'',cor:p.cor||'',tag:p.tag||'',secao:s?s.titulo:'',top:!!p.top,preco:typeof p.preco==='number'?p.preco:null,entrega:p.entrega||'',foto:fotosDe(p)[0]};}),CAT);
+  const indice=await pg.evaluate(CAT=>PRODUTOS.map(p=>{const s=SECOES.find(x=>x.id===p.secao);return {c:CAT,u:CAT+'/',sku:p.sku,antigo:p.antigo||'',nome:p.nome,desc:p.desc||'',cor:p.cor||'',tag:p.tag||'',secao:s?s.titulo:'',top:!!p.top,preco:typeof p.preco==='number'?p.preco:null,entrega:p.entrega||'',foto:fotosDe(p)[0]};}),CAT);
   fs.writeFileSync(path.join(raiz,'busca-indice.json'),JSON.stringify(indice));
   await b.close();
   fs.rmSync(path.join(raiz,'p'),{recursive:true,force:true});
@@ -40,6 +40,8 @@ const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px"><p>Abrindo ${esc(p.nome)}...</p><p><a href="../../#/p/${p.sku}">Toque aqui se não abrir</a></p></body></html>`;
     fs.mkdirSync(path.join(raiz,'p',p.sku),{recursive:true});
     fs.writeFileSync(path.join(raiz,'p',p.sku,'index.html'),html); n++;
+    /* página do código antigo (links já compartilhados no WhatsApp): leva ao código novo */
+    if(p.antigo){ fs.mkdirSync(path.join(raiz,'p',p.antigo),{recursive:true}); fs.writeFileSync(path.join(raiz,'p',p.antigo,'index.html'),html.replace(BASE+'p/'+p.sku+'/',BASE+'p/'+p.antigo+'/')); }
   }
   console.log(n+' páginas geradas;', prods.filter(p=>!fs.existsSync(path.join(raiz,'imagens',p.foto+'.jpg'))).map(p=>p.sku).join(',')||'todas com foto');
 })();

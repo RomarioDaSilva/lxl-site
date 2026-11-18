@@ -12,7 +12,7 @@
   function montarIndice(){
     indice=PRODUTOS.map(function(p){
       return {p:p,
-        hn:" "+norm([p.sku,p.nome,p.tag,tituloSecao(p.secao),p.top?"mais vendido":""].join(" "))+" ",
+        hn:" "+norm([p.sku,p.antigo,p.nome,p.tag,tituloSecao(p.secao),p.top?"mais vendido":""].join(" "))+" ",
         hd:" "+norm([p.desc,p.cor].join(" "))+" "};
     });
   }

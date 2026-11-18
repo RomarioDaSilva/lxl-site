@@ -8,7 +8,7 @@ const wppLink = msg => "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURI
 const NOME = CONFIG.nome || "catálogo de Natal", TITULO = CONFIG.titulo || "Catálogo de Natal 2026", RAIZ = CONFIG.raiz || "Natal";
 const msgGeral = "Olá! Vi o "+NOME+" da LXL Projetos e quero saber mais.";
 
-const porSku = k => PRODUTOS.find(p=>p.sku===k);
+const porSku = k => PRODUTOS.find(p=>p.sku===k) || PRODUTOS.find(p=>p.antigo===k);   /* "antigo" = código de antes de 18/11/2026: links e pedidos salvos antigos continuam funcionando */
 const temCores = p => !!(p && p.coresPronta && p.coresPronta.length);
 const fotosDe = p => p.fotos || [p.sku];
 const foto = (k,nome,lazy) => '<img src="imagens/'+k+'.jpg" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
@@ -126,6 +126,7 @@ function rota(){
   const lista = [document.querySelector(".hero"),document.getElementById("nav"),document.querySelector("main:not(#detalhe)")];
   const det = document.getElementById("detalhe");
   const p = m && porSku(m[1]);
+  if(p && m[1]!==p.sku) history.replaceState(null,"","#/p/"+p.sku);   /* link com código antigo vira o código novo */
   if(p){
     lista.forEach(e=>e.hidden=true);
     det.hidden=false;

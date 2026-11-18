@@ -18,16 +18,16 @@ adm=S(); st,j=call(adm,'estado'); adm.csrf=j['csrf']
 st,j=call(adm,'setup',{'codigo':'segredo123','usuario':'romas','senha':'senha12345'}); adm.csrf=j['csrf']
 st,j=call(adm,'estado'); ok(j['perfil']=='admin' and j['permitidas'] is None,'estado admin')
 # importar do catálogo: peça do catálogo religioso entra na categoria Religioso > Imagens, peça de Natal em Natal
-st,j=call(adm,'produto_importar',{'lista':[{'codigo':'REL-001','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'PRE-001','nome':'Presépio','preco':14.9}]}); ok(j.get('novos')==2,'importar do catálogo (2 peças)')
+st,j=call(adm,'produto_importar',{'lista':[{'codigo':'0054','nome':'Nossa Senhora das Graças','preco':6.9},{'codigo':'0001','nome':'Presépio','preco':14.9}]}); ok(j.get('novos')==2,'importar do catálogo (2 peças)')
 st,j=call(adm,'produtos'); cats={c['id']:c for c in j['categorias']}
 def nomes(cod):
     p=[x for x in j['produtos'] if x['codigo']==cod][0]; ids=p.get('categorias') or p.get('cats') or []
     return [ (cats[i if isinstance(i,int) else i.get('id')]['nome']) for i in ids if (i if isinstance(i,int) else i.get('id')) in cats]
-ok('Imagens' in nomes('REL-001') and 'Natal' not in nomes('REL-001'),'REL-001 cai em Religioso > Imagens, não em Natal')
-ok('Presépios' in nomes('PRE-001'),'PRE-001 continua em Presépios')
-id_rel=[x for x in j['produtos'] if x['codigo']=='REL-001'][0]['id']
+ok('Imagens' in nomes('0054') and 'Natal' not in nomes('0054'),'0054 cai em Religioso > Imagens, não em Natal')
+ok('Presépios' in nomes('0001'),'0001 continua em Presépios')
+id_rel=[x for x in j['produtos'] if x['codigo']=='0054'][0]['id']
 st,j2=call(adm,'produto_excluir',{'id':id_rel}); ok(st==200,'excluir produto sem uso')
-st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='REL-001'],'produto excluído sumiu da lista')
+st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0054'],'produto excluído sumiu da lista')
 # produto + cliente
 st,j=call(adm,'produto_salvar',{'nome':'Peca X','codigo':'XX-1','preco':20,'controla':1,'estoque':5,'ativo':1,'custo':7}); pid=j['produto']['id']
 st,j=call(adm,'cliente_salvar',{'nome':'Maria','telefone':'38999990000'}); cid=j['cliente']['id']

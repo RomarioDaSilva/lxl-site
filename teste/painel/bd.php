@@ -34,7 +34,7 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS migracoes (id VARCHAR(80) NOT NULL PRIMARY KEY, descricao VARCHAR(200), aplicada_em VARCHAR(19))$fim");
     $feitas = $db->query('SELECT id FROM migracoes')->fetchAll(PDO::FETCH_COLUMN);
     $registra = fn(string $id, string $desc) => $db->prepare('INSERT INTO migracoes (id, descricao, aplicada_em) VALUES (?,?,?)')->execute([$id, $desc, date('Y-m-d H:i:s')]);
-    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
+    foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['produtos', 'codigo_antigo', "VARCHAR(40) DEFAULT ''"], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
               ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0'],
@@ -44,6 +44,19 @@ function instalar(): void {
         try { $db->query("SELECT $col FROM $tab LIMIT 1")->fetchAll(); }
         catch (Throwable $e) { $db->exec("ALTER TABLE $tab ADD COLUMN $col $def"); }
         $registra($id, "coluna $col em $tab");
+    }
+    /* Códigos numéricos (18/11/2026): troca PRE-001, ARV-001... por 0001, 0002... e guarda o código velho em codigo_antigo.
+       Só renomeia se o código velho existe e o novo ainda não está em uso (comparação sempre como texto). */
+    if (!in_array('codigos-numericos', $feitas, true)) {
+        $mapa = require __DIR__ . '/codigos-antigos.php';
+        $usados = array_map('strval', $db->query('SELECT codigo FROM produtos')->fetchAll(PDO::FETCH_COLUMN));
+        $up = $db->prepare('UPDATE produtos SET codigo = ?, codigo_antigo = ? WHERE codigo = ?');
+        foreach ($mapa as $velho => $novo) {
+            $velho = (string)$velho; $novo = (string)$novo;
+            if (!in_array($velho, $usados, true) || in_array($novo, $usados, true)) continue;
+            $up->execute([$novo, $velho, $velho]);
+        }
+        $registra('codigos-numericos', 'códigos das peças trocados por numeração sequencial');
     }
     foreach (MIGRACOES_SQL as $id => [$desc, $sql]) {
         if (in_array($id, $feitas, true)) continue;

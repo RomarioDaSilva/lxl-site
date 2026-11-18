@@ -24,7 +24,7 @@
       return fetch(c+"/busca-indice.json").then(function(r){ if(!r.ok) throw 0; return r.json(); }).catch(function(){ return null; });
     })).then(function(rs){ var j=[]; rs.forEach(function(x){ if(x) j=j.concat(x); }); if(!j.length) throw 0; return j; }).then(function(j){
       dados=j.map(function(p){ return {p:p,
-        hn:" "+norm([p.sku,p.nome,p.tag,p.secao,p.top?"mais vendido":""].join(" "))+" ",
+        hn:" "+norm([p.sku,p.antigo,p.nome,p.tag,p.secao,p.top?"mais vendido":""].join(" "))+" ",
         hd:" "+norm([p.desc,p.cor].join(" "))+" "}; });
     }).catch(function(){ falhou=true; });
     return carregando;

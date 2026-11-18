@@ -21,9 +21,9 @@ const SECOES = [
   {id:"porta-textos", categoria:"Porta-textos", titulo:"Porta-textos", sub:"Para apoiar o texto da oração, o salmo ou a mensagem do dia."}
 ];
 
-/* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/REL-001.jpg). Código: REL + número.
+/* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/0054.jpg). O código é o próximo número livre da sequência única 0001, 0002... (compartilhada com o catálogo de Natal).
    preco: deixe de fora para mostrar "Consulte o valor". entrega: "Pronta entrega" ou "Sob encomenda". */
 const PRODUTOS = [
-  {sku:"REL-001", secao:"imagens", nome:"Nossa Senhora das Graças", desc:"Imagem de Nossa Senhora das Graças com os braços abertos, em acabamento branco liso e base redonda. Para o oratório, a estante ou um presente de fé.", cor:"Branco", preco:6.90, entrega:"Sob encomenda"}
+  {sku:"0054", antigo:"REL-001", secao:"imagens", nome:"Nossa Senhora das Graças", desc:"Imagem de Nossa Senhora das Graças com os braços abertos, em acabamento branco liso e base redonda. Para o oratório, a estante ou um presente de fé.", cor:"Branco", preco:6.90, entrega:"Sob encomenda"}
 ];
 /* ===== FIM DA CONFIGURAÇÃO ===== */

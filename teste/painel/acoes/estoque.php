@@ -136,7 +136,7 @@ case 'custos_importar': {
     $db->beginTransaction();
     foreach (array_slice($lista, 0, 500) as $l) {
         $cod = strtoupper(txt($l['codigo'] ?? '', 40));
-        $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $s->execute([$cod]);
+        $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
         $row = $s->fetch();
         if (!$row) { $nao[] = $cod; continue; }
         $peso = max(0, num($l['peso_g'] ?? 0)); $h = max(0, num($l['tempo_h'] ?? 0));
@@ -163,7 +163,7 @@ case 'produto_importar': {
         $cod = strtoupper(txt($p['codigo'] ?? '', 40)); $nome = txt($p['nome'] ?? '', 160);
         if ($nome === '') continue;
         if ($cod !== '') {
-            $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $s->execute([$cod]);
+            $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
             if ($s->fetch()) { $pulados++; continue; }
         }
         $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs) VALUES (?,?,?,?,?,?,?)')
