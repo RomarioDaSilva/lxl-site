@@ -50,7 +50,7 @@ function montar(){
   nav.querySelectorAll("a:not(.nav-busca)").forEach(function(a){a.remove();});
   cont.innerHTML = "";
 
-  const CORES=[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
+  const CORES=CONFIG.cores||[["#FFF1D6","#C9A227"],["#E6F4EA","#2E7D55"],["#FDE9EA","#B3202A"],["#E7F0FA","#3B7DB8"],["#FFEFE2","#D9772B"],["#EEF8F0","#1F5B3F"],["#F5EBF8","#8E5BA8"],["#FFF1D6","#C9A227"]];
   let _ci=0;
   SECOES.forEach(s=>{
     const itens = PRODUTOS.filter(p=>(p.secoes||[p.secao]).indexOf(s.id)>-1);   /* secoes = todas as seções de Natal em que o painel colocou a peça */

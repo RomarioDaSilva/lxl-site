@@ -1,4 +1,9 @@
 /* Catálogo Religioso: usa o estilo de ../natal/estilo.css e só tira os enfeites de Natal (flocos, pontinhos de neve). */
-.hero{background:linear-gradient(160deg,#256B49 0%,var(--green-d) 100%)}
+:root{--green:#1F3A68; --green-d:#122547; --red:#1F3A68; --red-d:#122547; --gold:#C9A227; --cream:#F5F7FB}   /* paleta propria: azul marinho e dourado */
+.hero{background:linear-gradient(160deg,#2B4F8C 0%,var(--green-d) 100%)}
+.entrega.pronta{background:#E3EAF7;color:var(--green-d)}
+.cor-op.on{box-shadow:0 0 0 3px rgba(31,58,104,.18)}
+.busca input:focus{box-shadow:0 0 0 4px rgba(31,58,104,.15),0 6px 18px rgba(20,30,60,.08)}
+.nav a.nav-busca{box-shadow:0 4px 12px rgba(18,37,71,.25)}
 .hero h1 span{animation:none;background:none;-webkit-text-fill-color:var(--gold);color:var(--gold)}
 .sec-head h2::before,section:nth-of-type(even) .sec-head h2::before{content:"\2726"}   /* estrelinha em todas as seções (sem floco de neve) */
