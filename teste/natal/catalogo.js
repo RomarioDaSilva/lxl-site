@@ -3,23 +3,26 @@
 
 const brl = v => v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const wppLink = msg => "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg);
-const msgGeral = "Olá! Vi o catálogo de Natal da LXL Projetos e quero saber mais.";
+/* Este arquivo serve a mais de um catálogo (natal/ e religioso/). Cada dados.js pode definir em CONFIG:
+   nome ("catálogo de Natal"), titulo ("Catálogo de Natal 2026"), chave (nome da memória do pedido) e raiz (categoria do painel). Sem nada, vale Natal. */
+const NOME = CONFIG.nome || "catálogo de Natal", TITULO = CONFIG.titulo || "Catálogo de Natal 2026", RAIZ = CONFIG.raiz || "Natal";
+const msgGeral = "Olá! Vi o "+NOME+" da LXL Projetos e quero saber mais.";
 
 const porSku = k => PRODUTOS.find(p=>p.sku===k);
 const temCores = p => !!(p && p.coresPronta && p.coresPronta.length);
 const fotosDe = p => p.fotos || [p.sku];
 const foto = (k,nome,lazy) => '<img src="imagens/'+k+'.jpg" alt="'+nome+'"'+(lazy?' loading="lazy"':'')+' decoding="async" onerror="this.remove()">';
 const msgProduto = p => typeof p.preco==="number"
-  ? "Olá! Vi o catálogo de Natal e quero o "+p.nome+" ("+p.sku+"). Pode me passar os detalhes?"
-  : "Olá! Vi o catálogo de Natal e quero saber o valor do "+p.nome+" ("+p.sku+").";
+  ? "Olá! Vi o "+NOME+" e quero o "+p.nome+" ("+p.sku+"). Pode me passar os detalhes?"
+  : "Olá! Vi o "+NOME+" e quero saber o valor do "+p.nome+" ("+p.sku+").";
 
 function precoHTML(p){
   return typeof p.preco==="number"
     ? '<div class="preco">'+(p.antes?'<s>'+brl(p.antes)+'</s>':'')+brl(p.preco)+'</div>'
     : '<div class="preco consulte">Consulte o valor</div>';
 }
-function limiteHTML(p){
-  var L=CONFIG.limitePedido; if(!L||!L.ate||(p&&p.semLimite)) return "";   /* semLimite:true na peça = não mostra o prazo de Natal */
+function limiteHTML(){
+  var L=CONFIG.limitePedido; if(!L||!L.ate) return "";
   var f=new Date(L.ate+"T23:59:59"); if(new Date()>f) return "";
   return '<span class="limite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'+L.texto+'</span>';
 }
@@ -99,7 +102,7 @@ function detalheHTML(p){
       (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(k,p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+
-      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML(p)+precoHTML(p)+pronta+
+      '<span class="cod">'+p.sku+'</span><h1>'+p.nome+'</h1>'+entregaHTML(p)+limiteHTML()+precoHTML(p)+pronta+
       '<button type="button" class="btn btn-wpp btn-add" data-add="'+p.sku+'">Adicionar ao pedido</button>'+
       '<button type="button" class="btn btn-comp" data-comp="'+p.sku+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar</button>'+
       '<a class="link-wpp" target="_blank" rel="noopener" href="'+wppLink(msgProduto(p))+'">'+(temPreco?'Pedir só este pelo WhatsApp':'Perguntar o valor pelo WhatsApp')+'</a>'+
@@ -133,7 +136,7 @@ function rota(){
     const estava = !det.hidden;
     det.hidden=true; det.innerHTML="";
     lista.forEach(e=>e.hidden=false);
-    document.title = "Catálogo de Natal 2026 | LXL Projetos";
+    document.title = TITULO+" | LXL Projetos";
     if(estava) window.scrollTo(0,lastY);
     else if(location.hash.length>1){ let alvo=null; try{ alvo=document.querySelector(location.hash); }catch(e){}  /* link de peça que saiu do catálogo (#/p/...) não é um seletor válido */
  if(alvo) alvo.scrollIntoView(); }
@@ -142,7 +145,7 @@ function rota(){
 /* ===== Pedido (carrinho) ===== */
 /* O pedido do cliente fica guardado no celular dele com este nome. Se algum dia mudar o formato do pedido,
    troque v1 por v2 para limpar os pedidos antigos que ficaram salvos nos aparelhos. */
-const CHAVE = "lxl_natal_pedido_v1";
+const CHAVE = CONFIG.chave || "lxl_natal_pedido_v1";
 let pedido = {};      /* {SKU: quantidade} */
 let dadosCliente = {nome:"", obs:""};
 try{
@@ -195,7 +198,7 @@ function mensagemPedido(){
     return (i+1)+") "+q+"x "+p.nome+(cor?" ["+cor+"]":"")+" ("+p.sku+"): "+(tem ? brl(p.preco)+" cada = "+brl(p.preco*q) : "valor a combinar");
   });
   const t = totais();
-  let m = "Olá! Quero fazer um pedido do Catálogo de Natal 2026:\n\n"+linhas.join("\n")+"\n\n";
+  let m = "Olá! Quero fazer um pedido do "+TITULO+":\n\n"+linhas.join("\n")+"\n\n";
   m += "Total: "+brl(t.total)+(t.combinar?" (mais "+t.combinar+(t.combinar>1?" itens":" item")+" com valor a combinar)":"")+"\n";
   if(dadosCliente.nome.trim()) m += "Nome: "+dadosCliente.nome.trim()+"\n";
   if(dadosCliente.obs.trim()) m += "Observações: "+dadosCliente.obs.trim()+"\n";
@@ -219,7 +222,7 @@ function abrirPedido(){
     }).join('') +
     '<div class="ped-total"><span>Total</span><span>'+brl(t.total)+'</span></div>'+
     (t.combinar?'<p class="ped-aviso">'+t.combinar+(t.combinar>1?' itens estão':' item está')+' com valor a combinar e não entra'+(t.combinar>1?'m':'')+' no total.</p>':'')+
-    '<p class="ped-aviso">Preços especiais de '+(CONFIG.mes||'novembro')+'. O valor final e o prazo são confirmados no WhatsApp.</p>'+
+    '<p class="ped-aviso">'+(CONFIG.mes===""?'':'Preços especiais de '+(CONFIG.mes||'novembro')+'. ')+'O valor final e o prazo são confirmados no WhatsApp.</p>'+
     '<label for="ped-nome">Seu nome (opcional)</label><input id="ped-nome" type="text" autocomplete="name" value="'+esc2(dadosCliente.nome)+'">'+
     '<label for="ped-obs">Observações (opcional)</label><textarea id="ped-obs" placeholder="Cores, quantidade para lembrancinhas, data de entrega...">'+esc2(dadosCliente.obs)+'</textarea>';
   }
@@ -310,7 +313,7 @@ rota();
    Uma peça em duas subcategorias de Natal aparece nas duas seções. */
 function aplicarCategorias(d){
   if(!Array.isArray(d.categorias)||!d.categorias.length||!d.cats) return false;
-  const natal=d.categorias.find(c=>c.pai===null&&c.nome==="Natal"); if(!natal) return false;
+  const natal=d.categorias.find(c=>c.pai===null&&c.nome===RAIZ); if(!natal) return false;
   const ocultas=new Set(d.categorias.filter(c=>c.oculta).map(c=>c.id));   /* categorias desmarcadas em "Mostrar no site" (ou dentro de uma desmarcada) */
   const filhas=d.categorias.filter(c=>c.pai===natal.id&&!ocultas.has(c.id));
   /* seção de categoria oculta sai do catálogo */

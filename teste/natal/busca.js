@@ -46,7 +46,7 @@
       var g=res.querySelector(".grid");
       achou.forEach(function(p){ var c=document.createElement("article"); c.className="card"; c.innerHTML=cardHTML(p); g.appendChild(c); });
     }else{
-      var msg="Olá! Procurei "+v.trim()+" no catálogo de Natal da LXL Projetos e não encontrei. Vocês fazem?";
+      var msg="Olá! Procurei "+v.trim()+" no "+NOME+" da LXL Projetos e não encontrei. Vocês fazem?";
       var link="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(msg);
       var sug=SECOES.filter(function(s){return PRODUTOS.some(function(p){return p.secao===s.id;});}).map(function(s){return '<button type="button" data-sec="'+s.id+'">'+esc(s.titulo)+'</button>';}).join("");
       res.innerHTML=tit+'<div class="res-vazio"><p>Não achamos essa peça no catálogo. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p>'+

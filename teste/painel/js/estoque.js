@@ -185,8 +185,11 @@ function importarCustos() {
 
 async function importarCatalogo() {
   try {
-    const r = await fetch('../natal/busca-indice.json', { cache: 'no-store' });
-    const d = await r.json();
+    let d = [];
+    for (const pasta of CATALOGOS) {
+      try { d = d.concat(await (await fetch('../' + pasta + '/busca-indice.json', { cache: 'no-store' })).json()); } catch (e) { /* um catálogo fora do ar não impede importar o outro */ }
+    }
+    if (!d.length) throw new Error('sem catálogo');
     const lista = d.map(x => ({ codigo: String(x.sku || '').toUpperCase(), nome: x.nome, preco: typeof x.preco === 'number' ? x.preco : 0 }));
     const existentes = new Set(produtos.map(p => p.codigo));
     const faltam = lista.filter(x => x.codigo && !existentes.has(x.codigo));

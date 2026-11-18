@@ -1,0 +1,4 @@
+/* Catálogo de imagens religiosas: usa o estilo de ../natal/estilo.css e só tira os enfeites de Natal (flocos, pontinhos de neve). */
+.hero{background:linear-gradient(160deg,#256B49 0%,var(--green-d) 100%)}
+.hero h1 span{animation:none;background:none;-webkit-text-fill-color:var(--gold);color:var(--gold)}
+.sec-head h2::before,section:nth-of-type(even) .sec-head h2::before{content:"\2726"}   /* estrelinha em todas as seções (sem floco de neve) */

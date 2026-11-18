@@ -55,28 +55,32 @@ const acharCliente = (nome, tel) => {
 };
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
+const CATALOGOS = ['natal', 'religioso'];   /* pastas dos catálogos do site (catálogo novo: acrescente a pasta aqui) */
 async function carregarCatalogo() {
   if (catalogo) return catalogo;
   catalogo = { porCodigo: {}, secoes: [] };
-  try {
-    const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
-    d.forEach(x => {
-      const c = String(x.sku || '').toUpperCase();
-      catalogo.porCodigo[c] = { secao: x.secao || '' };
-      if (x.secao && !catalogo.secoes.includes(x.secao)) catalogo.secoes.push(x.secao);
-    });
-  } catch (e) { /* sem catálogo: painel funciona sem fotos e sem seções */ }
+  for (const pasta of CATALOGOS) {
+    try {
+      const d = await (await fetch('../' + pasta + '/busca-indice.json', { cache: 'no-store' })).json();
+      d.forEach(x => {
+        const c = String(x.sku || '').toUpperCase();
+        catalogo.porCodigo[c] = { secao: x.secao || '', pasta };
+        if (x.secao && !catalogo.secoes.includes(x.secao)) catalogo.secoes.push(x.secao);
+      });
+    } catch (e) { /* catálogo fora do ar: o painel funciona sem as fotos e seções dele */ }
+  }
   return catalogo;
 }
 const secaoDe = p => (catalogo && catalogo.porCodigo[p.codigo]) ? catalogo.porCodigo[p.codigo].secao : '';
 function thumb(p) {
   if (!catalogo || !catalogo.porCodigo[p.codigo]) return '<span class="th sem">&#128230;</span>';
-  return '<img class="th" loading="lazy" decoding="async" alt="" data-c="' + esc(p.codigo) + '" src="/natal/imagens/mini/' + encodeURIComponent(p.codigo) + '.jpg">';
+  const pasta = catalogo.porCodigo[p.codigo].pasta;
+  return '<img class="th" loading="lazy" decoding="async" alt="" data-c="' + esc(p.codigo) + '" data-p="' + esc(pasta) + '" src="../' + pasta + '/imagens/mini/' + encodeURIComponent(p.codigo) + '.jpg">';
 }
 document.addEventListener('error', e => {
   const i = e.target;
   if (!i || i.tagName !== 'IMG' || !i.classList.contains('th')) return;
-  if (!i.dataset.tent) { i.dataset.tent = '1'; i.src = '/natal/imagens/' + encodeURIComponent(i.dataset.c) + '.jpg'; }
+  if (!i.dataset.tent) { i.dataset.tent = '1'; i.src = '../' + i.dataset.p + '/imagens/' + encodeURIComponent(i.dataset.c) + '.jpg'; }
   else { const s = document.createElement('span'); s.className = 'th sem'; s.innerHTML = '&#128230;'; i.replaceWith(s); }
 }, true);
 
