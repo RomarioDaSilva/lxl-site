@@ -15,6 +15,15 @@ with sync_playwright() as p:
     print('menu:',pg.inner_text('.menu').replace('\n',' | '))
     # cliente + peca via API pela pagina
     pg.evaluate("""async()=>{await api('cliente_salvar',{nome:'Maria Souza',telefone:'38999990000'});await api('produto_salvar',{nome:'Bola azul',codigo:'ARV-9',preco:20,controla:1,estoque:5,ativo:1});}""")
+    # ordenar o estoque por nome, código e preço
+    pg.evaluate("""async()=>{await api('produto_salvar',{nome:'Anjo caro',codigo:'0099',preco:90,controla:0,ativo:1});await api('produto_salvar',{nome:'Zebra barata',codigo:'0010',preco:5,controla:0,ativo:1});}""")
+    pg.goto(P+'#/estoque'); pg.wait_for_timeout(800)
+    def primeiro(v):
+        pg.select_option('#ord',v); pg.wait_for_timeout(200); return pg.inner_text('.prod .nm')
+    print('ordenar preço maior ->',primeiro('preco-'),'| preço menor ->',primeiro('preco'),'| nome A-Z ->',primeiro('nome'),'| código maior ->',primeiro('cod-'))
+    assert primeiro('preco-')=='Anjo caro' and primeiro('preco')=='Zebra barata' and primeiro('nome')=='Anjo caro' and primeiro('cod-')=='Bola azul' and primeiro('cod')=='Zebra barata', 'ordenação do estoque falhou'
+    pg.set_viewport_size({'width':420,'height':900}); pg.wait_for_timeout(200); pg.screenshot(path='/tmp/estoque-ordenar.png'); print('ordenar select visível no celular', pg.is_visible('#ord'))
+    pg.set_viewport_size({'width':1280,'height':800})
     # produto: campo de link e botão "Abrir link" no editar
     pg.goto(P+'#/estoque'); pg.wait_for_timeout(800); pg.click('.prod .nm'); pg.wait_for_timeout(500)
     print('link: campo', pg.query_selector('#link') is not None, 'botão escondido sem link', pg.is_hidden('#linkAbrir'))

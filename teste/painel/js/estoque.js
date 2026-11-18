@@ -11,7 +11,8 @@ async function telaEstoque() {
     '<div class="chips">' + [['todos', 'Todos'], ['pronta', 'Pronta entrega'], ['encomenda', 'Sob encomenda'], ['inativos', 'Inativos']].map(([k, t]) => '<button class="chip ' + (fEst === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('') + '</div>' +
     '<div class="l2">' +
     '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div>' +
-    '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div><div class="card" style="margin-top:12px" id="lista"></div>';
+    '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div>' +
+    '<div class="l2" style="margin-top:8px;grid-template-columns:1fr"><select id="ord" aria-label="Ordenar a lista">' + [['', 'Ordenar: padrão'], ['nome', 'Nome (A a Z)'], ['nome-', 'Nome (Z a A)'], ['cod', 'Código (menor primeiro)'], ['cod-', 'Código (maior primeiro)'], ['preco', 'Preço (menor primeiro)'], ['preco-', 'Preço (maior primeiro)']].map(([k, t]) => '<option value="' + k + '"' + (oEst === k ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div><div class="card" style="margin-top:12px" id="lista"></div>';
   const desenha = () => {
     const q = bEst.toLowerCase().trim();
     const l = produtos.filter(p => {
@@ -23,6 +24,11 @@ async function telaEstoque() {
       else if (cEst) { const ds = catDescend(+cEst); if (!(p.categorias || []).some(x => ds.has(x))) return false; }
       return !q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q);
     });
+    if (oEst) {
+      const dir = oEst.endsWith('-') ? -1 : 1, k = oEst.replace('-', '');
+      const txt = (a, b) => String(a || '').localeCompare(String(b || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+      l.sort((a, b) => dir * (k === 'nome' ? txt(a.nome, b.nome) : k === 'cod' ? txt(a.codigo, b.codigo) : (a.preco || 0) - (b.preco || 0)) || txt(a.nome, b.nome));
+    }
     $('#lista').innerHTML = l.length ? l.map(p =>
       '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div>' + ((p.categorias || []).length ? '<div class="d cats">' + p.categorias.map(catCaminho).filter(Boolean).map(esc).join(' &middot; ') + '</div>' : '') + '</div></div>' +
       (p.controla && p.usa_cores ? '<div class="cmini">' + p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') + '<b class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</b></div>' : p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
@@ -38,6 +44,7 @@ async function telaEstoque() {
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fEst = b.dataset.f; telaEstoque(); });
   $('#q').oninput = e => { bEst = e.target.value; desenha(); };
   $('#cat').onchange = e => { cEst = e.target.value; desenha(); };
+  $('#ord').onchange = e => { oEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;
   $('#impc').onclick = importarCustos;

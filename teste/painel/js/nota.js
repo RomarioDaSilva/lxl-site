@@ -62,6 +62,6 @@ function ligarImagemNota(nomeArq, titulo) {
   };
 }
 
-let fEst = 'todos', bEst = '', sEst = '', cEst = '';
+let fEst = 'todos', bEst = '', sEst = '', cEst = '', oEst = '';
 let catAbertas = new Set(), catComSub = true;   /* categorias abertas na árvore; e se a tela de itens inclui as subcategorias */
 
