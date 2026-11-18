@@ -62,4 +62,12 @@ return [
     '0058' => 'https://makerworld.com/pt/models/2789254-flexi-dachshund-keychain#profileId-3101209',
     '0059' => 'https://makerworld.com/pt/models/2671200-skully-articulated-flexi-skeleton-shark-keychain#profileId-2956572',
     '0060' => 'https://makerworld.com/pt/models/448490-keychain-v2-gym-customizable-text#profileId-355289',
+    '0061' => 'https://makerworld.com/pt/models/3434909-voronoi-angel-decoration-lamp#profileId-3916492',
+    '0062' => 'https://makerworld.com/pt/models/3472035-christmas-angel-ornamental-led-lantern#profileId-3963219',
+    '0063' => 'https://makerworld.com/pt/models/3332331-angel-pattern-tealight#profileId-3784834',
+    '0064' => 'https://makerworld.com/pt/models/860364-meshed-angel-tea-light#profileId-810491',
+    '0065' => 'https://makerworld.com/pt/models/2143164-angel-christmas-decor#profileId-2321557',
+    '0066' => 'https://makerworld.com/pt/models/3515269-crochet-style-christmas-angel#profileId-4017462',
+    '0067' => 'https://makerworld.com/pt/models/3366786-knitted-style-christmas-angel#profileId-3828754',
+    '0068' => 'https://makerworld.com/pt/models/2130342-little-christmas-angel#profileId-2306854',
 ];
