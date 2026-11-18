@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1F4036">
 <title>Perguntas frequentes | LXL Projetos</title>
+<link rel="canonical" href="https://lxlprojetos.site/teste/faq/">
 <meta name="description" content="Tire suas dúvidas sobre pedidos, pagamento, prazos, entrega e cuidados com as peças impressas em 3D da LXL Projetos.">
 <meta property="og:type" content="website"><meta property="og:site_name" content="LXL Projetos"><meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="Perguntas frequentes | LXL Projetos"><meta property="og:description" content="Tire suas dúvidas sobre pedidos, pagamento, prazos, entrega e cuidados com as peças.">
@@ -31,11 +32,12 @@
 <section class="cta">
   <h2>Ainda tem dúvida?</h2>
   <p>Fale com a gente, é rápido e sem compromisso.</p>
-  <!-- Botão de WhatsApp: o número está no link (5538992214206). O texto da mensagem vem depois de "text=" (espaços viram %20). -->
-  <a class="btn btn-wpp" target="_blank" rel="noopener" href="https://wa.me/5538992214206?text=Ol%C3%A1%21%20Vi%20o%20site%20da%20LXL%20Projetos%20e%20fiquei%20com%20uma%20d%C3%BAvida.">Chamar no WhatsApp</a>
+  <!-- Botão de WhatsApp: o número é colocado pelo script logo abaixo, a partir do empresa.js. O texto da mensagem vem depois de "text=" (espaços viram %20). -->
+  <a class="btn btn-wpp" target="_blank" rel="noopener" id="wpp" href="https://wa.me/?text=Ol%C3%A1%21%20Vi%20o%20site%20da%20LXL%20Projetos%20e%20fiquei%20com%20uma%20d%C3%BAvida.">Chamar no WhatsApp</a>
   <div class="links"><a class="btn btn-ghost" href="../natal/">Ver catálogo de Natal</a><a class="btn btn-ghost" href="../">Página inicial</a></div>
 </section>
 <footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro.</footer>
+<script src="../empresa.js?v=1"></script><script>var w=document.getElementById("wpp");w.href=w.href.replace("wa.me/?","wa.me/"+LXL_EMPRESA.whatsapp+"?");</script>
 <script src="/analytics.js" defer></script><script src="../painel/medir.js" defer></script>
 </body>
 </html>

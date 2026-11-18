@@ -1,9 +1,9 @@
-/* CATÁLOGO DE NATAL: DADOS. É aqui que você edita à mão: WhatsApp, prazo, seções e produtos.
+/* CATÁLOGO DE NATAL: DADOS. É aqui que você edita à mão: prazo, seções e produtos.
    Carregado antes do catalogo.js (que usa CONFIG, SECOES e PRODUTOS). Não coloque lógica aqui. */
 /* ===== CONFIGURAÇÃO: edite só esta parte ===== */
 const CONFIG = {
-  whatsapp: "5538992214206",   /* número com DDI e DDD, só dígitos */
-  instagram: "lxlprojetos",
+  whatsapp: LXL_EMPRESA.whatsapp,   /* vem do empresa.js (WhatsApp e Instagram se mudam lá) */
+  instagram: LXL_EMPRESA.instagram,
   prazo: "",                   /* Ex.: "Pedidos até 15/12". Deixe vazio para não mostrar */
   limitePedido: {ate:"2026-12-15", texto:"Pedidos até 15/12"},   /* aparece no card e na página de cada peça; some sozinho depois da data. Para desligar, apague esta linha */
   mes: "novembro de 2026"              /* Mês de validade dos preços. Em dezembro troque para "dezembro" ou deixe vazio para esconder o aviso */

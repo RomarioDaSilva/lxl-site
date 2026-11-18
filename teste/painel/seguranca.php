@@ -27,6 +27,7 @@ const ROTULOS_ACAO = [
     'cliente_salvar' => 'Cliente salvo', 'cliente_excluir' => 'Cliente excluído',
     'pedido_salvar' => 'Pedido salvo', 'pedido_status' => 'Pedido: status/pagamento',
     'categoria_salvar' => 'Categoria salva', 'categoria_excluir' => 'Categoria excluída', 'categoria_ordenar' => 'Categoria: ordem',
+    'orcamento_salvar' => 'Orçamento salvo', 'orcamento_status' => 'Orçamento: status',
     'categoria_visivel' => 'Categoria: mostrar no site', 'categoria_itens' => 'Categoria: itens incluídos/tirados',
 ];
 
@@ -39,11 +40,13 @@ function lerAlvo(string $a, array $in, ?int $idForcado = null): ?array {
         'clientes' => ['clientes', 'nome, telefone, cidade'],
         'categorias' => ['categorias', 'nome, parent_id, ativo'],
         'cores' => ['cores', 'nome, hex'],
+        'orcamentos' => ['orcamentos', 'cliente, status, total, validade'],
     ];
     $grupo = [
         'produto_salvar' => 'produtos', 'produto_ajustar' => 'produtos', 'pedido_status' => 'pedidos', 'pedido_salvar' => 'pedidos',
         'cliente_salvar' => 'clientes', 'cliente_excluir' => 'clientes', 'categoria_salvar' => 'categorias', 'categoria_excluir' => 'categorias',
         'categoria_visivel' => 'categorias', 'categoria_ordenar' => 'categorias', 'categoria_itens' => 'categorias', 'cor_salvar' => 'cores', 'cor_excluir' => 'cores',
+        'orcamento_salvar' => 'orcamentos', 'orcamento_status' => 'orcamentos',
     ][$a] ?? null;
     if ($grupo === null || $id < 1) return null;
     try {
@@ -106,18 +109,43 @@ function emailAvisos(): string {
     return '';
 }
 
-/* Manda o e-mail e registra no histórico se foi ou não enviado. Nunca derruba o painel. */
-function enviarAviso(string $assunto, string $texto): bool {
-    $para = emailAvisos(); $ok = false;
-    if ($para === '') { auditar('Aviso de segurança', $assunto, 'e-mail NÃO enviado: nenhum e-mail configurado em Ajustes', 'sistema'); return false; }
+/* Manda um e-mail simples (texto). Devolve true se a hospedagem aceitou enviar. Nunca derruba o painel. */
+function enviarEmail(string $para, string $assunto, string $texto): bool {
     try {
         $host = preg_replace('/^www\./', '', (string)($_SERVER['HTTP_HOST'] ?? 'lxlprojetos.site'));
         $de = 'painel@' . (strpos($host, '.') !== false ? $host : 'lxlprojetos.site');
         $cab = "From: Painel LXL <$de>\r\nContent-Type: text/plain; charset=UTF-8\r\nX-Mailer: painel-lxl";
-        $ok = function_exists('mail') && @mail($para, '=?UTF-8?B?' . base64_encode('[Painel LXL] ' . $assunto) . '?=', $texto . "\n\nIP: " . ipCliente() . "\nHorário: " . date('d/m/Y H:i:s'), $cab);
-    } catch (Throwable $e) { $ok = false; }
+        return function_exists('mail') && @mail($para, '=?UTF-8?B?' . base64_encode('[Painel LXL] ' . $assunto) . '?=', $texto, $cab);
+    } catch (Throwable $e) { return false; }
+}
+
+/* Aviso de segurança para o e-mail configurado em Ajustes, com o resultado registrado no histórico. */
+function enviarAviso(string $assunto, string $texto): bool {
+    $para = emailAvisos();
+    if ($para === '') { auditar('Aviso de segurança', $assunto, 'e-mail NÃO enviado: nenhum e-mail configurado em Ajustes', 'sistema'); return false; }
+    $ok = enviarEmail($para, $assunto, $texto . "\n\nIP: " . ipCliente() . "\nHorário: " . date('d/m/Y H:i:s'));
     auditar('Aviso de segurança', $assunto, ($ok ? 'e-mail enviado' : 'NÃO foi possível enviar o e-mail (veja se a hospedagem permite envio)'), 'sistema');
     return $ok;
+}
+
+/* ---------- links de convite e de senha ---------- */
+/* Endereço do painel (funciona no /teste/painel e no /painel sem mexer em nada). */
+function enderecoDoPainel(): string {
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    return ($https ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'lxlprojetos.site') . rtrim(dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/painel/api.php')), '/') . '/';
+}
+/* Cria um link de uso único. No banco só fica o "hash" do código, nunca o código em si. Devolve o código para montar o link. */
+function criarToken(string $tipo, int $segundos, ?int $usuarioId = null, string $email = '', string $perfil = ''): string {
+    $t = bin2hex(random_bytes(24));
+    if ($tipo === 'reset' && $usuarioId) db()->prepare("UPDATE tokens SET usado = 1 WHERE tipo = 'reset' AND usuario_id = ?")->execute([$usuarioId]);   /* link novo invalida o anterior */
+    db()->prepare('INSERT INTO tokens (tipo, hash, usuario_id, email, perfil, expira, criado_em) VALUES (?,?,?,?,?,?,?)')
+        ->execute([$tipo, hash('sha256', $t), $usuarioId, $email, $perfil, time() + $segundos, date('Y-m-d H:i:s')]);
+    return $t;
+}
+function acharToken(string $t): ?array {
+    if (!preg_match('/^[a-f0-9]{48}$/', $t)) return null;
+    $s = db()->prepare('SELECT * FROM tokens WHERE hash = ? AND usado = 0 AND expira > ?'); $s->execute([hash('sha256', $t), time()]);
+    return $s->fetch() ?: null;
 }
 
 /* Lembra do aparelho (IP + navegador). Devolve true se for a primeira vez que ele entra (e já havia outros). */

@@ -1,12 +1,11 @@
 /* PÁGINA INICIAL: scripts.
    Parte 1: monta os links de WhatsApp (o número do WhatsApp está logo abaixo).
    Parte 2: busca de peças nos catálogos. */
-  /* NÚMERO DO WHATSAPP: 55 + DDD + número, só dígitos (hoje 5538992214206). Se trocar, troque aqui (nas 3 linhas abaixo),
-     no catálogo (CONFIG, em natal/dados.js), no FAQ (faq/index.html) e no painel (EMPRESA, em painel/app.js). */
-  var wa = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
+  /* O número do WhatsApp vem do arquivo empresa.js (um lugar só para todo o site e o painel). */
+  var wa = "https://wa.me/" + LXL_EMPRESA.whatsapp + "?text=" + encodeURIComponent("Olá! Vi o site da LXL Projetos e quero fazer um orçamento.");
   document.getElementById("cta").href = wa;
   document.getElementById("cta-topo").href = wa;
-  document.getElementById("h-perso").href = "https://wa.me/5538992214206?text=" + encodeURIComponent("Olá! Quero fazer uma peça personalizada. Vou explicar a minha ideia:");
+  document.getElementById("h-perso").href = "https://wa.me/" + LXL_EMPRESA.whatsapp + "?text=" + encodeURIComponent("Olá! Quero fazer uma peça personalizada. Vou explicar a minha ideia:");
 
 /* ===== Busca nos catálogos ===== */
 (function(){
@@ -53,7 +52,7 @@
       }).join("")+'</div>';
     }else{
       var msg="Olá! Procurei "+v.trim()+" no site da LXL Projetos e não encontrei. Vocês fazem?";
-      res.innerHTML=tit+'<div class="h-vazio"><p>Não achamos essa peça nos catálogos. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p><a class="btn btn-wpp" target="_blank" rel="noopener" href="https://wa.me/5538992214206?text='+encodeURIComponent(msg)+'">Perguntar no WhatsApp</a></div>';
+      res.innerHTML=tit+'<div class="h-vazio"><p>Não achamos essa peça nos catálogos. Pergunte pra gente e vamos te ajudar a encontrar o que você procura.</p><a class="btn btn-wpp" target="_blank" rel="noopener" href="https://wa.me/'+LXL_EMPRESA.whatsapp+'?text='+encodeURIComponent(msg)+'">Perguntar no WhatsApp</a></div>';
     }
   }
   function abrirBusca(){

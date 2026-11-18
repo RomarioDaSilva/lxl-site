@@ -7,14 +7,27 @@
 <meta name="theme-color" content="#1F5B3F">
 <title>Painel LXL</title>
 <link rel="icon" href="/favicon-32.png">
-<!-- O "?v=NN" no fim dos arquivos serve para o navegador baixar a versão nova. Sempre que editar app.css, app.js ou calc.js à mão, aumente o número. -->
-<link rel="stylesheet" href="app.css?v=20">
+<!-- O "?v=NN" no fim dos arquivos serve para o navegador baixar a versão nova. Sempre que editar app.css, calc.js ou um arquivo da pasta js/ à mão, aumente o número. -->
+<link rel="stylesheet" href="app.css?v=22">
 </head>
 <body>
 <div id="app"><p class="carregando">Carregando...</p></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="vendor/html2canvas.min.js"></script>
+<script src="../empresa.js?v=1"></script>
 <script src="calc.js?v=1"></script>
-<script src="app.js?v=24"></script>
+<!-- Telas do painel, uma por assunto, na pasta js/. A ordem importa: base primeiro, rotas por último. -->
+<script src="js/base.js?v=2"></script>
+<script src="js/acesso.js?v=1"></script>
+<script src="js/pedidos.js?v=1"></script>
+<script src="js/categorias.js?v=1"></script>
+<script src="js/estoque.js?v=1"></script>
+<script src="js/clientes.js?v=1"></script>
+<script src="js/relatorios.js?v=1"></script>
+<script src="js/calculadora.js?v=1"></script>
+<script src="js/orcamentos.js?v=1"></script>
+<script src="js/usuarios.js?v=1"></script>
+<script src="js/ajustes.js?v=1"></script>
+<script src="js/rotas.js?v=1"></script>
 </body>
 </html>

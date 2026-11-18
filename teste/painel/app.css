@@ -190,3 +190,11 @@ a.chip{text-decoration:none;color:inherit}
 
 .sec-aj{margin-bottom:12px;padding:14px}.sec-aj h2{margin:0 0 6px;font-size:17px}
 .hist{padding:9px 0;border-bottom:1px solid var(--line)}.hh{display:flex;justify-content:space-between;gap:8px}.ha{font-weight:600}.hd{color:var(--ink);font-size:14px;overflow-wrap:anywhere}
+
+/* orçamentos, histórico do cliente, usuários e telas sem login */
+.card.orc .hh,.card.ped .hh{align-items:center;margin-bottom:4px}
+.card.orc .acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.resumo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.resumo .card{margin:0;padding:10px 12px}.resumo small{display:block;color:var(--mut)}.resumo b{font-size:18px}
+.card.inativo{opacity:.6}
+.logl{text-align:center;margin:10px 0 0;font-size:14px}
