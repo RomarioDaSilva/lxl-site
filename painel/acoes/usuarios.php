@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 function usuariosOut(): array {
     $db = db();
-    $us = array_map(fn($u) => ['id' => (int)$u['id'], 'usuario' => $u['usuario'], 'nome' => (string)($u['nome'] ?? ''), 'email' => (string)($u['email'] ?? ''),
+    $us = array_map(fn($u) => ['id' => (int)$u['id'], 'codigo' => 'USU-' . sprintf('%04d', (int)$u['id']), 'usuario' => $u['usuario'], 'nome' => (string)($u['nome'] ?? ''), 'email' => (string)($u['email'] ?? ''),
         'perfil' => $u['perfil'] ?? 'admin', 'ativo' => (int)($u['ativo'] ?? 1), 'criado_em' => (string)$u['criado_em']], $db->query('SELECT * FROM usuarios ORDER BY id')->fetchAll());
     $cv = array_map(fn($t) => ['id' => (int)$t['id'], 'email' => $t['email'], 'perfil' => $t['perfil'], 'expira' => date('d/m/Y H:i', (int)$t['expira'])],
         $db->query("SELECT * FROM tokens WHERE tipo = 'convite' AND usado = 0 AND expira > " . time() . ' ORDER BY id DESC')->fetchAll());

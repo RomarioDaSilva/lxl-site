@@ -17,6 +17,7 @@ case 'produto_salvar': {
     $nome = txt($in['nome'] ?? '', 160);
     if ($nome === '') fail('Informe o nome do produto.');
     $codigo = strtoupper(txt($in['codigo'] ?? '', 40));
+    if ($codigo === '' && $id === 0) $codigo = proximoCodigo();   /* produto novo sem código: número seguinte */
     if ($codigo !== '') {
         $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? AND id <> ?');
         $s->execute([$codigo, $id]);
@@ -103,6 +104,22 @@ case 'cor_excluir': {
     out(['cores' => listaDeCores()]);
 }
 
+case 'produto_excluir': {
+    $id = (int)($in['id'] ?? 0);
+    $s = $db->prepare('SELECT id FROM produtos WHERE id = ?'); $s->execute([$id]);
+    if (!$s->fetch()) fail('Produto não encontrado.', 404);
+    /* peça que já foi vendida ou orçada não se exclui: apagar sumiria o nome dela do histórico. Nesse caso, desative. */
+    $uso = 0;
+    foreach (['itens', 'orcamento_itens'] as $t) { $q = $db->prepare("SELECT COUNT(*) FROM $t WHERE produto_id = ?"); $q->execute([$id]); $uso += (int)$q->fetchColumn(); }
+    if ($uso > 0) fail('Essa peça já está em pedidos ou orçamentos. Para não perder o histórico, edite e desmarque "Produto ativo".');
+    $db->beginTransaction();
+    $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM produtos WHERE id = ?')->execute([$id]);
+    $db->commit();
+    out(['ok' => true]);
+}
+
 case 'produto_ajustar': {
     $id = (int)($in['id'] ?? 0); $delta = (int)($in['delta'] ?? 0);
     $s = $db->prepare('SELECT usa_cores FROM produtos WHERE id = ?'); $s->execute([$id]);
@@ -120,7 +137,7 @@ case 'custos_importar': {
     $db->beginTransaction();
     foreach (array_slice($lista, 0, 500) as $l) {
         $cod = strtoupper(txt($l['codigo'] ?? '', 40));
-        $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $s->execute([$cod]);
+        $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
         $row = $s->fetch();
         if (!$row) { $nao[] = $cod; continue; }
         $peso = max(0, num($l['peso_g'] ?? 0)); $h = max(0, num($l['tempo_h'] ?? 0));
@@ -146,8 +163,9 @@ case 'produto_importar': {
     foreach (array_slice($lista, 0, 500) as $p) {
         $cod = strtoupper(txt($p['codigo'] ?? '', 40)); $nome = txt($p['nome'] ?? '', 160);
         if ($nome === '') continue;
+        if ($cod === '') $cod = proximoCodigo();   /* sem código no catálogo: número seguinte */
         if ($cod !== '') {
-            $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ?'); $s->execute([$cod]);
+            $s = $db->prepare('SELECT id FROM produtos WHERE codigo = ? OR codigo_antigo = ?'); $s->execute([$cod, $cod]);
             if ($s->fetch()) { $pulados++; continue; }
         }
         $db->prepare('INSERT INTO produtos (codigo, nome, preco, controla, estoque, ativo, obs) VALUES (?,?,?,?,?,?,?)')

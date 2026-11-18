@@ -21,7 +21,7 @@ function auditar(string $acao, string $alvo = '', string $detalhe = '', ?string 
 
 /* Nome de cada ação, como aparece na tela do histórico. */
 const ROTULOS_ACAO = [
-    'produto_salvar' => 'Item salvo', 'produto_ajustar' => 'Estoque ajustado', 'produto_importar' => 'Itens importados do catálogo',
+    'produto_salvar' => 'Item salvo', 'produto_ajustar' => 'Estoque ajustado', 'produto_excluir' => 'Item excluído', 'produto_importar' => 'Itens importados do catálogo',
     'custos_importar' => 'Custos importados', 'parametros_salvar' => 'Parâmetros de custo salvos',
     'cor_salvar' => 'Cor salva', 'cor_excluir' => 'Cor excluída',
     'cliente_salvar' => 'Cliente salvo', 'cliente_excluir' => 'Cliente excluído',
@@ -43,7 +43,7 @@ function lerAlvo(string $a, array $in, ?int $idForcado = null): ?array {
         'orcamentos' => ['orcamentos', 'cliente, status, total, validade'],
     ];
     $grupo = [
-        'produto_salvar' => 'produtos', 'produto_ajustar' => 'produtos', 'pedido_status' => 'pedidos', 'pedido_salvar' => 'pedidos',
+        'produto_salvar' => 'produtos', 'produto_ajustar' => 'produtos', 'produto_excluir' => 'produtos', 'pedido_status' => 'pedidos', 'pedido_salvar' => 'pedidos',
         'cliente_salvar' => 'clientes', 'cliente_excluir' => 'clientes', 'categoria_salvar' => 'categorias', 'categoria_excluir' => 'categorias',
         'categoria_visivel' => 'categorias', 'categoria_ordenar' => 'categorias', 'categoria_itens' => 'categorias', 'cor_salvar' => 'cores', 'cor_excluir' => 'cores',
         'orcamento_salvar' => 'orcamentos', 'orcamento_status' => 'orcamentos',

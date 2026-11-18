@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /*
  * Contador PRÓPRIO de visitas do site (sem cookies e sem dados pessoais).
- * Guarda só contagens por dia: tipo (visita, pagina, produto, add, enviar) e uma chave curta (ex.: PRE-001).
+ * Guarda só contagens por dia: tipo (visita, pagina, produto, add, enviar) e uma chave curta (ex.: 0001).
  */
 date_default_timezone_set('America/Sao_Paulo');
 header('Content-Type: application/json; charset=utf-8');

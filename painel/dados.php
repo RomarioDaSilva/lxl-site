@@ -57,21 +57,38 @@ function categoriaGarantir(string $nome, ?int $pai): int {
    e quando se importa itens do catálogo. Mudar aqui não altera o que já está salvo. */
 const SECOES_NATAL = ['Presépio' => 'Presépios', 'Árvores de Natal' => 'Árvores de Natal', 'Decoração de árvore' => 'Decoração de árvore', 'Feliz Natal' => 'Feliz Natal',
     'Mini Papais Noel' => 'Mini Papais Noel', 'Decorações de mesa' => 'Decoração de mesa', 'Bombonieri e lembrancinhas' => 'Bomboniere e lembrancinhas'];
+/* Seção do catálogo religioso -> subcategoria de Religioso no painel */
+const SECOES_RELIGIOSO = ['Imagens' => 'Imagens', 'Santos' => 'Santos', 'Cruzes' => 'Cruzes', 'Porta-textos' => 'Porta-textos'];
+/* Lê o índice de cada catálogo do site (natal e religioso): código => [catálogo, seção]. Catálogo novo: acrescente a pasta na lista. */
 function secoesDoCatalogo(): array {
-    $f = __DIR__ . '/../natal/busca-indice.json';
-    $d = is_file($f) ? json_decode((string)file_get_contents($f), true) : null;
     $m = [];
-    if (is_array($d)) foreach ($d as $x) { $k = strtoupper(trim((string)($x['sku'] ?? ''))); if ($k !== '') $m[$k] = trim((string)($x['secao'] ?? '')); }
+    foreach (['natal', 'religioso'] as $cat) {
+        $f = __DIR__ . '/../' . $cat . '/busca-indice.json';
+        $d = is_file($f) ? json_decode((string)file_get_contents($f), true) : null;
+        if (is_array($d)) foreach ($d as $x) { $k = strtoupper(trim((string)($x['sku'] ?? ''))); if ($k !== '') $m[$k] = ['cat' => $cat, 'sec' => trim((string)($x['secao'] ?? ''))]; }
+    }
     return $m;
 }
-/* coloca o produto nas categorias de Natal conforme a seção que ele tinha no catálogo (só junta, nunca tira) */
+/* Próximo código livre (0001, 0002...): maior número já usado no painel OU nos catálogos do site, mais 1. Não reaproveita código. */
+function proximoCodigo(): string {
+    $max = 0;
+    foreach (db()->query("SELECT codigo FROM produtos")->fetchAll(PDO::FETCH_COLUMN) as $c) if (preg_match('/^\d+$/', (string)$c)) $max = max($max, (int)$c);
+    foreach (array_keys(secoesDoCatalogo()) as $c) if (preg_match('/^\d+$/', (string)$c)) $max = max($max, (int)$c);
+    return str_pad((string)($max + 1), 4, '0', STR_PAD_LEFT);
+}
+/* coloca o produto nas categorias conforme a seção que ele tinha no catálogo (só junta, nunca tira) */
 function ligarAoCatalogo(int $pid, string $codigo, array $secoes): void {
-    $sec = $secoes[strtoupper($codigo)] ?? null; if ($sec === null) return;
-    $natal = categoriaGarantir('Natal', null); $alvos = [];
-    if (isset(SECOES_NATAL[$sec])) {
-        $alvos[] = categoriaGarantir(SECOES_NATAL[$sec], $natal);
-        if ($sec === 'Presépio') $alvos[] = categoriaGarantir('Presépios', categoriaGarantir('Religioso', null));
-    } else $alvos[] = $natal;
+    $x = $secoes[strtoupper($codigo)] ?? null; if ($x === null) return;
+    $alvos = [];
+    if ($x['cat'] === 'religioso') {
+        $alvos[] = categoriaGarantir(SECOES_RELIGIOSO[$x['sec']] ?? 'Imagens', categoriaGarantir('Religioso', null));
+    } else {
+        $sec = $x['sec']; $natal = categoriaGarantir('Natal', null);
+        if (isset(SECOES_NATAL[$sec])) {
+            $alvos[] = categoriaGarantir(SECOES_NATAL[$sec], $natal);
+            if ($sec === 'Presépio') $alvos[] = categoriaGarantir('Presépios', categoriaGarantir('Religioso', null));
+        } else $alvos[] = $natal;
+    }
     foreach ($alvos as $cid) {
         $q = db()->prepare('SELECT 1 FROM produto_categorias WHERE produto_id = ? AND categoria_id = ?'); $q->execute([$pid, $cid]);
         if (!$q->fetch()) db()->prepare('INSERT INTO produto_categorias (produto_id, categoria_id) VALUES (?,?)')->execute([$pid, $cid]);
@@ -115,7 +132,7 @@ function produtoPorId(int $id): ?array {
     return $p ? produtoOut($p, mapaDeCores(), mapaDeCategorias()) : null;
 }
 function clienteOut(array $c): array {
-    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%03d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
+    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%04d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
             'endereco' => $c['endereco'], 'cidade' => $c['cidade'], 'obs' => $c['obs'],
             'pedidos' => (int)($c['n_pedidos'] ?? 0), 'total' => (float)($c['total_pedidos'] ?? 0), 'ultima' => (string)($c['ultima_compra'] ?? '')];
 }

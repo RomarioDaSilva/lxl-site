@@ -51,7 +51,7 @@ function formProduto(p, catsIniciais, depois) {
   const qs = {}; n.cores.forEach(c => { qs[c.cor_id] = c.qtd; });
   const existiam = new Set(n.cores.map(c => c.cor_id));
   const m = modal('<h2>' + (p ? 'Editar produto' : 'Novo produto') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
-    '<label>Nome *</label><input type="text" id="nome" value="' + esc(n.nome) + '"><div class="l2"><div><label>Código</label><input type="text" id="codigo" value="' + esc(n.codigo) + '" placeholder="ex: PRE-001"></div>' +
+    '<label>Nome *</label><input type="text" id="nome" value="' + esc(n.nome) + '"><div class="l2"><div><label>Código</label><input type="text" id="codigo" value="' + esc(n.codigo) + '" placeholder="deixe vazio: o painel usa o próximo número"></div>' +
     '<div><label>Preço (R$)</label><input type="text" inputmode="decimal" id="preco" value="' + fmtIn(n.preco) + '"></div></div>' +
     '<label>Tipo</label><select id="controla"><option value="1"' + (n.controla ? ' selected' : '') + '>Pronta entrega (controla estoque)</option><option value="0"' + (n.controla ? '' : ' selected') + '>Sob encomenda (sem estoque)</option></select>' +
     '<div id="eb"><label>Quantidade total em estoque</label><input type="text" inputmode="numeric" id="estoque" value="' + n.estoque + '">' +
@@ -69,7 +69,7 @@ function formProduto(p, catsIniciais, depois) {
     '<div class="l2"><div><label>Extras (R$)</label><input type="text" inputmode="decimal" id="cExtra" value="' + fmtIn(n.extras) + '" placeholder="argola, LED..."></div>' +
     '<div><label>Embalagem (R$)</label><input type="text" inputmode="decimal" id="cEmb" value="' + fmtIn(n.embalagem) + '"></div></div>' +
     '<div id="cRes" class="cres"></div></div>' +
-    '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button></div>');
+    '<div class="ck"><input type="checkbox" id="ativo"' + (n.ativo ? ' checked' : '') + '><label style="margin:0;color:inherit">Produto ativo (aparece na hora de montar pedidos)</label></div><div class="acoes"><button class="btn" id="ok" type="button">Salvar</button>' + (n.id ? '<button class="btn l" id="excl" type="button" style="color:#b3202a">Excluir produto</button>' : '') + '</div>');
   const calcCusto = () => {
     const P = paramsCusto, v = id => parseNum($('#' + id, m).value) || 0;
     const peso = v('cPeso'), h = v('cTempo'), perda = v('cPerda');
@@ -131,6 +131,10 @@ function formProduto(p, catsIniciais, depois) {
   $('#usaCores', m).onchange = desenhaCores;
   $('#estoque', m).addEventListener('input', contador);
   desenhaCores();
+  if (n.id) $('#excl', m).onclick = async () => {
+    if (!await confirmar('Excluir produto', 'Tem certeza que deseja excluir "' + n.nome + '"? Não dá para desfazer. Se ele já tiver pedidos, o painel pede para desativar em vez de excluir.')) return;
+    try { await api('produto_excluir', { id: n.id }); m.fechar(); (depois || telaEstoque)(); toast('Produto excluído.'); } catch (e) { toast(e.message); }
+  };
   $('#ok', m).onclick = async () => {
     const usa = $('#controla', m).value === '1' && $('#usaCores', m).checked;
     if (usa && soma() !== total()) return toast('As cores somam ' + soma() + ', mas o estoque total é ' + total() + '. Ajuste para ficarem iguais.');
@@ -166,7 +170,7 @@ function gerenciarCores(aoFechar) {
 function importarCustos() {
   const m = modal('<h2>Importar custos <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
     '<p class="mut">Cole uma linha por peça, neste formato:<br><b>CÓDIGO;peso(g);tempo(h);material;perda(%);extras;embalagem;R$/kg</b></p>' +
-    '<textarea id="ct" rows="8" style="width:100%;font-size:13px" placeholder="PRE-001;44.14;6.27;PLA;10;0;0;79.48"></textarea>' +
+    '<textarea id="ct" rows="8" style="width:100%;font-size:13px" placeholder="0001;44.14;6.27;PLA;10;0;0;79.48"></textarea>' +
     '<div class="acoes"><button class="btn" id="ok" type="button">Importar custos</button></div>');
   const n = s => { const x = parseFloat(String(s || '').trim().replace(',', '.')); return isNaN(x) ? 0 : x; };
   $('#ok', m).onclick = async () => {
@@ -185,8 +189,11 @@ function importarCustos() {
 
 async function importarCatalogo() {
   try {
-    const r = await fetch('../natal/busca-indice.json', { cache: 'no-store' });
-    const d = await r.json();
+    let d = [];
+    for (const pasta of CATALOGOS) {
+      try { d = d.concat(await (await fetch('../' + pasta + '/busca-indice.json', { cache: 'no-store' })).json()); } catch (e) { /* um catálogo fora do ar não impede importar o outro */ }
+    }
+    if (!d.length) throw new Error('sem catálogo');
     const lista = d.map(x => ({ codigo: String(x.sku || '').toUpperCase(), nome: x.nome, preco: typeof x.preco === 'number' ? x.preco : 0 }));
     const existentes = new Set(produtos.map(p => p.codigo));
     const faltam = lista.filter(x => x.codigo && !existentes.has(x.codigo));

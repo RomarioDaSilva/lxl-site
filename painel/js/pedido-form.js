@@ -8,7 +8,8 @@ function pedidoVazio() {
   return { modo: 'pedido', pago_valor: 0, id: 0, cliente_id: null, data: hoje(), cliente: '', whatsapp: '', itens: [], desconto: 0, frete: 0, entrega: 'Retirada', endereco: '', prazo: '', pagamento: 'Pix', pago: 0, status: 'novo', obs: '' };
 }
 /* Orçamento começa igual ao pedido, mas sem pagamento e com validade. */
-const orcVazio = () => ({ ...pedidoVazio(), modo: 'orcamento', validade: '' });
+const somaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const orcVazio = () => ({ ...pedidoVazio(), modo: 'orcamento', validade: somaDias(hoje(), 15) });   /* validade padrão: 15 dias */
 const subtotal = () => P.itens.reduce((s, i) => s + (Number(i.preco) || 0) * (Number(i.qtd) || 0), 0);
 const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Number(P.frete) || 0));
 
@@ -22,14 +23,14 @@ async function telaPedidoForm(id, modo) {
   } catch (e) { return toast(e.message); }
   const opt = (arr, v) => arr.map(x => '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
   $('.wrap').innerHTML =
-    '<h1>' + (orc ? (P.id ? 'Editar orçamento #' + numPed(P.id) : 'Novo orçamento') : (P.id ? 'Editar pedido #' + numPed(P.id) : 'Novo pedido')) + '</h1>' +
+    '<h1>' + (orc ? (P.id ? 'Editar orçamento ORC-' + numPed(P.id) : 'Novo orçamento') : (P.id ? 'Editar pedido PED-' + numPed(P.id) : 'Novo pedido')) + '</h1>' +
     (orc ? '<p class="mut">Orçamento não baixa estoque nem entra nas vendas. Quando o cliente aprovar, use o botão "Gerar pedido" na lista de orçamentos.</p>' : '') +
     '<div class="barra"><button class="btn l" id="colar" type="button">Colar pedido do WhatsApp</button></div>' +
     '<div class="card"><h2>Cliente</h2><label>Nome * (digite para buscar ou toque na seta)</label>' +
     '<div class="cli-linha"><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off" placeholder="Buscar cliente ou digitar nome"><button class="btn s l" id="cliLista" type="button" aria-label="Ver lista de clientes">&#9662;</button><button class="btn s o" id="cliNovo" type="button" aria-label="Cadastrar novo cliente">+</button></div>' +
     '<div id="cliSug" class="sug" hidden></div><div id="cliTag" class="clitag"></div>' +
     '<div class="l2"><div><label>WhatsApp</label><input type="tel" id="whatsapp" value="' + esc(P.whatsapp) + '" placeholder="(38) 9...."></div>' +
-    '<div><label>Data do pedido</label><input type="date" id="data" value="' + esc(P.data) + '"></div></div></div>' +
+    '<div><label>Data do ' + (orc ? 'orçamento' : 'pedido') + '</label><input type="date" id="data" value="' + esc(P.data) + '"></div></div></div>' +
     '<div class="card"><h2>Itens</h2><div id="itens"></div>' +
     '<div class="acoes"><button class="btn o" id="add" type="button">Adicionar peça</button><button class="btn l" id="avulso" type="button">Item personalizado</button></div></div>' +
     '<div class="card"><h2>Valores</h2><div class="l2"><div><label>Desconto (R$)</label><input type="text" inputmode="decimal" id="desconto" value="' + (P.desconto ? fmtIn(P.desconto) : '') + '" placeholder="0,00"></div>' +
@@ -48,6 +49,8 @@ async function telaPedidoForm(id, modo) {
     '<div class="total"><div class="v" id="tot"></div><button class="btn" id="salvar" type="button">' + (orc ? 'Salvar orçamento' : 'Salvar pedido') + '</button></div>';
   const bind = (id, key, conv) => { const el = $('#' + id); if (!el) return; el.addEventListener('input', e => { P[key] = conv ? conv(e.target) : e.target.value; if (['desconto', 'frete', 'pago_valor', 'pago'].includes(id)) totais(); }); };
   bind('validade', 'validade'); bind('pago_valor', 'pago_valor', el => parseNum(el.value));
+  /* orçamento novo: se mudar a data, a validade acompanha (15 dias depois), a não ser que você já tenha escolhido outra */
+  if (orc && !P.id) { let auto = true; $('#validade').addEventListener('input', () => { auto = false; }); $('#data').addEventListener('input', e => { if (auto && e.target.value) { P.validade = somaDias(e.target.value, 15); $('#validade').value = P.validade; } }); }
   bind('whatsapp', 'whatsapp'); bind('data', 'data'); bind('endereco', 'endereco'); bind('prazo', 'prazo'); bind('obs', 'obs');
   bind('desconto', 'desconto', el => parseNum(el.value)); bind('frete', 'frete', el => parseNum(el.value));
   bind('pagamento', 'pagamento'); bind('status', 'status'); bind('pago', 'pago', el => el.checked ? 1 : 0);

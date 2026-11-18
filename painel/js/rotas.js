@@ -11,7 +11,7 @@ function rota() {
   if (['convite', 'senha'].includes(h[0]) && h[1]) return telaToken(h[0] === 'convite' ? 'convite' : 'senha', h[1]);
   if (!logado) { if (h[0] === 'esqueci') return telaEsqueci(); if (h[0] === 'recuperar') return telaRecuperar(); return telaLogin(setupPendente); }
   const telas = { novo: ['pedido_salvar', () => telaPedidoForm(0)], editar: ['pedido_salvar', () => telaPedidoForm(+h[1])], nota: ['pedido', () => telaNota(+h[1])],
-    orcamentos: ['orcamentos', () => telaOrcamentos()], 'orcamento-novo': ['orcamento_salvar', () => telaPedidoForm(0, 'orcamento')], 'orcamento-editar': ['orcamento_salvar', () => telaPedidoForm(+h[1], 'orcamento')],
+    orcamentos: ['orcamentos', () => telaOrcamentos()], 'orcamento-novo': ['orcamento_salvar', () => telaPedidoForm(0, 'orcamento')], 'orcamento-ver': ['orcamento', () => telaOrcamentoVer(+h[1])], 'orcamento-editar': ['orcamento_salvar', () => telaPedidoForm(+h[1], 'orcamento')],
     estoque: ['produto_salvar', () => telaEstoque()], ajustes: ['ajustes', () => telaAjustes()], historico: ['historico', () => telaHistorico()], usuarios: ['usuarios', () => telaUsuarios()],
     categorias: ['categorias', () => telaCategorias()], categoria: ['categorias', () => telaCategoria(+h[1])], clientes: ['clientes', () => telaClientes()], cliente: ['cliente', () => telaCliente(+h[1])],
     relatorios: ['relatorios', () => telaRelatorios()], calculadora: ['parametros_salvar', () => telaCalculadora()] };

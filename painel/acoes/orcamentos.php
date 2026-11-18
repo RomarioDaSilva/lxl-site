@@ -55,7 +55,7 @@ case 'orcamento_salvar': {
     $desc = max(0, num($in['desconto'] ?? 0)); $frete = max(0, num($in['frete'] ?? 0));
     $total = max(0, round($sub - $desc + $frete, 2));
     $data = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['data'] ?? '')) ? $in['data'] : date('Y-m-d');
-    $val = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['validade'] ?? '')) ? $in['validade'] : '';
+    $val = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($in['validade'] ?? '')) ? $in['validade'] : date('Y-m-d', strtotime($data . ' +15 days'));   /* sem validade: 15 dias */
     $campos = [$data, $val, $cliente, $clienteId, preg_replace('/[^\d+() -]/', '', txt($in['whatsapp'] ?? '', 30)),
         in_array($in['entrega'] ?? '', ['Retirada', 'Entrega'], true) ? $in['entrega'] : 'Retirada', txt($in['endereco'] ?? '', 255), txt($in['prazo'] ?? '', 60),
         txt($in['obs'] ?? '', 1000), $desc, $frete, $total];
@@ -99,7 +99,7 @@ case 'orcamento_gerar_pedido': {
     $id = (int)($in['id'] ?? 0);
     $s = $db->prepare('SELECT * FROM orcamentos WHERE id = ?'); $s->execute([$id]); $o = $s->fetch();
     if (!$o) fail('Orçamento não encontrado.', 404);
-    if ($o['status'] === 'aprovado' || !empty($o['pedido_id'])) fail('Esse orçamento já virou o pedido #' . str_pad((string)$o['pedido_id'], 4, '0', STR_PAD_LEFT) . '.');
+    if ($o['status'] === 'aprovado' || !empty($o['pedido_id'])) fail('Esse orçamento já virou o pedido PED-' . str_pad((string)$o['pedido_id'], 4, '0', STR_PAD_LEFT) . '.');
     $itens = itensDoOrcamento($id);
     if (!$itens) fail('O orçamento está sem itens.');
     $sinal = min(max(0, num($in['sinal'] ?? 0)), (float)$o['total']);

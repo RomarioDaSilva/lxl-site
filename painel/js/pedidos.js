@@ -13,7 +13,7 @@ async function telaPedidos() {
   const chips = [['abertos', 'Em aberto'], ['todos', 'Todos'], ['entregue', 'Entregues'], ['cancelado', 'Cancelados']]
     .map(([k, t]) => '<button class="chip ' + (filtro === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('');
   const lista = j.pedidos.length ? j.pedidos.map(p =>
-    '<div class="card ped"><a class="ped" href="#/nota/' + p.id + '"><div class="pl"><div><div class="pn">#' + numPed(p.id) + ' &middot; ' + esc(p.cliente) + '</div>' +
+    '<div class="card ped"><a class="ped" href="#/nota/' + p.id + '"><div class="pl"><div><div class="pn">PED-' + numPed(p.id) + ' &middot; ' + esc(p.cliente) + '</div>' +
     '<div class="ps">' + esc(dataBR(p.data)) + ' &middot; ' + esc(p.resumo) + '</div></div><div class="pt">' + brl(p.total) + '</div></div></a>' +
     '<div class="acoes"><span class="pill ' + p.status + '">' + STATUS[p.status] + '</span>' +
     '<span class="pill ' + (p.pago ? 'pago' : 'apagar') + '">' + (p.pago ? 'Pago' : p.pago_valor > 0 ? 'Falta ' + brl(p.saldo) : 'A receber') + '</span>' +
@@ -34,7 +34,7 @@ async function telaPedidos() {
 /* Janela "Recebi": registra o valor que o cliente pagou agora (sinal ou saldo). O padrão já vem com o que falta. */
 function receberModal(p, depois) {
   const m = modal('<h2>Recebi pagamento <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
-    '<p class="mut">Pedido #' + numPed(p.id) + ' &middot; ' + esc(p.cliente) + '<br>Total ' + brl(p.total) + ' &middot; já pago ' + brl(p.pago_valor) + ' &middot; <b>falta ' + brl(p.saldo) + '</b></p>' +
+    '<p class="mut">Pedido PED-' + numPed(p.id) + ' &middot; ' + esc(p.cliente) + '<br>Total ' + brl(p.total) + ' &middot; já pago ' + brl(p.pago_valor) + ' &middot; <b>falta ' + brl(p.saldo) + '</b></p>' +
     '<label>Quanto o cliente pagou agora (R$)</label><input type="text" inputmode="decimal" id="rv" value="' + fmtIn(p.saldo) + '">' +
     '<div class="acoes"><button class="btn" id="rok" type="button">Registrar</button><button class="btn l" id="rtudo" type="button">Recebi tudo</button></div>');
   const enviar = async v => { try { const j = await api('pedido_receber', { id: p.id, valor: v }); m.fechar(); produtos = null; toast(j.pago ? 'Pago por completo.' : 'Registrado. Falta ' + brl(j.saldo) + '.'); if (depois) depois(); } catch (e) { toast(e.message); } };
@@ -55,28 +55,32 @@ const acharCliente = (nome, tel) => {
 };
 const bol = hex => '<span class="bol" style="background:' + esc(hex) + '"></span>';
 let catalogo = null;
+const CATALOGOS = ['natal', 'religioso'];   /* pastas dos catálogos do site (catálogo novo: acrescente a pasta aqui) */
 async function carregarCatalogo() {
   if (catalogo) return catalogo;
   catalogo = { porCodigo: {}, secoes: [] };
-  try {
-    const d = await (await fetch('../natal/busca-indice.json', { cache: 'no-store' })).json();
-    d.forEach(x => {
-      const c = String(x.sku || '').toUpperCase();
-      catalogo.porCodigo[c] = { secao: x.secao || '' };
-      if (x.secao && !catalogo.secoes.includes(x.secao)) catalogo.secoes.push(x.secao);
-    });
-  } catch (e) { /* sem catálogo: painel funciona sem fotos e sem seções */ }
+  for (const pasta of CATALOGOS) {
+    try {
+      const d = await (await fetch('../' + pasta + '/busca-indice.json', { cache: 'no-store' })).json();
+      d.forEach(x => {
+        const c = String(x.sku || '').toUpperCase();
+        catalogo.porCodigo[c] = { secao: x.secao || '', pasta };
+        if (x.secao && !catalogo.secoes.includes(x.secao)) catalogo.secoes.push(x.secao);
+      });
+    } catch (e) { /* catálogo fora do ar: o painel funciona sem as fotos e seções dele */ }
+  }
   return catalogo;
 }
 const secaoDe = p => (catalogo && catalogo.porCodigo[p.codigo]) ? catalogo.porCodigo[p.codigo].secao : '';
 function thumb(p) {
   if (!catalogo || !catalogo.porCodigo[p.codigo]) return '<span class="th sem">&#128230;</span>';
-  return '<img class="th" loading="lazy" decoding="async" alt="" data-c="' + esc(p.codigo) + '" src="/natal/imagens/mini/' + encodeURIComponent(p.codigo) + '.jpg">';
+  const pasta = catalogo.porCodigo[p.codigo].pasta;
+  return '<img class="th" loading="lazy" decoding="async" alt="" data-c="' + esc(p.codigo) + '" data-p="' + esc(pasta) + '" src="../' + pasta + '/imagens/mini/' + encodeURIComponent(p.codigo) + '.jpg">';
 }
 document.addEventListener('error', e => {
   const i = e.target;
   if (!i || i.tagName !== 'IMG' || !i.classList.contains('th')) return;
-  if (!i.dataset.tent) { i.dataset.tent = '1'; i.src = '/natal/imagens/' + encodeURIComponent(i.dataset.c) + '.jpg'; }
+  if (!i.dataset.tent) { i.dataset.tent = '1'; i.src = '../' + i.dataset.p + '/imagens/' + encodeURIComponent(i.dataset.c) + '.jpg'; }
   else { const s = document.createElement('span'); s.className = 'th sem'; s.innerHTML = '&#128230;'; i.replaceWith(s); }
 }, true);
 

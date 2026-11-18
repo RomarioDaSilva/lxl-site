@@ -40,4 +40,11 @@ try {
     /* peça ativa sem nenhuma categoria entra com lista vazia (assim o catálogo sabe que ela existe no painel) */
     foreach (db()->query("SELECT p.codigo FROM produtos p WHERE p.ativo = 1 AND p.codigo <> ''")->fetchAll() as $x) if (!isset($cats[$x['codigo']])) $cats[$x['codigo']] = [];
 } catch (Throwable $e) { $categorias = []; $cats = []; }
+/* Apelido: o catálogo em produção ainda usa os códigos antigos (PRE-001...). Repete os dados também sob o código antigo para ele continuar funcionando até a promoção. */
+try {
+    foreach (db()->query("SELECT codigo, codigo_antigo FROM produtos WHERE ativo = 1 AND codigo <> '' AND codigo_antigo <> ''")->fetchAll() as $x) {
+        $n = (string)$x['codigo']; $v = (string)$x['codigo_antigo'];
+        foreach (['itens', 'precos', 'cores', 'cats'] as $k) if (isset($$k[$n])) $$k[$v] = $$k[$n];
+    }
+} catch (Throwable $e) { /* coluna ainda não existe: sem apelidos */ }
 echo json_encode(['itens' => (object)$itens, 'precos' => (object)$precos, 'cores' => (object)$cores, 'categorias' => $categorias, 'cats' => (object)$cats], JSON_UNESCAPED_UNICODE);

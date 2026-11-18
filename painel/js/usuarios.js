@@ -13,7 +13,7 @@ async function telaUsuarios() {
     '<div class="barra"><button class="btn o" id="uNovo" type="button">Convidar usuário</button></div>' +
     (j.convites.length ? '<h2>Convites aguardando</h2>' + j.convites.map(c => '<div class="card"><div class="hh"><b>' + esc(c.email) + '</b><span class="mut">' + esc(j.perfis[c.perfil] || c.perfil) + '</span></div><div class="mut">Vale até ' + esc(c.expira) + '</div><div class="acoes"><button class="btn s l" data-cc="' + c.id + '" type="button">Cancelar convite</button></div></div>').join('') : '') +
     '<h2>Quem tem acesso</h2>' + j.usuarios.map(u => '<div class="card' + (u.ativo ? '' : ' inativo') + '"><div class="hh"><b>' + esc(u.nome || u.usuario) + '</b><span class="pill ' + (u.ativo ? 'pago' : 'cancelado') + '">' + (u.ativo ? 'Ativo' : 'Desativado') + '</span></div>' +
-      '<div class="mut">Login: ' + esc(u.usuario) + (u.email ? ' &middot; ' + esc(u.email) : ' &middot; sem e-mail') + '<br>Acesso: ' + esc(j.perfis[u.perfil] || u.perfil) + '</div>' +
+      '<div class="mut">' + esc(u.codigo) + ' &middot; Login: ' + esc(u.usuario) + (u.email ? ' &middot; ' + esc(u.email) : ' &middot; sem e-mail') + '<br>Acesso: ' + esc(j.perfis[u.perfil] || u.perfil) + '</div>' +
       '<div class="acoes"><button class="btn s l" data-ed="' + u.id + '" type="button">Editar</button><button class="btn s l" data-ls="' + u.id + '" type="button">Link de senha nova</button></div></div>').join('');
   $('#uNovo').onclick = () => {
     const m = modal('<h2>Convidar usuário <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
