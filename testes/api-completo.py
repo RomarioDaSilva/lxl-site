@@ -25,7 +25,7 @@ def nomes(cod):
     return [ (cats[i if isinstance(i,int) else i.get('id')]['nome']) for i in ids if (i if isinstance(i,int) else i.get('id')) in cats]
 ok('Imagens' in nomes('0054') and 'Natal' not in nomes('0054'),'0054 cai em Religioso > Imagens, não em Natal')
 ok('Presépios' in nomes('0001'),'0001 continua em Presépios')
-ok('Patch' in nomes('0055') and 'Natal' not in nomes('0055'),'0055 cai em Chaveiros > Patch')
+ok('Pet' in nomes('0055') and 'Natal' not in nomes('0055'),'0055 cai em Chaveiros > Pet')
 ok('Heróis' in nomes('0056'),'0056 cai em Chaveiros > Heróis')
 ok('Pet' in nomes('0057') and 'Pet' in nomes('0058') and 'Pet' in nomes('0059') and 'Academia' in nomes('0060'),'Pet e Academia ok')
 lk={x['codigo']:x.get('link','') for x in j['produtos']}

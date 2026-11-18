@@ -16,7 +16,6 @@ const CONFIG = {
 /* Seções na ordem em que aparecem. Só aparecem as que tiverem produtos.
    "categoria" = subcategoria de Chaveiros no painel (o nome precisa ser igual). Seção nova: copie uma linha, troque id, categoria, titulo e sub. */
 const SECOES = [
-  {id:"patch", categoria:"Patch", titulo:"Patch", sub:"Chaveiros articulados e divertidos para levar para todo lugar."},
   {id:"pet", categoria:"Pet", titulo:"Pet", sub:"Bichinhos articulados para quem ama animais."},
   {id:"herois", categoria:"Heróis", titulo:"Heróis", sub:"Mini heróis para colecionar, enfeitar a mesa ou levar no chaveiro."},
   {id:"academia", categoria:"Academia", titulo:"Academia", sub:"Para quem vive a rotina de treino: kettlebell, halteres e mais."}
@@ -25,7 +24,7 @@ const SECOES = [
 /* Produtos. A foto é imagens/CODIGO.jpg (ex.: imagens/0055.jpg). O código é o próximo número livre da sequência única 0001, 0002... (compartilhada com os outros catálogos).
    preco: deixe de fora para mostrar "Consulte o valor". entrega: "Pronta entrega" ou "Sob encomenda". */
 const PRODUTOS = [
-  {sku:"0055", secao:"patch", nome:"Crocodilo Articulado", desc:"Chaveiro de crocodilo articulado em PLA verde, com o corpo em gomos que se mexe e olhinhos pretos. Leve, divertido e ótimo para presentear.", cor:"Verde", preco:3.90, entrega:"Pronta entrega"},
+  {sku:"0055", secao:"pet", nome:"Crocodilo Articulado", desc:"Chaveiro de crocodilo articulado em PLA verde, com o corpo em gomos que se mexe e olhinhos pretos. Leve, divertido e ótimo para presentear.", cor:"Verde", preco:3.90, entrega:"Pronta entrega"},
   {sku:"0056", secao:"herois", nome:"Mini Batman", desc:"Mini Batman em estilo fofinho, impresso em PLA preto, com capa e detalhes no peito e no cinto. Para colecionar, enfeitar a mesa ou presentear.", cor:"Preto", preco:2.90, entrega:"Pronta entrega"},
   {sku:"0057", secao:"pet", nome:"Gato Articulado", desc:"Chaveiro de gatinho articulado em PLA vermelho, com o corpo em gomos que se mexe e rabinho curvado. Leve, divertido e perfeito para quem ama gatos.", cor:"Vermelho", preco:2.90, entrega:"Pronta entrega"},
   {sku:"0058", secao:"pet", nome:"Cachorro Salsicha Articulado", desc:"Chaveiro de cachorrinho salsicha (dachshund) articulado, com o corpo em gomos que se mexe, orelhas caídas e focinho preto. Leve, divertido e ótimo para quem ama pets.", cor:"Cinza e preto", preco:7.90, entrega:"Pronta entrega"},
