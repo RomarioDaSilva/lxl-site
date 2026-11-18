@@ -12,6 +12,7 @@
   /* Arredonda para cima até terminar em ,90 (ex.: 11,52 -> 11,90). Nunca fica abaixo do valor pedido. */
   function paraCima90(x) {
     if (!(x > 0)) return 0;
+    x = Math.round(x * 1e6) / 1e6;   // tira o "ruído" de decimais do computador (16.000000000000004 virava 16,90)
     var s = Math.ceil(x) - 0.1;
     if (s < x - 1e-9) s = Math.ceil(x);
     return Math.round(s * 100) / 100;

@@ -87,3 +87,19 @@ function quadro(ativo, corpo) {
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
 }
 
+
+/* ---------- rótulos ligados aos campos (acessibilidade) ----------
+   As telas são montadas em texto, com o <label> logo antes (ou depois, no caso de caixa de marcar) do campo.
+   Esta função liga cada rótulo ao seu campo (for/id) sempre que a tela muda: assim leitor de tela entende e tocar no texto foca o campo. */
+let contaRotulo = 0, rotuloAgendado = false;
+function ligarRotulos() {
+  rotuloAgendado = false;
+  document.querySelectorAll('label:not([for])').forEach(l => {
+    if (l.querySelector('input,select,textarea')) return;   /* rótulo que já envolve o campo */
+    const campo = [l.nextElementSibling, l.previousElementSibling].find(x => x && x.matches && x.matches('input,select,textarea'));
+    if (!campo) return;
+    if (!campo.id) campo.id = 'campo' + (++contaRotulo);
+    l.htmlFor = campo.id;
+  });
+}
+new MutationObserver(() => { if (!rotuloAgendado) { rotuloAgendado = true; requestAnimationFrame(ligarRotulos); } }).observe(document.body, { childList: true, subtree: true });

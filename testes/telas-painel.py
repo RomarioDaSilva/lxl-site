@@ -1,8 +1,9 @@
 # Teste automático do painel/site LXL. Veja testes/LEIA-ME.md para rodar.
+import os
 from playwright.sync_api import sync_playwright
 import re
 import os
-P=os.environ.get('LXL_URL','http://127.0.0.1:8166')+'/teste/painel/'
+P=os.environ.get('LXL_URL','http://127.0.0.1:8166')+os.environ.get('LXL_PREFIXO','/teste')+'/painel/'
 def novo(b):
     ctx=b.new_context(viewport={'width':420,'height':900}); pg=ctx.new_page(); pg.set_default_timeout(8000)
     pg.errs=[]; pg.on('pageerror',lambda e:pg.errs.append(str(e))); pg.on('console',lambda m: m.type=='error' and 'Failed to load resource' not in m.text and pg.errs.append(m.text))
@@ -16,6 +17,9 @@ with sync_playwright() as p:
     pg.evaluate("""async()=>{await api('cliente_salvar',{nome:'Maria Souza',telefone:'38999990000'});await api('produto_salvar',{nome:'Bola azul',codigo:'ARV-9',preco:20,controla:1,estoque:5,ativo:1});}""")
     # orcamento novo
     pg.goto(P+'#/orcamento-novo'); pg.wait_for_timeout(800); print('titulo:',pg.inner_text('h1'))
+    soltos=pg.evaluate("[...document.querySelectorAll('label:not([for])')].filter(l=>!l.querySelector('input,select,textarea')&&[l.nextElementSibling,l.previousElementSibling].some(x=>x&&x.matches&&x.matches('input,select,textarea'))).length")
+    print('rotulos sem ligacao:',soltos)
+    if soltos: pg.errs.append('rotulos sem for/id: %d'%soltos)
     print('tem sinal?',pg.query_selector('#pago_valor') is not None,'tem validade?',pg.query_selector('#validade') is not None)
     pg.screenshot(path='/tmp/orc_form.png',full_page=True)
     pg.click('#avulso'); pg.wait_for_timeout(300)
@@ -50,3 +54,5 @@ with sync_playwright() as p:
     pg3.goto(P+'#/senha/abc'); pg3.wait_for_timeout(800); print('token ruim:',pg3.inner_text('h1'),'|',pg3.inner_text('.login p'))
     for x in (pg,pg2,pg3): print('ERROS',x.errs)
     b.close()
+    import sys
+    if any(x.errs for x in (pg,pg2,pg3)): sys.exit(1)

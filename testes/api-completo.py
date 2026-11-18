@@ -1,7 +1,7 @@
 # Teste automático do painel/site LXL. Veja testes/LEIA-ME.md para rodar.
 import requests, json, re
 import os
-B=os.environ.get('LXL_URL','http://127.0.0.1:8166')+'/teste/painel/api.php'
+B=os.environ.get('LXL_URL','http://127.0.0.1:8166')+os.environ.get('LXL_PREFIXO','/teste')+'/painel/api.php'
 def S(): 
     s=requests.Session(); s.csrf=''; return s
 def call(s,a,body=None,q=''):
@@ -9,7 +9,11 @@ def call(s,a,body=None,q=''):
     r=s.post(B+'?a='+a+q,json=body,headers=h) if body is not None else s.get(B+'?a='+a+q,headers=h)
     try: return r.status_code, r.json()
     except Exception: return r.status_code, r.text[:300]
-ok=lambda c,m: print(('OK   ' if c else 'FALHA'),m)
+import sys
+FALHAS=[]
+def ok(c,m):
+    print(('OK   ' if c else 'FALHA'),m)
+    if not c: FALHAS.append(m)
 adm=S(); st,j=call(adm,'estado'); adm.csrf=j['csrf']
 st,j=call(adm,'setup',{'codigo':'segredo123','usuario':'romas','senha':'senha12345'}); adm.csrf=j['csrf']
 st,j=call(adm,'estado'); ok(j['perfil']=='admin' and j['permitidas'] is None,'estado admin')
@@ -82,3 +86,6 @@ z=S(); st,j=call(z,'estado'); z.csrf=j['csrf']; st,j=call(z,'login',{'usuario':'
 z.csrf=j['csrf']
 st,j=call(z,'historico'); print([ (i['acao'],i['alvo'][:30]) for i in j['itens']][:12])
 st,j=call(z,'backup'); ok('orcamentos' in j['tabelas'] and 'usuarios' not in j['tabelas'] and 'tokens' not in j['tabelas'],'backup com orcamentos e sem usuarios')
+
+if FALHAS:
+    print('FALHARAM:',FALHAS); sys.exit(1)

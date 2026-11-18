@@ -14,12 +14,13 @@ Como o site está organizado, para quando precisar mexer à mão.
 - `painel/`: sistema de pedidos, orçamentos, estoque, clientes, categorias, relatórios, calculadora, usuários e ajustes.
   - `api.php` é só o roteador. Cada assunto tem o seu arquivo em `acoes/`: `acesso` (entrar, esqueci a senha, convite, plano B), `ajustes` (backup, histórico, e-mail), `usuarios`, `estoque`, `relatorios`, `clientes`, `categorias`, `pedidos`, `orcamentos`.
     Para achar uma ação (ex.: `pedido_receber`), procure o nome dela dentro de `acoes/`.
-  - `bd.php` (tabelas), `sessao.php` (login e **perfis de acesso**), `dados.php` (funções de leitura), `seguranca.php` (histórico e avisos por e-mail), `backup.php`, `lib.php` (conexão).
-  - `js/` (telas, uma por assunto: `pedidos`, `orcamentos`, `clientes`, `estoque`, `categorias`, `usuarios`, `ajustes`, `acesso`...). `index.html` carrega todos na ordem. `app.css` (visual), `calc.js` (fórmula de custo).
+  - `bd.php` (tabelas e registro de mudanças do banco), `sessao.php` (login e **perfis de acesso**), `dados.php` (funções de leitura), `seguranca.php` (histórico e avisos por e-mail), `backup.php`, `lib.php` (conexão).
+  - `js/` (telas, uma por assunto: `pedidos`, `pedido-form`, `nota`, `orcamentos`, `clientes`, `estoque`, `categorias`, `usuarios`, `ajustes`, `acesso`...). `index.html` carrega todos na ordem. `app.css` (visual), `calc.js` (fórmula de custo).
   - `estoque.php` (dados públicos do estoque para o catálogo), `track.php` e `medir.js` (contador de visitas).
   - A senha do banco NÃO fica aqui: fica em `lxl-config.php`, um nível acima do `public_html` (modelo em `painel/config.example.php`).
 - `empresa.js`: **dados da empresa** (WhatsApp, Instagram, site, cidade) num lugar só. A home, o catálogo, o FAQ e a notinha do painel leem dele.
-- `testes/`: testes automáticos (`sh testes/rodar.sh`). `scripts/google-producao.sh`: libera o Google na hora de subir para produção.
+- `testes/`: testes automáticos (`sh testes/rodar.sh`). Também rodam sozinhos no GitHub a cada envio (`.github/workflows/testes.yml`): um X vermelho no commit quer dizer que algo quebrou.
+- `scripts/`: `promover.sh` (sobe teste para produção sem esquecer nada), `atualizar-versoes.py` (números `?v=` automáticos) e `google-producao.sh`.
 - `teste/`: cópia de tudo para testar antes. Nada novo vai direto para produção.
 - `analytics.js`: Google Analytics (cole o ID `G-...` na variável `GA_ID`).
 
@@ -35,9 +36,9 @@ Como o site está organizado, para quando precisar mexer à mão.
 
 ## Regras de ouro
 1. Edite primeiro em `teste/`. Só depois copie para produção.
-2. Quando copiar da pasta `teste/` para a raiz, copie também os arquivos `.css` e `.js` de cada página, e troque `/teste/` por `/` nos endereços.
+2. Para subir, use `sh scripts/promover.sh` (mostra o que vai mudar) e depois `sh scripts/promover.sh --valendo` (copia, troca `/teste/` por `/`, atualiza versões e confere). Nunca apaga arquivos da produção: ele só lista os que sobraram.
 3. Custos e margens nunca entram neste repositório (ele é público). Eles ficam só no banco, pelo painel.
-4. Arquivos com `?v=NN` no final (ex.: `js/pedidos.js?v=1`): ao editar o arquivo à mão, aumente o número para o navegador baixar a versão nova.
+4. Os números `?v=...` no final dos arquivos `.css` e `.js` são automáticos: depois de editar um arquivo à mão, rode `python3 scripts/atualizar-versoes.py` (a rotina do GitHub avisa se esquecer).
 5. O mesmo banco serve ao painel de teste e ao de produção.
 
 ## Site e painel separados
@@ -59,3 +60,15 @@ Como o site está organizado, para quando precisar mexer à mão.
 - `/teste/` é sempre `noindex` e bloqueado no `robots.txt`.
 - As páginas públicas já têm título, descrição, canonical e dados do negócio. Na promoção, rode `sh scripts/google-producao.sh` na raiz: tira o `noindex` das 3 páginas públicas, cria o `sitemap.xml` e libera o `robots.txt`. As páginas `/natal/p/CODIGO/` (prévia do WhatsApp) ficam `noindex` de propósito.
 - Depois de publicar, envie o sitemap no Google Search Console.
+
+## Banco de dados: como mudar
+- As tabelas se criam sozinhas. Para uma **coluna nova**, acrescente `[tabela, coluna, tipo]` na lista em `painel/bd.php`. Para qualquer outra mudança, use `MIGRACOES_SQL` no mesmo arquivo.
+- A tabela `migracoes` registra o que já foi aplicado e quando, então cada mudança roda uma vez só.
+
+## Acessibilidade dos formulários
+- As telas do painel são montadas em texto. A função `ligarRotulos` (em `js/base.js`) liga sozinha cada `<label>` ao seu campo (`for`/`id`). O teste `telas-painel.py` falha se sobrar rótulo solto.
+
+## Limites conhecidos (de propósito, por simplicidade)
+- Os arquivos de `js/` compartilham variáveis (sem módulos). Funciona e é simples de editar à mão; se o painel crescer muito, o próximo passo é migrar para módulos.
+- As telas são montadas em texto dentro do JS. Se um dia houver redesenho completo, os arquivos `js/*.js` e as classes do `app.css` são o ponto de partida.
+- Os testes são de fumaça e de regras principais (API, telas, cálculos). Não cobrem cada detalhe visual.

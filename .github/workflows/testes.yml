@@ -1,0 +1,27 @@
+# Roda os testes automaticamente a cada envio para o GitHub (e em pull requests).
+# Se algo quebrar, aparece um X vermelho no commit. Não publica nada: a Hostinger continua publicando sozinha.
+name: Testes
+on: [push, pull_request]
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar o que os testes precisam
+        run: |
+          pip install requests playwright
+          playwright install --with-deps chromium
+      - name: Conferir sintaxe e versões
+        run: sh testes/conferir.sh
+      - name: Rodar os testes
+        run: sh testes/rodar.sh

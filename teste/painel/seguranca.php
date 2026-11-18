@@ -129,7 +129,7 @@ function enviarAviso(string $assunto, string $texto): bool {
 }
 
 /* ---------- links de convite e de senha ---------- */
-/* Endereço do painel (funciona no /teste/painel e no /painel sem mexer em nada). */
+/* Endereço do painel (funciona na pasta de teste e na de produção sem mexer em nada). */
 function enderecoDoPainel(): string {
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     return ($https ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'lxlprojetos.site') . rtrim(dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/painel/api.php')), '/') . '/';
