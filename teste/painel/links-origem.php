@@ -61,4 +61,5 @@ return [
     '0057' => 'https://makerworld.com/pt/models/1905366-flexi-cat-keychain#profileId-2042594',
     '0058' => 'https://makerworld.com/pt/models/2789254-flexi-dachshund-keychain#profileId-3101209',
     '0059' => 'https://makerworld.com/pt/models/2671200-skully-articulated-flexi-skeleton-shark-keychain#profileId-2956572',
+    '0060' => 'https://makerworld.com/pt/models/448490-keychain-v2-gym-customizable-text#profileId-355289',
 ];
