@@ -198,3 +198,5 @@ a.chip{text-decoration:none;color:inherit}
 .resumo .card{margin:0;padding:10px 12px}.resumo small{display:block;color:var(--mut)}.resumo b{font-size:18px}
 .card.inativo{opacity:.6}
 .logl{text-align:center;margin:10px 0 0;font-size:14px}
+
+.linha-link{display:flex;gap:8px;align-items:center}.linha-link input{flex:1;min-width:0}.linha-link .btn{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;text-decoration:none;touch-action:manipulation}

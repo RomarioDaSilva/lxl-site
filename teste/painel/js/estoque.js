@@ -47,7 +47,7 @@ async function telaEstoque() {
 
 /* p = item a editar (ou null para novo). catsIniciais = categorias já marcadas num item novo. depois = o que fazer ao salvar (padrão: voltar ao Estoque). */
 function formProduto(p, catsIniciais, depois) {
-  const n = p || { categorias: catsIniciais || [], id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '', usa_cores: 0, cores: [], peso_g: 0, tempo_min: 0, material: 'PLA', perda_pct: 10, extras: 0, embalagem: 0.8, custo: 0, preco_kg: 0 };
+  const n = p || { categorias: catsIniciais || [], id: 0, codigo: '', nome: '', preco: 0, controla: 1, estoque: 0, ativo: 1, obs: '', link: '', usa_cores: 0, cores: [], peso_g: 0, tempo_min: 0, material: 'PLA', perda_pct: 10, extras: 0, embalagem: 0.8, custo: 0, preco_kg: 0 };
   const qs = {}; n.cores.forEach(c => { qs[c.cor_id] = c.qtd; });
   const existiam = new Set(n.cores.map(c => c.cor_id));
   const m = modal('<h2>' + (p ? 'Editar produto' : 'Novo produto') + ' <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
@@ -60,6 +60,7 @@ function formProduto(p, catsIniciais, depois) {
     '<p id="eh" class="mut" style="font-size:13px;margin:6px 0 0">Para informar a quantidade em estoque, escolha "Pronta entrega" no tipo.</p>' +
     '<label>Categorias</label><div id="pcats" class="pcats"></div><div class="acoes"><button class="btn s l" id="pcEsc" type="button">Escolher categorias</button></div>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
+    '<label for="link">Link do modelo (MakerWorld)</label><div class="linha-link"><input type="text" id="link" inputmode="url" autocomplete="off" value="' + esc(n.link) + '" placeholder="cole o link para abrir depois e baixar o 3MF"><a class="btn s" id="linkAbrir" target="_blank" rel="noopener noreferrer"' + (n.link ? ' href="' + esc(n.link) + '"' : ' hidden') + '>Abrir link</a></div>' +
     '<button type="button" class="acord" id="acBtn" aria-expanded="false"><span>Custo</span><span class="seta">&#9662;</span></button>' +
     '<div id="acBox" class="acbox" hidden>' +
     '<div class="l2"><div><label>Peso (g)</label><input type="text" inputmode="decimal" id="cPeso" value="' + fmtIn(n.peso_g) + '"></div>' +
@@ -124,6 +125,8 @@ function formProduto(p, catsIniciais, depois) {
   };
   let escolhidas = (n.categorias || []).filter(catPorId);
   const dcat = () => { $('#pcats', m).innerHTML = escolhidas.filter(catPorId).length ? escolhidas.filter(catPorId).map(id => '<span class="chipc">' + esc(catCaminho(id)) + '</span>').join('') : '<span class="mut" style="font-size:13px">Sem categoria. Escolha onde o item vai aparecer no site.</span>'; };
+  /* botão "Abrir link" acompanha o que está digitado no campo */
+  $('#link', m).oninput = () => { const v = $('#link', m).value.trim(), a = $('#linkAbrir', m), ok = /^https?:\/\/\S+$/i.test(v); a.hidden = !ok; if (ok) a.href = v; };
   $('#pcEsc', m).onclick = () => escolherCategorias(escolhidas, l => { escolhidas = l; dcat(); });
   dcat();
   const eb = () => { const c = $('#controla', m).value === '1'; $('#eb', m).style.display = c ? '' : 'none'; $('#eh', m).style.display = c ? 'none' : ''; };
@@ -139,7 +142,7 @@ function formProduto(p, catsIniciais, depois) {
     const usa = $('#controla', m).value === '1' && $('#usaCores', m).checked;
     if (usa && soma() !== total()) return toast('As cores somam ' + soma() + ', mas o estoque total é ' + total() + '. Ajuste para ficarem iguais.');
     try {
-      await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: total(), ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value,
+      await api('produto_salvar', { id: n.id, nome: $('#nome', m).value, codigo: $('#codigo', m).value, preco: parseNum($('#preco', m).value), controla: +$('#controla', m).value, estoque: total(), ativo: $('#ativo', m).checked ? 1 : 0, obs: $('#obs', m).value, link: $('#link', m).value.trim(),
         peso_g: parseNum($('#cPeso', m).value) || 0, tempo_min: Math.round((parseNum($('#cTempo', m).value) || 0) * 60), material: $('#cMat', m).value,
         preco_kg: parseNum($('#cKg', m).value) || 0, perda_pct: parseNum($('#cPerda', m).value) || 0, extras: parseNum($('#cExtra', m).value) || 0, embalagem: parseNum($('#cEmb', m).value) || 0, custo: Math.round(calcCusto().tot * 100) / 100,
         categorias: escolhidas, usa_cores: usa ? 1 : 0, cores: usa ? coresLista.filter(c => qs[c.id] > 0 || existiam.has(c.id)).map(c => ({ cor_id: c.id, qtd: qs[c.id] || 0 })) : [] });

@@ -28,6 +28,13 @@ ok('Presépios' in nomes('0001'),'0001 continua em Presépios')
 ok('Patch' in nomes('0055') and 'Natal' not in nomes('0055'),'0055 cai em Chaveiros > Patch')
 ok('Heróis' in nomes('0056'),'0056 cai em Chaveiros > Heróis')
 ok('Pet' in nomes('0057'),'0057 cai em Chaveiros > Pet')
+lk={x['codigo']:x.get('link','') for x in j['produtos']}
+ok(lk['0055'].startswith('https://makerworld.com/pt/models/2783835') and lk['0057'].endswith('#profileId-2042594'),'importar já traz o link do MakerWorld')
+pid55=[x for x in j['produtos'] if x['codigo']=='0055'][0]['id']
+st,j3=call(adm,'produto_salvar',{'id':pid55,'nome':'Crocodilo Articulado','codigo':'0055','preco':3.9,'ativo':1,'link':'javascript:alert(1)'}); st,j3=call(adm,'produtos')
+ok([x for x in j3['produtos'] if x['codigo']=='0055'][0]['link']=='','link que não é http/https é recusado')
+st,j3=call(adm,'produto_salvar',{'id':pid55,'nome':'Crocodilo Articulado','codigo':'0055','preco':3.9,'ativo':1,'link':'https://makerworld.com/pt/models/1-x'}); st,j3=call(adm,'produtos')
+ok([x for x in j3['produtos'] if x['codigo']=='0055'][0]['link']=='https://makerworld.com/pt/models/1-x','link salvo no produto')
 id_rel=[x for x in j['produtos'] if x['codigo']=='0054'][0]['id']
 st,j2=call(adm,'produto_excluir',{'id':id_rel}); ok(st==200,'excluir produto sem uso')
 st,j2=call(adm,'produtos'); ok(not [x for x in j2['produtos'] if x['codigo']=='0054'],'produto excluído sumiu da lista')

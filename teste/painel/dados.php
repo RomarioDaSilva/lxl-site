@@ -10,12 +10,17 @@ function num($v): float {
     if (is_string($v)) $v = str_replace(',', '.', $v);
     return is_numeric($v) ? round((float)$v, 2) : 0.0;
 }
+/* Link do modelo: só aceita endereço http ou https (qualquer outra coisa vira vazio). */
+function linkOk($v): string {
+    $v = txt($v, 500);
+    return preg_match('#^https?://[^\s]+$#i', $v) ? $v : '';
+}
 function produtoOut(array $p, array $mapaCores = [], array $mapaCat = []): array {
     $r = [
         'categorias' => $mapaCat[(int)$p['id']] ?? [],
         'id' => (int)$p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'],
         'preco' => (float)$p['preco'], 'controla' => (int)$p['controla'],
-        'estoque' => (int)$p['estoque'], 'ativo' => (int)$p['ativo'], 'obs' => $p['obs'],
+        'estoque' => (int)$p['estoque'], 'ativo' => (int)$p['ativo'], 'obs' => $p['obs'], 'link' => (string)($p['link'] ?? ''),
         'usa_cores' => (int)($p['usa_cores'] ?? 0),
         'cores' => $mapaCores[(int)$p['id']] ?? [],
         'peso_g' => (float)($p['peso_g'] ?? 0), 'tempo_min' => (int)($p['tempo_min'] ?? 0), 'material' => $p['material'] ?? 'PLA',

@@ -15,6 +15,11 @@ with sync_playwright() as p:
     print('menu:',pg.inner_text('.menu').replace('\n',' | '))
     # cliente + peca via API pela pagina
     pg.evaluate("""async()=>{await api('cliente_salvar',{nome:'Maria Souza',telefone:'38999990000'});await api('produto_salvar',{nome:'Bola azul',codigo:'ARV-9',preco:20,controla:1,estoque:5,ativo:1});}""")
+    # produto: campo de link e botão "Abrir link" no editar
+    pg.goto(P+'#/estoque'); pg.wait_for_timeout(800); pg.click('.prod .nm'); pg.wait_for_timeout(500)
+    print('link: campo', pg.query_selector('#link') is not None, 'botão escondido sem link', pg.is_hidden('#linkAbrir'))
+    pg.fill('#link','https://makerworld.com/pt/models/1-x'); print('botão aparece com link', pg.is_visible('#linkAbrir'), pg.get_attribute('#linkAbrir','href'))
+    pg.screenshot(path='/tmp/produto-link.png'); pg.keyboard.press('Escape'); pg.wait_for_timeout(300)
     # orcamento novo
     pg.goto(P+'#/orcamento-novo'); pg.wait_for_timeout(800); print('titulo:',pg.inner_text('h1'))
     soltos=pg.evaluate("[...document.querySelectorAll('label:not([for])')].filter(l=>!l.querySelector('input,select,textarea')&&[l.nextElementSibling,l.previousElementSibling].some(x=>x&&x.matches&&x.matches('input,select,textarea'))).length")
