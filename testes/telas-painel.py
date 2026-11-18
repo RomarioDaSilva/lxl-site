@@ -31,7 +31,7 @@ with sync_playwright() as p:
     pg.screenshot(path='/tmp/orc_lista.png',full_page=True)
     pg.click('text=Ver orçamento'); pg.wait_for_timeout(1200); print('ver orcamento:',pg.inner_text('.nota .tit').replace('\n',' '),'| msg:',pg.input_value('#msg')[:60].replace('\n',' / '),'| wa:',pg.get_attribute('#wa','href')[:40])
     pg.screenshot(path='/tmp/orc_ver.png',full_page=True)
-    with pg.expect_download(timeout=15000) as dl: pg.click('[data-img=png]')
+    with pg.expect_download(timeout=15000) as dl: pg.click('#png')
     print('download imagem:',dl.value.suggested_filename)
     pg.goto(P+'#/orcamentos'); pg.wait_for_timeout(800)
     pg.click('[data-ger]'); pg.wait_for_timeout(300); pg.fill('#gs','15'); pg.click('#gok'); pg.wait_for_timeout(1000)

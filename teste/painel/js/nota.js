@@ -53,7 +53,6 @@ function ligarImagemNota(nomeArq, titulo) {
     try { const b = await gerar(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = nomeArq; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
     catch (e) { toast('Não consegui gerar a imagem.'); }
   };
-  document.querySelectorAll('[data-img]').forEach(b => b.addEventListener('click', () => $('#' + b.dataset.img).click()));   /* botões repetidos embaixo da nota */
   $('#cmp').onclick = async () => {
     try {
       const b = await gerar(); const f = new File([b], nomeArq, { type: 'image/png' });
