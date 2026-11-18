@@ -132,7 +132,7 @@ function produtoPorId(int $id): ?array {
     return $p ? produtoOut($p, mapaDeCores(), mapaDeCategorias()) : null;
 }
 function clienteOut(array $c): array {
-    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%03d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
+    return ['id' => (int)$c['id'], 'codigo' => 'CLI-' . sprintf('%04d', (int)$c['id']), 'nome' => $c['nome'], 'telefone' => $c['telefone'],
             'endereco' => $c['endereco'], 'cidade' => $c['cidade'], 'obs' => $c['obs'],
             'pedidos' => (int)($c['n_pedidos'] ?? 0), 'total' => (float)($c['total_pedidos'] ?? 0), 'ultima' => (string)($c['ultima_compra'] ?? '')];
 }

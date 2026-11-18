@@ -99,7 +99,7 @@ case 'orcamento_gerar_pedido': {
     $id = (int)($in['id'] ?? 0);
     $s = $db->prepare('SELECT * FROM orcamentos WHERE id = ?'); $s->execute([$id]); $o = $s->fetch();
     if (!$o) fail('Orçamento não encontrado.', 404);
-    if ($o['status'] === 'aprovado' || !empty($o['pedido_id'])) fail('Esse orçamento já virou o pedido #' . str_pad((string)$o['pedido_id'], 4, '0', STR_PAD_LEFT) . '.');
+    if ($o['status'] === 'aprovado' || !empty($o['pedido_id'])) fail('Esse orçamento já virou o pedido PED-' . str_pad((string)$o['pedido_id'], 4, '0', STR_PAD_LEFT) . '.');
     $itens = itensDoOrcamento($id);
     if (!$itens) fail('O orçamento está sem itens.');
     $sinal = min(max(0, num($in['sinal'] ?? 0)), (float)$o['total']);

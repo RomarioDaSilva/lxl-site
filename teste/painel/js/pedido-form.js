@@ -22,7 +22,7 @@ async function telaPedidoForm(id, modo) {
   } catch (e) { return toast(e.message); }
   const opt = (arr, v) => arr.map(x => '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
   $('.wrap').innerHTML =
-    '<h1>' + (orc ? (P.id ? 'Editar orçamento #' + numPed(P.id) : 'Novo orçamento') : (P.id ? 'Editar pedido #' + numPed(P.id) : 'Novo pedido')) + '</h1>' +
+    '<h1>' + (orc ? (P.id ? 'Editar orçamento ORC-' + numPed(P.id) : 'Novo orçamento') : (P.id ? 'Editar pedido PED-' + numPed(P.id) : 'Novo pedido')) + '</h1>' +
     (orc ? '<p class="mut">Orçamento não baixa estoque nem entra nas vendas. Quando o cliente aprovar, use o botão "Gerar pedido" na lista de orçamentos.</p>' : '') +
     '<div class="barra"><button class="btn l" id="colar" type="button">Colar pedido do WhatsApp</button></div>' +
     '<div class="card"><h2>Cliente</h2><label>Nome * (digite para buscar ou toque na seta)</label>' +

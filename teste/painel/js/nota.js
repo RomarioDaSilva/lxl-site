@@ -37,7 +37,7 @@ async function telaNota(id) {
   $('#st').onchange = salvarSt; $('#pg').onchange = salvarSt;
   if ($('#rec')) $('#rec').onclick = () => receberModal(p, () => telaNota(id));
   $('#imp').onclick = () => window.print();
-  const nomeArq = 'nota-' + numPed(p.id) + '-' + p.cliente.normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() + '.png';
+  const nomeArq = 'nota-PED-' + numPed(p.id) + '-' + p.cliente.normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() + '.png';
   const gerar = async () => {
     const n = $('#nota');
     const c = await html2canvas(n, { scale: Math.max(2, 1100 / n.offsetWidth), backgroundColor: '#ffffff', useCORS: true });

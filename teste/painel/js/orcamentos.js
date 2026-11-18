@@ -16,7 +16,7 @@ async function telaOrcamentos() {
       return '<div class="card orc"><div class="hh"><b>ORC-' + numPed(o.id) + ' &middot; ' + esc(o.cliente) + '</b><span class="pill ' + (o.status === 'aprovado' ? 'pago' : o.status === 'recusado' ? 'cancelado' : 'apagar') + '">' + STATUS_ORC[o.status] + '</span></div>' +
         '<div class="mut">' + dataBR(o.data) + (o.validade ? ' &middot; válido até ' + dataBR(o.validade) + (venceu ? ' <span class="neg">(venceu)</span>' : '') : '') + '</div>' +
         '<div class="mut">' + esc(o.resumo) + '</div><div class="hh"><b>' + brl(o.total) + '</b><span class="acoes">' +
-        (o.status === 'aprovado' ? '<a class="btn s l" href="#/nota/' + o.pedido_id + '">Ver pedido #' + numPed(o.pedido_id) + '</a>' :
+        (o.status === 'aprovado' ? '<a class="btn s l" href="#/nota/' + o.pedido_id + '">Ver pedido PED-' + numPed(o.pedido_id) + '</a>' :
           '<a class="btn s l" href="#/orcamento-editar/' + o.id + '">Editar</a><button class="btn s" data-ger="' + o.id + '" type="button">Gerar pedido</button>' +
           '<button class="btn s l" data-st="' + o.id + '" data-novo="' + (o.status === 'aberto' ? 'recusado' : 'aberto') + '" type="button">' + (o.status === 'aberto' ? 'Recusar' : 'Reabrir') + '</button>') +
         '</span></div></div>';
