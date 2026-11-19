@@ -7,6 +7,16 @@
   if (!GA_ID) return;
   if (/^\/teste(\/|$)/.test(location.pathname) || location.hostname === "localhost" || location.protocol === "file:") return;
 
+  /* Consentimento (LGPD): se LXL_EMPRESA.anuncios for true, só liga depois que a pessoa aceitar o aviso de cookies (cookies.js). */
+  var E = window.LXL_EMPRESA || {};
+  if (E.anuncios && window.LXL_CONSENT !== "sim") {
+    window.addEventListener("lxl-consent", function () { if (window.LXL_CONSENT === "sim") ligar(); });
+    return;
+  }
+  ligar();
+
+  function ligar() {
+  if (window.__lxlGA) return; window.__lxlGA = 1;
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
   window.gtag = gtag;
@@ -54,4 +64,5 @@
     var d = e.target;
     if (d && d.matches && d.matches("details.q") && d.open) ev("faq_open", { pergunta: txt(d.querySelector("summary")) });
   }, true);
+  }
 })();

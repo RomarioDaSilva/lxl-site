@@ -9,7 +9,7 @@
 # Uso (na raiz do repositório):  sh scripts/google-producao.sh
 set -e
 HOJE=$(date +%Y-%m-%d)
-for f in index.html natal/index.html religioso/index.html chaveiros/index.html faq/index.html; do
+for f in index.html natal/index.html religioso/index.html chaveiros/index.html faq/index.html sobre/index.html privacidade/index.html trocas-e-entregas/index.html; do
   sed -i 's#<meta name="robots" content="noindex,nofollow">##; s#<meta name="robots" content="noindex">##' "$f"
 done
 cat > sitemap.xml <<XML
@@ -20,6 +20,9 @@ cat > sitemap.xml <<XML
   <url><loc>https://lxlprojetos.site/religioso/</loc><lastmod>$HOJE</lastmod><priority>0.8</priority></url>
   <url><loc>https://lxlprojetos.site/chaveiros/</loc><lastmod>$HOJE</lastmod><priority>0.8</priority></url>
   <url><loc>https://lxlprojetos.site/faq/</loc><lastmod>$HOJE</lastmod><priority>0.5</priority></url>
+  <url><loc>https://lxlprojetos.site/sobre/</loc><lastmod>$HOJE</lastmod><priority>0.4</priority></url>
+  <url><loc>https://lxlprojetos.site/trocas-e-entregas/</loc><lastmod>$HOJE</lastmod><priority>0.4</priority></url>
+  <url><loc>https://lxlprojetos.site/privacidade/</loc><lastmod>$HOJE</lastmod><priority>0.3</priority></url>
 </urlset>
 XML
 cat > robots.txt <<'TXT'

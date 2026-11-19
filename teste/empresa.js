@@ -5,5 +5,7 @@ window.LXL_EMPRESA = {
   fone: "(38) 99221-4206",          /* como aparece escrito na notinha */
   instagram: "lxlprojetos",         /* sem o @ */
   site: "lxlprojetos.site",
-  cidade: "Montes Claros, MG"
+  cidade: "Montes Claros, MG",
+  cnpj: "61.741.194/0001-70",       /* MEI */
+  anuncios: false                   /* true = mostra o aviso de cookies e só liga Google Analytics/Pixel depois do "Aceitar" */
 };
