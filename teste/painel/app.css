@@ -230,3 +230,10 @@ a.chip{text-decoration:none;color:inherit}
 .topo button#sair{min-height:40px}
 .topo .voltar{order:-1}
 @media (max-width:760px){.topo{padding:8px 12px}.topo a.logo img{height:30px}}
+
+/* atalhos da tela inicial: quadrados grandes (2 por linha no celular, 3 no computador) */
+.inicio-corpo{max-width:760px}
+.atalhos{grid-template-columns:repeat(2,1fr);gap:12px}
+.atalho{flex-direction:column;justify-content:center;text-align:center;aspect-ratio:1/1;min-height:0;gap:8px;padding:10px;font-size:16px;border-radius:16px}
+.atalho span{font-size:40px;line-height:1}
+@media (min-width:700px){.inicio-corpo{max-width:600px}.atalhos{grid-template-columns:repeat(3,1fr);gap:14px}.atalho{font-size:17px;gap:10px}.atalho span{font-size:44px}.inicio-marca img{width:min(40%,300px)}}
