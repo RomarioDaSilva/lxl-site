@@ -239,3 +239,4 @@ a.chip{text-decoration:none;color:inherit}
 @media (min-width:700px){.inicio-corpo{max-width:600px}.atalhos{grid-template-columns:repeat(3,1fr);gap:14px}.atalho{font-size:17px;gap:10px}.atalho span{font-size:44px}.inicio-marca img{width:min(40%,300px)}}
 
 .chips-linha{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.chips-linha .chips{margin:0}.chips-linha .btn{margin-left:auto;min-height:44px;display:inline-flex;align-items:center;text-decoration:none;touch-action:manipulation}
+.chips-linha{margin-bottom:14px}
