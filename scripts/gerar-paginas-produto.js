@@ -43,5 +43,6 @@ const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
     /* página do código antigo (links já compartilhados no WhatsApp): leva ao código novo */
     if(p.antigo){ fs.mkdirSync(path.join(raiz,'p',p.antigo),{recursive:true}); fs.writeFileSync(path.join(raiz,'p',p.antigo,'index.html'),html.replace(BASE+'p/'+p.sku+'/',BASE+'p/'+p.antigo+'/')); }
   }
+  try{ require('child_process').execFileSync('python3',[path.join(__dirname,'gerar-dados-estruturados.py'),path.basename(raiz)],{stdio:'inherit'}); }catch(e){ console.log('Aviso: não consegui gerar os dados estruturados do Google.'); }
   console.log(n+' páginas geradas;', prods.filter(p=>!fs.existsSync(path.join(raiz,'imagens',p.foto+'.jpg'))).map(p=>p.sku).join(',')||'todas com foto');
 })();
