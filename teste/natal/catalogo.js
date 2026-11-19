@@ -100,7 +100,7 @@ function detalheHTML(p){
   return '<button class="voltar" type="button" id="voltar">&larr; Voltar</button>'+
   '<div class="det">'+
     '<div class="gal">'+
-      '<div class="foto" id="foto-grande">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fs[0],p.nome,false)+'</div>'+
+      '<div class="foto" id="foto-grande">'+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(p.top?'<span class="tag top">Mais vendido</span>':'')+'<span>Foto em breve</span>'+foto(fs[0],p.nome,false).replace('<img ','<img fetchpriority="high" ')+'</div>'+
       (fs.length>1?'<div class="thumbs">'+fs.map((k,i)=>'<button type="button" data-foto="'+k+'" class="'+(i===0?'on':'')+'" aria-label="Foto '+(i+1)+'">'+foto(miniFoto(k),p.nome,false)+'</button>').join('')+'</div>':'')+
     '</div>'+
     '<div class="det-info">'+

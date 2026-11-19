@@ -114,3 +114,8 @@ footer::before{top:0!important;height:38px!important;transform:translateY(-99%);
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V22C200 -6 420 -6 640 18s380 18 560 -4V40z' fill='%23142B24'/%3E%3C/svg%3E") bottom/100% 100% no-repeat!important}
 footer .btn-wpp{background:#fff!important;color:var(--green-d)!important}
 footer .btn-wpp:hover{background:#E6D5B8!important}
+
+/* reserva o espaço do que o JavaScript monta depois (evita a página "pular" quando as peças aparecem) */
+#nav{min-height:60px}
+#secoes{min-height:100vh}
+@media (max-width:760px){#nav{min-height:58px}}
