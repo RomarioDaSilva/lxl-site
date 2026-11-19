@@ -10,138 +10,172 @@
 <meta name="description" content="Presentes, decoração e peças sob medida feitos em impressão 3D. Veja os catálogos e peça pelo WhatsApp.">
 <!-- Dados para o Google (negócio local). Só informações públicas. Se mudar telefone ou cidade, mude aqui também. -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"LXL Projetos","url":"https://lxlprojetos.site/teste/","image":"https://lxlprojetos.site/teste/natal/imagens/og-inicio.jpg","telephone":"+55 38 99221-4206","address":{"@type":"PostalAddress","addressLocality":"Montes Claros","addressRegion":"MG","addressCountry":"BR"},"sameAs":["https://www.instagram.com/lxlprojetos"],"description":"Presentes, decoração e peças sob medida feitos em impressão 3D."}</script>
-<link rel="stylesheet" href="estilo.css?v=240714e3">
+<link rel="stylesheet" href="novo.css?v=9c64dde8">
 </head>
 <body>
 
-<!-- TOPO: título, frase e os 2 botões. O número do WhatsApp dos botões é colocado pelo arquivo home.js (variável "wa"). -->
-<header class="hero">
-  <img class="logo" src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278">
-  <span class="eyebrow">Impressão 3D</span>
-  <h1>Peças feitas <em>camada por camada</em></h1>
-  <p class="lead">Presentes, decoração e peças sob medida. Escolha um catálogo e peça direto pelo WhatsApp.</p>
-  <div class="acoes">
-    <a class="btn btn-main" href="natal/">Ver catálogo de Natal</a>
-    <a class="btn btn-ghost" id="cta-topo" target="_blank" rel="noopener" href="#">Falar no WhatsApp</a>
+<!-- TOPO: logo, menu, busca e WhatsApp. No celular o menu abre pelo botão de três risquinhos. -->
+<header class="topo" id="topo">
+  <div class="topo-in">
+    <a class="logo" href="/teste/" aria-label="LXL Projetos, início"><img src="natal/imagens/logo-colorida.png" alt="LXL Projetos" width="900" height="278"></a>
+    <nav class="nav" id="nav" aria-label="Menu principal">
+      <a href="#inicio" class="on">Início</a>
+      <a href="#catalogos">Catálogos</a>
+      <a href="#mais-pedidos">Mais pedidos</a>
+      <a href="#como-pedir">Como pedir</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="topo-acoes">
+      <button type="button" class="ic-btn" id="b-abrir" aria-label="Buscar peças" aria-expanded="false" aria-controls="busca"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <a class="ic-btn wpp" id="wa-topo" target="_blank" rel="noopener" href="#" aria-label="Chamar no WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9c.3 2.2 2.4 4.4 5 5.2l1.2-1.2-1.8-1-.8.7c-.8-.4-1.5-1.1-1.9-1.9l.7-.8-1-1.8z"/></svg></a>
+      <button type="button" class="ic-btn menu-btn" id="b-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+  <div class="busca" id="busca" role="search" hidden>
+    <div class="busca-in">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar pelo nome ou código da peça" aria-label="Buscar pelo nome ou código da peça">
+      <button type="button" class="ic-btn peq" id="b-fechar" aria-label="Fechar a busca">&times;</button>
+    </div>
+    <div class="busca-res" id="res" aria-live="polite"></div>
   </div>
 </header>
 
-<main class="wrap">
+<main id="inicio">
 
-  <!-- CATÁLOGOS: cada card grande abaixo leva para um catálogo.
-       Para adicionar um catálogo novo: copie um bloco <a class="destaque ..."> inteiro, cole abaixo e troque o link (href), o título e o texto. -->
+  <!-- DESTAQUES (carrossel): cada <article class="slide"> é um banner. Para trocar a foto, mude o src da <img>; o texto e o link ficam ao lado. -->
+  <section class="hero-wrap" aria-roledescription="carrossel" aria-label="Destaques">
+    <div class="hero" id="hero">
+      <article class="slide on" id="s1">
+        <div class="slide-txt">
+          <span class="selo">Novidade</span>
+          <h1>O Natal fica mais bonito <em>camada por camada</em></h1>
+          <p>Presépios, anjos e decorações de mesa feitos em impressão 3D, com preços especiais de novembro.</p>
+          <a class="btn" href="natal/">Ver o catálogo de Natal <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="slide-img"><img src="natal/imagens/0007.jpg" alt="Presépio Gruta de Belém em um cenário de Natal" width="1024" height="1024" fetchpriority="high"></div>
+      </article>
+      <article class="slide" id="s2" aria-hidden="true">
+        <div class="slide-txt">
+          <span class="selo">Coleção nova</span>
+          <h1>Anjos que <em>iluminam</em> a casa</h1>
+          <p>Anjos de tricô, de renda e luminárias para ficar na mesa, na estante ou na árvore.</p>
+          <a class="btn" href="natal/">Conhecer os anjos <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="slide-img"><img src="natal/imagens/0062.jpg" alt="Anjo da Prece, luminária de anjo impressa em 3D, acesa" width="750" height="750" loading="lazy" decoding="async"></div>
+      </article>
+      <article class="slide" id="s3" aria-hidden="true">
+        <div class="slide-txt">
+          <span class="selo">Fé e devoção</span>
+          <h1>Peças de fé para o <em>seu oratório</em></h1>
+          <p>Nossa Senhora e outras imagens para o altar da família e para presentear com carinho.</p>
+          <a class="btn" href="religioso/">Ver o catálogo religioso <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="slide-img"><img src="religioso/imagens/0054.jpg" alt="Imagem de Nossa Senhora das Graças impressa em 3D" width="750" height="750" loading="lazy" decoding="async"></div>
+      </article>
+      <article class="slide" id="s4" aria-hidden="true">
+        <div class="slide-txt">
+          <span class="selo">Divertidos</span>
+          <h1>Chaveiros para <em>levar por aí</em></h1>
+          <p>Articulados, de academia e de bichinhos. Leves, coloridos e ótimos para presentear.</p>
+          <a class="btn" href="chaveiros/">Ver os chaveiros <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="slide-img"><img src="chaveiros/imagens/capa-home.jpg" alt="Chaveiros articulados e de academia impressos em 3D pendurados em um expositor" width="750" height="750" loading="lazy" decoding="async"></div>
+      </article>
+      <button type="button" class="seta esq" id="h-ant" aria-label="Destaque anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button type="button" class="seta dir" id="h-prox" aria-label="Próximo destaque"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      <div class="pontos" id="pontos" role="tablist" aria-label="Escolher destaque"></div>
+    </div>
+    <ul class="vantagens" aria-label="Vantagens">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg><span><b>Peça pelo WhatsApp</b>Atendimento direto</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg><span><b>Pix, cartão e dinheiro</b>Você escolhe</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span><b>Feito sob encomenda</b>Peça única para você</span></li>
+    </ul>
+  </section>
+
+  <!-- CATÁLOGOS: uma bolinha para cada catálogo. Para acrescentar um, copie um bloco <a class="cat"> e troque link, foto e nome. -->
   <section class="sec" id="catalogos">
-    <div class="sec-head rev">
-      <span class="eyebrow">Catálogos</span>
-      <h2>Escolha por onde começar</h2>
-      <p>Toque no catálogo para ver as peças e os valores.</p>
-      <button type="button" class="btn-buscar" id="h-abrir" aria-controls="h-campo" aria-expanded="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar
-      </button>
+    <div class="sec-cab">
+      <div><span class="eyebrow">Nossos catálogos</span><h2>Explore por categoria</h2></div>
     </div>
-    <div class="h-busca" id="h-campo" role="search" hidden>
-      <div class="h-input">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input id="h-q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar pelo nome ou código" aria-label="Buscar pelo nome ou código">
-        <button type="button" class="h-limpar" id="h-limpar" aria-label="Apagar o texto" hidden>&times;</button>
-      </div>
-      <button type="button" class="h-voltar" id="h-fechar">Voltar</button>
-    </div>
-    <div id="h-res" hidden aria-live="polite"></div>
-    <a class="destaque rev" id="h-destaque" href="natal/">
-      <div class="foto"><span class="selo">Novo</span><img src="natal/imagens/0007.jpg" alt="Catálogo de Natal 2026" onerror="this.remove()"></div>
-      <div class="info">
-        <span class="tag">Edição 2026</span>
-        <h3>Catálogo de Natal</h3>
-        <p>Presépios, Papais Noel, decorações de mesa, bomboniere e muito mais, com preços especiais de novembro.</p>
-        <span class="go">Ver catálogo <span aria-hidden="true">→</span></span>
-      </div>
-    </a>
-    <a class="destaque rev" id="h-religioso" href="religioso/" style="margin-top:22px">
-      <div class="foto"><span class="selo">Novo</span><img src="religioso/imagens/0054.jpg" alt="Imagem de Nossa Senhora das Graças impressa em 3D" loading="lazy" decoding="async" width="750" height="750" style="object-position:50% 6%" onerror="this.remove()"></div>
-      <div class="info">
-        <span class="tag">Fé e devoção</span>
-        <h3>Religioso</h3>
-        <p>Nossa Senhora, porta-textos e outras peças de fé para o oratório, o altar da família e para presentear.</p>
-        <span class="go">Ver catálogo <span aria-hidden="true">→</span></span>
-      </div>
-    </a>
-    <a class="destaque rev" id="h-chaveiros" href="chaveiros/" style="margin-top:22px">
-      <div class="foto"><span class="selo">Novo</span><img src="chaveiros/imagens/capa-home.jpg" alt="Vários chaveiros articulados e de academia impressos em 3D pendurados em um expositor" loading="lazy" decoding="async" width="750" height="750" onerror="this.remove()"></div>
-      <div class="info">
-        <span class="tag">Divertidos</span>
-        <h3>Chaveiros</h3>
-        <p>Chaveiros articulados e divertidos para levar para todo lugar ou presentear.</p>
-        <span class="go">Ver catálogo <span aria-hidden="true">→</span></span>
-      </div>
-    </a>
-    <a class="destaque rev" id="h-perso" href="#" target="_blank" rel="noopener" style="margin-top:22px">
-      <div class="foto" style="background:linear-gradient(135deg,#1F5B3F,#E0784A);display:flex;align-items:center;justify-content:center;color:#fff;font-size:4rem" aria-hidden="true">&#127912;</div>
-      <div class="info">
-        <span class="tag">Sob medida</span>
-        <h3>Peças personalizadas</h3>
-        <p>Miniaturas de pessoas e pets, chaveiros, placas, topos de bolo e o que você imaginar. Conte a sua ideia e a gente faz o orçamento.</p>
-        <span class="go">Pedir orçamento <span aria-hidden="true">→</span></span>
-      </div>
-    </a>
-  </section>
-
-  <!-- EM BREVE: avisos do que vem por aí. Para tirar, apague da linha <section> até o </section> correspondente. -->
-  <section class="sec" id="sec-breve">
-    <div class="sec-head rev">
-      <span class="eyebrow">Em breve</span>
-      <h2>Vem mais por aí</h2>
-    </div>
-    <div class="breve">
-      <div class="cat rev">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="11" r="6"/><circle cx="11" cy="11" r="2"/><path d="M16 15l10 10M22 21l3-3M25 24l3-3"/></svg>
-        <h3>Chaveiros</h3><p>Com nome, logo e desenhos.</p><span class="em">Em breve</span>
-      </div>
-      <div class="cat rev">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="15" width="11" height="11" rx="2"/><rect x="17" y="15" width="11" height="11" rx="2"/><rect x="10.5" y="4" width="11" height="11" rx="2"/></svg>
-        <h3>Brinquedos</h3><p>Bonecos e peças articuladas.</p><span class="em">Em breve</span>
-      </div>
-      <div class="cat rev">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 5h8M13 5v4c-4 2-6 5-6 9a9 9 0 0018 0c0-4-2-7-6-9V5"/><path d="M9 18h14"/></svg>
-        <h3>Decoração</h3><p>Para casa e escritório o ano todo.</p><span class="em">Em breve</span>
-      </div>
-      <div class="cat rev">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 27l4-1 16-16-3-3L6 23z"/><path d="M19 9l3 3M16 27h11"/></svg>
-        <h3>Sob medida</h3><p>Brindes e peças para empresas.</p><span class="em">Em breve</span>
-      </div>
+    <div class="cats">
+      <a class="cat" href="natal/"><span class="cat-img"><img src="natal/imagens/mini/0007.jpg" alt="" loading="lazy" decoding="async" width="192" height="192"></span>Natal 2026</a>
+      <a class="cat" href="natal/"><span class="cat-img"><img src="natal/imagens/mini/0003.jpg" alt="" loading="lazy" decoding="async" width="192" height="192"></span>Presépios</a>
+      <a class="cat" href="natal/"><span class="cat-img"><img src="natal/imagens/mini/0062.jpg" alt="" loading="lazy" decoding="async" width="192" height="192"></span>Anjos</a>
+      <a class="cat" href="religioso/"><span class="cat-img"><img src="religioso/imagens/mini/0054.jpg" alt="" loading="lazy" decoding="async" width="192" height="192"></span>Religioso</a>
+      <a class="cat" href="chaveiros/"><span class="cat-img"><img src="chaveiros/imagens/mini/0055.jpg" alt="" loading="lazy" decoding="async" width="192" height="192"></span>Chaveiros</a>
+      <a class="cat" id="cat-perso" href="#" target="_blank" rel="noopener"><span class="cat-img cat-perso" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg></span>Sob medida</a>
     </div>
   </section>
 
-  <section class="sec" id="sec-passos">
-    <div class="sec-head rev">
-      <span class="eyebrow">Como pedir</span>
-      <h2>Simples e direto</h2>
+  <!-- MAIS PEDIDOS: os cartões são montados pelo novo.js a partir dos catálogos. Para trocar as peças, edite a lista DESTAQUES no novo.js. -->
+  <section class="sec" id="mais-pedidos">
+    <div class="sec-cab">
+      <div><span class="eyebrow">Peças em destaque</span><h2>Os mais pedidos</h2></div>
+      <div class="setas">
+        <button type="button" class="seta-p" id="c-ant" aria-label="Ver peças anteriores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button type="button" class="seta-p" id="c-prox" aria-label="Ver mais peças"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
     </div>
-    <div class="passos">
-      <div class="passo rev"><h3>Escolha as peças</h3><p>Navegue pelo catálogo e adicione ao pedido o que você gostar.</p></div>
-      <div class="passo rev"><h3>Envie pelo WhatsApp</h3><p>O pedido já vai pronto na conversa. É só enviar.</p></div>
-      <div class="passo rev"><h3>Combine e receba</h3><p>A gente confirma valor, prazo e forma de entrega com você.</p></div>
-    </div>
-    <p class="mais rev"><a class="btn btn-claro" href="faq/">Ver perguntas frequentes</a></p>
+    <div class="trilho" id="trilho" tabindex="0" aria-label="Peças em destaque"><p class="carregando">Carregando as peças...</p></div>
   </section>
 
+  <!-- FAIXA DE OFERTA -->
+  <section class="sec">
+    <a class="oferta" href="natal/">
+      <div class="oferta-txt">
+        <span class="selo claro">Edição 2026</span>
+        <h2>Catálogo de Natal com preços especiais de novembro</h2>
+        <p>Escolha as peças, monte o pedido e envie pelo WhatsApp. Pedidos de Natal até 15/12.</p>
+        <span class="btn btn-claro">Ver o catálogo <span aria-hidden="true">&rarr;</span></span>
+      </div>
+      <div class="oferta-img"><img src="natal/imagens/0003.jpg" alt="Presépio Estrela Guia sob o arco, segurado na mão" loading="lazy" decoding="async" width="1200" height="1200"></div>
+    </a>
+  </section>
+
+  <section class="sec" id="como-pedir">
+    <div class="sec-cab">
+      <div><span class="eyebrow">Como pedir</span><h2>Simples e direto</h2></div>
+      <a class="link-ver" href="faq/">Perguntas frequentes <span aria-hidden="true">&rarr;</span></a>
+    </div>
+    <ol class="passos">
+      <li><span class="n">1</span><h3>Escolha as peças</h3><p>Navegue pelo catálogo e adicione ao pedido o que você gostar.</p></li>
+      <li><span class="n">2</span><h3>Envie pelo WhatsApp</h3><p>O pedido já vai pronto na conversa. É só enviar.</p></li>
+      <li><span class="n">3</span><h3>Combine e receba</h3><p>A gente confirma valor, prazo e forma de entrega com você.</p></li>
+    </ol>
+  </section>
+
+  <section class="sec">
+    <ul class="confianca">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span><b>Feito em Montes Claros</b>Impressão 3D própria</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg><span><b>Pix, cartão e dinheiro</b>Formas de pagar</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><span><b>Entrega combinada</b>Do jeito que ficar melhor</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg><span><b>Atendimento direto</b>Resposta pelo WhatsApp</span></li>
+    </ul>
+  </section>
+
+  <section class="sec contato-cta" id="contato">
+    <h2>Quer algo diferente?</h2>
+    <p>Conte o que você precisa e a gente faz um orçamento sob medida.</p>
+    <a class="btn btn-wpp" id="wa-contato" target="_blank" rel="noopener" href="#">Chamar no WhatsApp</a>
+  </section>
 </main>
 
-<!-- CONTATO: Instagram e TikTok são links fixos (troque o endereço no href se mudar o perfil). O botão de WhatsApp é preenchido pelo home.js. -->
-<section class="contato">
-  <h2>Quer algo diferente?</h2>
-  <p>Conte o que você precisa e a gente faz um orçamento sob medida.</p>
-  <a class="btn btn-wpp" id="cta" target="_blank" rel="noopener" href="#">Chamar no WhatsApp</a>
-  <div class="redes">
-    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a>
-    <a class="btn btn-rede" target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a>
+<!-- RODAPÉ -->
+<footer class="rodape">
+  <div class="rodape-in">
+    <div class="r-marca">
+      <img src="natal/imagens/logo-branca.png" alt="LXL Projetos" width="900" height="278" loading="lazy" decoding="async">
+      <p>Peças em impressão 3D<br>Montes Claros, MG</p>
+    </div>
+    <div class="r-col"><h3>Catálogos</h3><a href="natal/">Natal 2026</a><a href="religioso/">Religioso</a><a href="chaveiros/">Chaveiros</a></div>
+    <div class="r-col"><h3>Ajuda</h3><a href="faq/">Perguntas frequentes</a><a href="#como-pedir">Como pedir</a><a href="#contato">Contato</a></div>
+    <div class="r-col"><h3>Siga a gente</h3><a target="_blank" rel="noopener" href="https://www.instagram.com/lxlprojetos/">Instagram</a><a target="_blank" rel="noopener" href="https://www.tiktok.com/@lxl.projetos">TikTok</a><a id="wa-rodape" target="_blank" rel="noopener" href="#">WhatsApp</a></div>
   </div>
-</section>
-
-<footer>LXL Projetos. Aceitamos Pix, cartão e dinheiro. &middot; <a href="faq/">Perguntas frequentes</a></footer>
+  <p class="r-fim">LXL Projetos. Aceitamos Pix, cartão e dinheiro.</p>
+</footer>
 
 <script src="empresa.js?v=0b5b388d"></script>
-<script src="home.js?v=647e144d"></script>
-<script src="/analytics.js" defer></script><script src="painel/medir.js" defer></script>
+<script src="novo.js?v=0e24d004"></script>
 </body>
 </html>

@@ -52,12 +52,12 @@
   /* 4) os mais pedidos: peças que aparecem em destaque (código da peça + selo). Preços vêm do catálogo e do painel. */
   var DESTAQUES = [['0003', 'Mais pedido'], ['0007', 'Destaque'], ['0062', 'Novo'], ['0063', 'Novo'], ['0006', 'Mais pedido'], ['0054', 'Fé'], ['0055', 'Divertido'], ['0001', 'Natal']];
   var CATALOGOS = ['natal', 'religioso', 'chaveiros'], indice = null, precos = {};
-  var pegar = function (c) { return fetch('../' + c + '/busca-indice.json').then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return []; }); };
+  var pegar = function (c) { return fetch(c + '/busca-indice.json').then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return []; }); };
   var tudo = Promise.all(CATALOGOS.map(pegar)).then(function (rs) { indice = [].concat.apply([], rs); });
-  var painel = fetch('../painel/estoque.php', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { if (d && d.precos) precos = d.precos; }).catch(function () {});
+  var painel = fetch('painel/estoque.php', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { if (d && d.precos) precos = d.precos; }).catch(function () {});
   var preco = function (p) { return precos[p.sku] > 0 ? precos[p.sku] : p.preco; };
-  var foto = function (p, mini) { return '../' + p.c + '/imagens/' + (mini ? 'mini/' : '') + p.foto + '.jpg'; };
-  var link = function (p) { return '../' + p.u.replace(/\/$/, '') + '/#/p/' + p.sku; };
+  var foto = function (p, mini) { return p.c + '/imagens/' + (mini ? 'mini/' : '') + p.foto + '.jpg'; };
+  var link = function (p) { return p.u.replace(/\/$/, '') + '/#/p/' + p.sku; };
   var icWpp = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9c.3 2.2 2.4 4.4 5 5.2l1.2-1.2-1.8-1-.8.7c-.8-.4-1.5-1.1-1.9-1.9l.7-.8-1-1.8z"/></svg>';
   Promise.all([tudo, painel]).then(function () {
     var por = {}; indice.forEach(function (p) { por[p.sku] = p; });

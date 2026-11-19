@@ -17,7 +17,7 @@ with sync_playwright() as p:
         pg.goto(B+url); pg.wait_for_timeout(1500)
         extra=''
         if nome.startswith('natal') or nome.startswith('religioso') or nome.startswith('chaveiros'): extra=' cartoes=%d'%len(pg.query_selector_all('.card, .prod, article'))
-        if nome=='home': extra=' wa='+str(pg.get_attribute('#cta','href'))[:40]
+        if nome=='home': extra=' wa='+str(pg.get_attribute('#wa-contato','href'))[:40]
         if nome=='faq': extra=' wa='+str(pg.get_attribute('#wpp','href'))[:40]
         ov=pg.evaluate("document.documentElement.scrollWidth>document.documentElement.clientWidth")
         errs=[e for e in errs if 'ERR_FAILED' not in e]   # o erro de rede aparece de propósito quando o painel é bloqueado
