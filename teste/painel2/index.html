@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1F5B3F">
+<title>Painel LXL (layout novo, teste 2)</title>
+<link rel="icon" href="/favicon-32.png">
+<!-- O "?v=NN" no fim dos arquivos serve para o navegador baixar a versão nova. Sempre que editar app.css, calc.js ou um arquivo da pasta js/ à mão, aumente o número. -->
+<link rel="stylesheet" href="app.css?v=61b65151">
+</head>
+<body>
+<div id="app"><p class="carregando">Carregando...</p></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="vendor/html2canvas.min.js"></script>
+<script src="../empresa.js?v=0b5b388d"></script>
+<script src="calc.js?v=0ef30a57"></script>
+<!-- Telas do painel, uma por assunto, na pasta js/. A ordem importa: base primeiro, rotas por último. -->
+<script src="js/base.js?v=68603f9c"></script>
+<script src="js/acesso.js?v=2127fd45"></script>
+<script src="js/pedidos.js?v=5f279c5c"></script>
+<script src="js/pedido-form.js?v=f40dcbca"></script>
+<script src="js/nota.js?v=ad824bbd"></script>
+<script src="js/categorias.js?v=74dcd473"></script>
+<script src="js/estoque.js?v=e89ca8a2"></script>
+<script src="js/clientes.js?v=a39e7a07"></script>
+<script src="js/relatorios.js?v=40ed9dfb"></script>
+<script src="js/calculadora.js?v=e9327abd"></script>
+<script src="js/orcamentos.js?v=5b5dbe53"></script>
+<script src="js/usuarios.js?v=d18eda3a"></script>
+<script src="js/ajustes.js?v=1a5eab10"></script>
+<script src="js/inicio.js?v=6fe16aff"></script>
+<script src="js/rotas.js?v=faa9c05a"></script>
+</body>
+</html>
