@@ -25,6 +25,7 @@ with sync_playwright() as p:
     # tela inicial, logo e botões Voltar
     assert pg.locator('.inicio-logo').count()==0 or True
     pg.goto(P); pg.wait_for_timeout(700); assert pg.is_visible('.inicio .atalho >> nth=0'),'ao entrar deve abrir a tela inicial'
+    pg.goto(P+'#/pedidos'); pg.wait_for_timeout(700); assert not pg.is_visible('.inicio') and pg.is_visible('.topo .menu a.on'),'Pedidos deve abrir a lista de pedidos'
     pg.goto(P+'#/estoque'); pg.wait_for_timeout(600); pg.click('.topo a.logo'); pg.wait_for_timeout(400); assert pg.is_visible('.inicio'),'logo leva à tela inicial'
     pg.goto(P+'#/estoque'); pg.wait_for_timeout(600)
     pg.click('.prod .nm >> text=Anjo caro'); pg.wait_for_selector('.mvolta'); pg.evaluate("document.querySelector('.mc').scrollTop=9999"); pg.wait_for_timeout(200)
