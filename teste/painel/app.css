@@ -209,11 +209,13 @@ a.chip{text-decoration:none;color:inherit}
 .mvolta .btn,.voltar{min-height:44px;touch-action:manipulation}
 .topo .voltar{min-height:44px;font-weight:700}
 .topo a.logo{display:flex;align-items:center}
-/* tela inicial */
-.inicio{position:relative;min-height:calc(100vh - 150px);display:flex;justify-content:center;overflow:hidden}
-.inicio-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92%,640px);height:auto;opacity:.16;pointer-events:none;user-select:none}
-.inicio-corpo{position:relative;width:100%;max-width:560px;padding-top:12px;text-align:center}
+/* tela inicial: atalhos em cima, logo grande no espaço que sobra, rodapé embaixo */
+.inicio{display:flex;flex-direction:column;align-items:center;min-height:calc(100vh - 150px);min-height:calc(100dvh - 150px)}
+.inicio-corpo{width:100%;max-width:560px;text-align:center}
 .atalhos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px;text-align:left}
-.atalho{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 14px;background:rgba(255,255,255,.88);border:1px solid var(--line,#dcdccf);border-radius:12px;color:var(--g);font-weight:700;text-decoration:none;touch-action:manipulation}
+.atalho{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 14px;background:#fff;border:1px solid var(--line,#dcdccf);border-radius:12px;color:var(--g);font-weight:700;text-decoration:none;touch-action:manipulation}
 .atalho span{font-size:20px}
-.atalho:hover,.atalho:focus-visible{background:#fff;border-color:var(--g)}
+.atalho:hover,.atalho:focus-visible{border-color:var(--g)}
+.inicio-marca{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:24px 0}
+.inicio-marca img{width:min(78%,380px);height:auto;opacity:.22;pointer-events:none;user-select:none}
+.inicio-rodape{margin:0;padding:8px 0 4px;font-size:13px;color:var(--mut,#777);text-align:center}
