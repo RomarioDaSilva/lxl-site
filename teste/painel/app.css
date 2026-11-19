@@ -237,3 +237,5 @@ a.chip{text-decoration:none;color:inherit}
 .atalho{flex-direction:column;justify-content:center;text-align:center;aspect-ratio:1/1;min-height:0;gap:8px;padding:10px;font-size:16px;border-radius:16px}
 .atalho span{font-size:40px;line-height:1}
 @media (min-width:700px){.inicio-corpo{max-width:600px}.atalhos{grid-template-columns:repeat(3,1fr);gap:14px}.atalho{font-size:17px;gap:10px}.atalho span{font-size:44px}.inicio-marca img{width:min(40%,300px)}}
+
+.tit-linha{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.tit-linha h1{margin:0}.tit-linha .btn{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;touch-action:manipulation}

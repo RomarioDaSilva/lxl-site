@@ -33,7 +33,7 @@ with sync_playwright() as p:
     pg.click('.mvolta button'); pg.wait_for_timeout(300); assert pg.locator('.mf').count()==0,'Voltar fecha a janela'
     pg.click('.prod .nm >> text=Anjo caro'); pg.wait_for_selector('.mvolta'); pg.go_back(); pg.wait_for_timeout(300)
     assert pg.locator('.mf').count()==0 and 'estoque' in pg.url,'botão voltar do celular fecha a janela sem sair do estoque'
-    pg.goto(P+'#/novo'); pg.wait_for_timeout(600); assert pg.is_visible('#voltaTela'),'tela Novo tem botão Voltar'
+    pg.goto(P+'#/pedidos'); pg.wait_for_timeout(600); pg.click('#novoPed'); pg.wait_for_timeout(600); assert 'novo' in pg.url and pg.is_visible('#voltaTela'),'tela Novo tem botão Voltar'
     pg.goto(P+'#/estoque'); pg.wait_for_timeout(500)
     # fotos extras: abre o produto, envia 2 fotos pelo botão, apaga uma
     import base64

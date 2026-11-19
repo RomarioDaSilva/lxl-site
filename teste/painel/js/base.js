@@ -86,7 +86,7 @@ function confirmar(titulo, texto, rotulo) {
 
 function quadro(ativo, corpo) {
   /* Cada item do menu: [endereço, chave, ícone, texto, ação da API que o perfil precisa ter para ver o item] */
-  const itens = [['#/pedidos', 'pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/novo', 'novo', '&#10133;', 'Novo', 'pedido_salvar'], ['#/orcamentos', 'orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
+  const itens = [['#/pedidos', 'pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/orcamentos', 'orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
     ['#/clientes', 'clientes', '&#128100;', 'Clientes', 'clientes'], ['#/estoque', 'estoque', '&#128230;', 'Estoque', 'produto_salvar'], ['#/categorias', 'categorias', '&#128193;', 'Categorias', 'categorias'],
     ['#/calculadora', 'calculadora', '&#129518;', 'Calculadora', 'parametros_salvar'], ['#/relatorios', 'relatorios', '&#128200;', 'Relatórios', 'relatorios'], ['#/ajustes', 'ajustes', '&#9881;', 'Ajustes', 'ajustes']];
   const menu = itens.filter(x => pode(x[4])).map(([h, k, ic, tx]) => '<a href="' + h + '" class="' + (ativo === k ? 'on' : '') + '"><span>' + ic + '</span>' + tx + '</a>').join('');

@@ -15,7 +15,7 @@ const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Num
 
 async function telaPedidoForm(id, modo) {
   const orc = modo === 'orcamento';   /* a mesma tela serve para pedido e para orçamento */
-  quadro(id ? '' : (orc ? 'orcamentos' : 'novo'), '<p class="carregando">Carregando...</p>');
+  quadro(id ? '' : (orc ? 'orcamentos' : 'pedidos'), '<p class="carregando">Carregando...</p>');
   try {
     await Promise.all([carregarProdutos(), carregarCatalogo(), carregarClientes()]);
     if (id) { P = orc ? (await api('orcamento', null, '&id=' + id)).orcamento : (await api('pedido', null, '&id=' + id)).pedido; P.modo = orc ? 'orcamento' : 'pedido'; }

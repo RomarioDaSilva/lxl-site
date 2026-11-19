@@ -1,7 +1,7 @@
 /* PAINEL LXL | TELA INICIAL: logo grande ao fundo e atalhos para as áreas. Abre ao entrar no painel e ao tocar na logo. */
 'use strict';
 function telaInicio() {
-  const atalhos = [['#/pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/novo', '&#10133;', 'Novo pedido', 'pedido_salvar'], ['#/orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
+  const atalhos = [['#/pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
     ['#/clientes', '&#128100;', 'Clientes', 'clientes'], ['#/estoque', '&#128230;', 'Estoque', 'produto_salvar'], ['#/categorias', '&#128193;', 'Categorias', 'categorias'],
     ['#/calculadora', '&#129518;', 'Calculadora', 'parametros_salvar'], ['#/relatorios', '&#128200;', 'Relatórios', 'relatorios'], ['#/ajustes', '&#9881;', 'Ajustes', 'ajustes']]
     .filter(x => pode(x[3])).map(([h, ic, tx]) => '<a class="atalho" href="' + h + '"><span>' + ic + '</span>' + tx + '</a>').join('');
