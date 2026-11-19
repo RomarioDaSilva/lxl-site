@@ -17,7 +17,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .topo .menu a.on{background:#fff;color:var(--g)}
 .topo .menu a span{font-size:15px}
 .topo .vsite{margin-left:auto}.topo .menu{margin-left:6px}
-@media (max-width:760px){.topo{flex-wrap:wrap;row-gap:8px}.topo img{margin-right:auto}.topo .vsite{margin-left:0}.topo .menu{margin-left:0}.topo .menu{order:5;flex:0 0 100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.topo .menu::-webkit-scrollbar{display:none}}
+@media (max-width:760px){.topo{flex-wrap:wrap;row-gap:8px}.topo a.logo{margin-right:auto}.topo .vsite{margin-left:0}.topo .menu{margin-left:0}.topo .menu{order:5;flex:0 0 100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.topo .menu::-webkit-scrollbar{display:none}}
 .topo button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
 .wrap{max-width:900px;margin:0 auto;padding:16px}
 .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
@@ -224,3 +224,9 @@ a.chip{text-decoration:none;color:inherit}
 .topo .vsite,.topo #sair{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;touch-action:manipulation}
 .topo .vsite{margin-left:0}
 @media (max-width:760px){.topo{padding:10px 12px}.topo a.logo img{height:40px}.topo .voltar{order:-1}}
+
+/* topo no celular: logo à esquerda, "Ver site" e "Sair" alinhados à direita, mesma altura */
+.topo .vsite{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid rgba(255,255,255,.5);border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-decoration:none}
+.topo button#sair{min-height:40px}
+.topo .voltar{order:-1}
+@media (max-width:760px){.topo{padding:8px 12px}.topo a.logo img{height:30px}}
