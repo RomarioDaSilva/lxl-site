@@ -46,3 +46,28 @@ function db(): PDO {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     return $pdo;
 }
+
+
+/* ---------- FOTOS EXTRAS DOS PRODUTOS ----------
+   As fotos ficam na pasta /fotos/ da raiz do site (fora de teste/ e de painel/), por isso valem para o teste e para a produção e não se perdem quando o site é atualizado.
+   Cada produto tem a sua subpasta (fotos/ID/). O arquivo grande é ARQUIVO.jpg e a miniatura é ARQUIVO-m.jpg. */
+const FOTOS_MAX = 6;
+function fotosPasta(): string {
+    $c = cfg();
+    if (!empty($c['fotos_dir'])) return rtrim((string)$c['fotos_dir'], '/');
+    $d = __DIR__;                                              /* pasta do painel (producao ou teste) */
+    $raiz = basename(dirname($d)) === 'teste' ? dirname($d, 2) : dirname($d);
+    return $raiz . '/fotos';
+}
+function fotoUrl(int $produtoId, string $arquivo, bool $mini = false): string {
+    return '/fotos/' . $produtoId . '/' . ($mini ? preg_replace('/\.jpg$/', '-m.jpg', $arquivo) : $arquivo);
+}
+/* Lista de fotos extras por produto: [produto_id => [[id, arquivo], ...]] na ordem escolhida. */
+function mapaDeFotos(): array {
+    $m = [];
+    try {
+        foreach (db()->query('SELECT id, produto_id, arquivo FROM produto_fotos ORDER BY ordem, id')->fetchAll() as $x)
+            $m[(int)$x['produto_id']][] = ['id' => (int)$x['id'], 'u' => fotoUrl((int)$x['produto_id'], $x['arquivo']), 'm' => fotoUrl((int)$x['produto_id'], $x['arquivo'], true)];
+    } catch (Throwable $e) { /* tabela ainda não existe: sem fotos extras */ }
+    return $m;
+}

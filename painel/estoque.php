@@ -11,7 +11,7 @@ header('Cache-Control: public, max-age=20');
 header('X-Robots-Tag: noindex, nofollow');
 require __DIR__ . '/lib.php';
 
-$itens = []; $precos = []; $cores = [];
+$itens = []; $precos = []; $cores = []; $fotos = [];
 try {
     $r = db()->query("SELECT codigo, estoque, controla, preco FROM produtos WHERE ativo = 1 AND codigo <> ''")->fetchAll();
     foreach ($r as $p) {
@@ -47,4 +47,10 @@ try {
         foreach (['itens', 'precos', 'cores', 'cats'] as $k) if (isset($$k[$n])) $$k[$v] = $$k[$n];
     }
 } catch (Throwable $e) { /* coluna ainda não existe: sem apelidos */ }
-echo json_encode(['itens' => (object)$itens, 'precos' => (object)$precos, 'cores' => (object)$cores, 'categorias' => $categorias, 'cats' => (object)$cats], JSON_UNESCAPED_UNICODE);
+/* Fotos extras (até 6 por peça): só os endereços das imagens. */
+try {
+    $porId = mapaDeFotos();
+    if ($porId) foreach (db()->query("SELECT id, codigo FROM produtos WHERE ativo = 1 AND codigo <> ''")->fetchAll() as $x)
+        if (!empty($porId[(int)$x['id']])) $fotos[$x['codigo']] = array_map(fn($f) => ['u' => $f['u'], 'm' => $f['m']], $porId[(int)$x['id']]);
+} catch (Throwable $e) { $fotos = []; }
+echo json_encode(['fotos' => (object)$fotos, 'itens' => (object)$itens, 'precos' => (object)$precos, 'cores' => (object)$cores, 'categorias' => $categorias, 'cats' => (object)$cats], JSON_UNESCAPED_UNICODE);

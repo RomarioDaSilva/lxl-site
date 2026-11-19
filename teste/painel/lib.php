@@ -55,7 +55,7 @@ const FOTOS_MAX = 6;
 function fotosPasta(): string {
     $c = cfg();
     if (!empty($c['fotos_dir'])) return rtrim((string)$c['fotos_dir'], '/');
-    $d = __DIR__;                                              /* .../painel ou .../teste/painel */
+    $d = __DIR__;                                              /* pasta do painel (producao ou teste) */
     $raiz = basename(dirname($d)) === 'teste' ? dirname($d, 2) : dirname($d);
     return $raiz . '/fotos';
 }

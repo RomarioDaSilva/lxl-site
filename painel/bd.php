@@ -21,6 +21,7 @@ function instalar(): void {
     $db->exec("CREATE TABLE IF NOT EXISTS dispositivos (id $pk, hash VARCHAR(64) NOT NULL, usuario VARCHAR(60), primeiro VARCHAR(19), ultimo VARCHAR(19), ip VARCHAR(45), agente VARCHAR(160))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS categorias (id $pk, nome VARCHAR(80) NOT NULL, parent_id INT NULL, ordem INT DEFAULT 0, ativo TINYINT DEFAULT 1)$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS produto_categorias (produto_id INT NOT NULL, categoria_id INT NOT NULL, PRIMARY KEY (produto_id, categoria_id))$fim");
+    $db->exec("CREATE TABLE IF NOT EXISTS produto_fotos (id $pk, produto_id INT NOT NULL, arquivo VARCHAR(80) NOT NULL, ordem INT DEFAULT 0)$fim");
     /* colunas novas em tabelas que já existiam (banco criado antes das cores) */
     $db->exec("CREATE TABLE IF NOT EXISTS clientes (id $pk, nome VARCHAR(120) NOT NULL, telefone VARCHAR(30) DEFAULT '', endereco VARCHAR(255) DEFAULT '', cidade VARCHAR(80) DEFAULT '', obs VARCHAR(255) DEFAULT '', criado_em VARCHAR(19))$fim");
     $db->exec("CREATE TABLE IF NOT EXISTS metricas (dia VARCHAR(10) NOT NULL, tipo VARCHAR(20) NOT NULL, chave VARCHAR(40) NOT NULL, qtd INT NOT NULL DEFAULT 0, PRIMARY KEY (dia, tipo, chave))$fim");

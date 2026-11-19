@@ -3,6 +3,15 @@
 'use strict';
 
 /* ---------- estoque ---------- */
+/* Reduz a foto no próprio aparelho (lado maior 1200 px, JPEG) antes de enviar. Respeita a rotação do celular. */
+async function reduzirFoto(arq) {
+  let bmp;
+  try { bmp = await createImageBitmap(arq, { imageOrientation: 'from-image' }); } catch (e) { throw new Error('Não consegui abrir essa foto. Use JPG, PNG ou WEBP.'); }
+  const f = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.85);
+}
 async function telaEstoque() {
   quadro('estoque', '<p class="carregando">Carregando...</p>');
   try { await Promise.all([carregarProdutos(true), carregarCatalogo()]); } catch (e) { return toast(e.message); }
@@ -11,7 +20,8 @@ async function telaEstoque() {
     '<div class="chips">' + [['todos', 'Todos'], ['pronta', 'Pronta entrega'], ['encomenda', 'Sob encomenda'], ['inativos', 'Inativos']].map(([k, t]) => '<button class="chip ' + (fEst === k ? 'on' : '') + '" data-f="' + k + '" type="button">' + t + '</button>').join('') + '</div>' +
     '<div class="l2">' +
     '<input type="search" id="q" placeholder="Buscar produto" value="' + esc(bEst) + '"></div>' +
-    '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div><div class="card" style="margin-top:12px" id="lista"></div>';
+    '<div class="l2" style="margin-top:8px"><select id="cat"><option value="">Todas as categorias</option>' + catLista(null, 0, 0).map(({ c, prof }) => '<option value="' + c.id + '"' + (cEst === String(c.id) ? ' selected' : '') + '>' + '\u00a0\u00a0\u00a0'.repeat(prof) + (prof ? '\u21b3 ' : '') + esc(c.nome) + ' (' + catTotal(c.id) + ')</option>').join('') + '<option value="__sem"' + (cEst === '__sem' ? ' selected' : '') + '>Sem categoria (' + produtos.filter(p => p.ativo && !(p.categorias || []).length).length + ')</option></select><a class="btn l" href="#/categorias" style="text-align:center">Gerenciar categorias</a></div>' +
+    '<div class="l2" style="margin-top:8px;grid-template-columns:1fr"><select id="ord" aria-label="Ordenar a lista">' + [['', 'Ordenar: padrão'], ['nome', 'Nome (A a Z)'], ['nome-', 'Nome (Z a A)'], ['cod', 'Código (menor primeiro)'], ['cod-', 'Código (maior primeiro)'], ['preco', 'Preço (menor primeiro)'], ['preco-', 'Preço (maior primeiro)']].map(([k, t]) => '<option value="' + k + '"' + (oEst === k ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div><div class="card" style="margin-top:12px" id="lista"></div>';
   const desenha = () => {
     const q = bEst.toLowerCase().trim();
     const l = produtos.filter(p => {
@@ -23,6 +33,11 @@ async function telaEstoque() {
       else if (cEst) { const ds = catDescend(+cEst); if (!(p.categorias || []).some(x => ds.has(x))) return false; }
       return !q || (p.nome + ' ' + p.codigo).toLowerCase().includes(q);
     });
+    if (oEst) {
+      const dir = oEst.endsWith('-') ? -1 : 1, k = oEst.replace('-', '');
+      const txt = (a, b) => String(a || '').localeCompare(String(b || ''), 'pt-BR', { numeric: true, sensitivity: 'base' });
+      l.sort((a, b) => dir * (k === 'nome' ? txt(a.nome, b.nome) : k === 'cod' ? txt(a.codigo, b.codigo) : (a.preco || 0) - (b.preco || 0)) || txt(a.nome, b.nome));
+    }
     $('#lista').innerHTML = l.length ? l.map(p =>
       '<div class="prod ' + (p.ativo ? '' : 'off') + '" data-id="' + p.id + '"><div class="esq">' + thumb(p) + '<div><div class="nm">' + esc(p.nome) + '</div><div class="d">' + esc(p.codigo) + (p.codigo ? ' &middot; ' : '') + brl(p.preco) + (p.controla ? '' : ' &middot; Sob encomenda') + '</div>' + ((p.categorias || []).length ? '<div class="d cats">' + p.categorias.map(catCaminho).filter(Boolean).map(esc).join(' &middot; ') + '</div>' : '') + '</div></div>' +
       (p.controla && p.usa_cores ? '<div class="cmini">' + p.cores.filter(c => c.qtd > 0).map(c => bol(c.hex) + c.qtd).join(' ') + '<b class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</b></div>' : p.controla ? '<div class="qtd" data-stop="1"><button type="button" data-d="-1" data-id="' + p.id + '">&minus;</button><span class="' + (p.estoque <= 0 ? 'neg' : '') + '">' + p.estoque + '</span><button type="button" data-d="1" data-id="' + p.id + '">+</button></div>' : '') + '</div>').join('')
@@ -38,6 +53,7 @@ async function telaEstoque() {
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { fEst = b.dataset.f; telaEstoque(); });
   $('#q').oninput = e => { bEst = e.target.value; desenha(); };
   $('#cat').onchange = e => { cEst = e.target.value; desenha(); };
+  $('#ord').onchange = e => { oEst = e.target.value; desenha(); };
   $('#novo').onclick = () => formProduto(null);
   $('#imp').onclick = importarCatalogo;
   $('#impc').onclick = importarCustos;
@@ -61,6 +77,7 @@ function formProduto(p, catsIniciais, depois) {
     '<label>Categorias</label><div id="pcats" class="pcats"></div><div class="acoes"><button class="btn s l" id="pcEsc" type="button">Escolher categorias</button></div>' +
     '<label>Observações</label><input type="text" id="obs" value="' + esc(n.obs) + '">' +
     '<label for="link">Link do modelo (MakerWorld)</label><div class="linha-link"><input type="text" id="link" inputmode="url" autocomplete="off" value="' + esc(n.link) + '" placeholder="cole o link para abrir depois e baixar o 3MF"><a class="btn s" id="linkAbrir" target="_blank" rel="noopener noreferrer"' + (n.link ? ' href="' + esc(n.link) + '"' : ' hidden') + '>Abrir link</a></div>' +
+    (ehAdmin() ? '<label>Fotos extras (até 6)</label><div id="fotos" class="fotos-ed"></div>' : '') +
     '<button type="button" class="acord" id="acBtn" aria-expanded="false"><span>Custo</span><span class="seta">&#9662;</span></button>' +
     '<div id="acBox" class="acbox" hidden>' +
     '<div class="l2"><div><label>Peso (g)</label><input type="text" inputmode="decimal" id="cPeso" value="' + fmtIn(n.peso_g) + '"></div>' +
@@ -124,6 +141,38 @@ function formProduto(p, catsIniciais, depois) {
     contador();
   };
   let escolhidas = (n.categorias || []).filter(catPorId);
+  /* fotos extras: enviadas na hora (o produto precisa estar salvo), reduzidas aqui no celular antes de subir */
+  let fotosLista = (n.fotos || []).slice();
+  const desenhaFotos = () => {
+    const box = $('#fotos', m);
+    if (!box) return;
+    if (!n.id) { box.innerHTML = '<p class="mut" style="font-size:13px;margin:0">Salve o produto primeiro. Depois abra de novo para adicionar fotos.</p>'; return; }
+    box.innerHTML = '<div class="fgrade">' + fotosLista.map((f, i) => '<div class="fitem"><img src="' + esc(f.m) + '" alt="Foto extra ' + (i + 1) + '"><div class="facoes">' +
+      '<button type="button" class="btn s l" data-fm="-1" data-id="' + f.id + '" aria-label="Mover para trás"' + (i === 0 ? ' disabled' : '') + '>&larr;</button>' +
+      '<button type="button" class="btn s l" data-fm="1" data-id="' + f.id + '" aria-label="Mover para frente"' + (i === fotosLista.length - 1 ? ' disabled' : '') + '>&rarr;</button>' +
+      '<button type="button" class="btn s l" data-fx="' + f.id + '" aria-label="Apagar foto" style="color:#a32">&times;</button></div></div>').join('') + '</div>' +
+      (fotosLista.length < 6 ? '<button type="button" class="btn l" id="fAdd">Adicionar fotos (' + fotosLista.length + ' de 6)</button><input type="file" id="fArq" accept="image/*" multiple hidden>' : '<p class="mut" style="font-size:13px;margin:0">Limite de 6 fotos. Apague uma para enviar outra.</p>') +
+      '<p class="mut" style="font-size:12px;margin:6px 0 0">A foto principal do catálogo continua a mesma. Estas aparecem depois dela, na página do produto.</p>';
+    const atual = fs => { fotosLista = fs; n.fotos = fs; desenhaFotos(); };
+    box.querySelectorAll('[data-fm]').forEach(b => b.onclick = async () => { try { atual((await api('foto_mover', { id: +b.dataset.id, dir: +b.dataset.fm })).fotos); } catch (e) { toast(e.message); } });
+    box.querySelectorAll('[data-fx]').forEach(b => b.onclick = async () => {
+      if (!confirm('Apagar esta foto? Ela some do site.')) return;
+      try { atual((await api('foto_apagar', { id: +b.dataset.fx })).fotos); toast('Foto apagada.'); } catch (e) { toast(e.message); }
+    });
+    const add = $('#fAdd', m), arq = $('#fArq', m);
+    if (add) add.onclick = () => arq.click();
+    if (arq) arq.onchange = async () => {
+      const lista = [...arq.files].slice(0, 6 - fotosLista.length);
+      if (arq.files.length > lista.length) toast('Só cabem mais ' + lista.length + ' foto(s). As outras ficaram de fora.');
+      add.disabled = true;
+      for (let i = 0; i < lista.length; i++) {
+        try { add.textContent = 'Enviando ' + (i + 1) + ' de ' + lista.length + '...'; fotosLista = (await api('foto_enviar', { id: n.id, imagem: await reduzirFoto(lista[i]) })).fotos; n.fotos = fotosLista; }
+        catch (e) { toast(e.message || 'Não consegui enviar essa foto.'); break; }
+      }
+      desenhaFotos();
+    };
+  };
+  desenhaFotos();
   const dcat = () => { $('#pcats', m).innerHTML = escolhidas.filter(catPorId).length ? escolhidas.filter(catPorId).map(id => '<span class="chipc">' + esc(catCaminho(id)) + '</span>').join('') : '<span class="mut" style="font-size:13px">Sem categoria. Escolha onde o item vai aparecer no site.</span>'; };
   /* botão "Abrir link" acompanha o que está digitado no campo */
   $('#link', m).oninput = () => { const v = $('#link', m).value.trim(), a = $('#linkAbrir', m), ok = /^https?:\/\/\S+$/i.test(v); a.hidden = !ok; if (ok) a.href = v; };

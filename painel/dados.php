@@ -16,7 +16,10 @@ function linkOk($v): string {
     return preg_match('#^https?://[^\s]+$#i', $v) ? $v : '';
 }
 function produtoOut(array $p, array $mapaCores = [], array $mapaCat = []): array {
+    static $fotos = null;
+    if ($fotos === null) $fotos = mapaDeFotos();
     $r = [
+        'fotos' => $fotos[(int)$p['id']] ?? [],
         'categorias' => $mapaCat[(int)$p['id']] ?? [],
         'id' => (int)$p['id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'],
         'preco' => (float)$p['preco'], 'controla' => (int)$p['controla'],

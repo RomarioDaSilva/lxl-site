@@ -104,6 +104,67 @@ case 'cor_excluir': {
     out(['cores' => listaDeCores()]);
 }
 
+/* FOTOS EXTRAS (só o administrador: essas ações não estão na lista do perfil "pedidos"). A tela já manda a foto reduzida;
+   aqui o servidor abre a imagem, confere que é mesmo uma foto, reduz de novo e grava como JPEG (assim nada estranho entra na pasta). */
+case 'foto_enviar': {
+    $pid = (int)($in['id'] ?? 0);
+    $s = $db->prepare('SELECT codigo, nome FROM produtos WHERE id = ?'); $s->execute([$pid]);
+    $prod = $s->fetch();
+    if (!$prod) fail('Produto não encontrado.', 404);
+    $q = $db->prepare('SELECT COUNT(*) FROM produto_fotos WHERE produto_id = ?'); $q->execute([$pid]);
+    if ((int)$q->fetchColumn() >= FOTOS_MAX) fail('Cada produto pode ter no máximo ' . FOTOS_MAX . ' fotos. Apague uma para enviar outra.');
+    $img = (string)($in['imagem'] ?? '');
+    if (strpos($img, ',') !== false) $img = substr($img, strpos($img, ',') + 1);   /* tira o "data:image/jpeg;base64," */
+    $bin = base64_decode($img, true);
+    if ($bin === false || $bin === '' || strlen($bin) > 6 * 1024 * 1024) fail('A foto não chegou direito ou é grande demais. Tente de novo.');
+    if (!function_exists('imagecreatefromstring')) fail('O servidor não consegue tratar imagens (falta o GD). Avise o suporte da hospedagem.');
+    $im = @imagecreatefromstring($bin);
+    if (!$im) fail('Esse arquivo não parece ser uma foto. Use JPG, PNG ou WEBP.');
+    $w = imagesx($im); $h = imagesy($im);
+    $dir = fotosPasta() . '/' . $pid;
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) fail('Não consegui criar a pasta das fotos. Avise o suporte.', 500);
+    $reduz = function ($im, int $lado) use ($w, $h) {
+        $f = min(1, $lado / max($w, $h)); $nw = max(1, (int)round($w * $f)); $nh = max(1, (int)round($h * $f));
+        $o = imagecreatetruecolor($nw, $nh);
+        imagefill($o, 0, 0, imagecolorallocate($o, 255, 255, 255));   /* fundo branco (PNG com transparência) */
+        imagecopyresampled($o, $im, 0, 0, 0, 0, $nw, $nh, $w, $h);
+        return $o;
+    };
+    $nome = bin2hex(random_bytes(6)) . '.jpg';
+    $g = $reduz($im, 1200); $ok1 = imagejpeg($g, $dir . '/' . $nome, 84); imagedestroy($g);
+    $m = $reduz($im, 320); $ok2 = imagejpeg($m, $dir . '/' . preg_replace('/\.jpg$/', '-m.jpg', $nome), 80); imagedestroy($m);
+    imagedestroy($im);
+    if (!$ok1 || !$ok2) fail('Não consegui gravar a foto. Avise o suporte.', 500);
+    $q = $db->prepare('SELECT COALESCE(MAX(ordem), 0) FROM produto_fotos WHERE produto_id = ?'); $q->execute([$pid]);
+    $db->prepare('INSERT INTO produto_fotos (produto_id, arquivo, ordem) VALUES (?,?,?)')->execute([$pid, $nome, (int)$q->fetchColumn() + 1]);
+    auditar('Foto enviada', trim($prod['codigo'] . ' ' . $prod['nome']));
+    out(['fotos' => mapaDeFotos()[$pid] ?? []]);
+}
+
+case 'foto_apagar': {
+    $s = $db->prepare('SELECT f.id, f.produto_id, f.arquivo, p.codigo, p.nome FROM produto_fotos f JOIN produtos p ON p.id = f.produto_id WHERE f.id = ?');
+    $s->execute([(int)($in['id'] ?? 0)]);
+    $f = $s->fetch();
+    if (!$f) fail('Foto não encontrada.', 404);
+    $db->prepare('DELETE FROM produto_fotos WHERE id = ?')->execute([(int)$f['id']]);
+    $base = fotosPasta() . '/' . (int)$f['produto_id'] . '/';
+    @unlink($base . $f['arquivo']); @unlink($base . preg_replace('/\.jpg$/', '-m.jpg', $f['arquivo']));
+    auditar('Foto apagada', trim($f['codigo'] . ' ' . $f['nome']));
+    out(['fotos' => mapaDeFotos()[(int)$f['produto_id']] ?? []]);
+}
+
+case 'foto_mover': {
+    $s = $db->prepare('SELECT produto_id FROM produto_fotos WHERE id = ?'); $s->execute([(int)($in['id'] ?? 0)]);
+    $pid = $s->fetchColumn();
+    if ($pid === false) fail('Foto não encontrada.', 404);
+    $lista = $db->prepare('SELECT id FROM produto_fotos WHERE produto_id = ? ORDER BY ordem, id'); $lista->execute([(int)$pid]);
+    $ids = array_map('intval', $lista->fetchAll(PDO::FETCH_COLUMN));
+    $i = array_search((int)$in['id'], $ids, true); $j = $i + ((int)($in['dir'] ?? 0) < 0 ? -1 : 1);
+    if ($i !== false && isset($ids[$j])) { [$ids[$i], $ids[$j]] = [$ids[$j], $ids[$i]]; }
+    foreach ($ids as $n => $fid) $db->prepare('UPDATE produto_fotos SET ordem = ? WHERE id = ?')->execute([$n + 1, $fid]);
+    out(['fotos' => mapaDeFotos()[(int)$pid] ?? []]);
+}
+
 case 'produto_excluir': {
     $id = (int)($in['id'] ?? 0);
     $s = $db->prepare('SELECT id FROM produtos WHERE id = ?'); $s->execute([$id]);
@@ -115,8 +176,10 @@ case 'produto_excluir': {
     $db->beginTransaction();
     $db->prepare('DELETE FROM produto_cores WHERE produto_id = ?')->execute([$id]);
     $db->prepare('DELETE FROM produto_categorias WHERE produto_id = ?')->execute([$id]);
+    $db->prepare('DELETE FROM produto_fotos WHERE produto_id = ?')->execute([$id]);
     $db->prepare('DELETE FROM produtos WHERE id = ?')->execute([$id]);
     $db->commit();
+    foreach (glob(fotosPasta() . '/' . $id . '/*.jpg') ?: [] as $f) @unlink($f);
     out(['ok' => true]);
 }
 
