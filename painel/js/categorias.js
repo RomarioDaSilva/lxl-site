@@ -56,7 +56,7 @@ async function telaCategorias() {
       (filhas && aberta ? arvore(c.id, prof + 1) : '');
   }).join('');
   const desenha = () => {
-    $('.wrap').innerHTML = '<h1>Categorias</h1><p class="mut" style="margin:0 0 10px">Organize os itens em categorias e subcategorias. Um item pode ficar em mais de uma. Para colocar um item numa categoria, abra o item no Estoque e escolha em "Categorias".</p>' +
+    $('.wrap').innerHTML = '<h1>Categorias</h1>' +
       '<div class="barra"><button class="btn o" id="kNova" type="button">Nova categoria</button><button class="btn l" id="kAbrir" type="button">Abrir tudo</button><button class="btn l" id="kFechar" type="button">Recolher tudo</button></div>' +
       '<div class="card" id="kArv">' + (categorias.length ? arvore(null, 0) : '<div class="vazio">Nenhuma categoria ainda. Toque em "Nova categoria".</div>') + '</div>';
     $('#kNova').onclick = () => formCategoria(null, null, desenha);

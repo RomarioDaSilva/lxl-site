@@ -23,7 +23,7 @@ async function telaPedidos() {
   $('.wrap').innerHTML =
     '<h1>Pedidos</h1><div class="cards"><div class="card"><small>Vendido no mês</small><b>' + brl(r.mes_total) + '</b><small>' + r.mes_qtd + ' pedido(s)</small></div>' +
     '<div class="card"><small>Em aberto</small><b>' + r.abertos + '</b></div><div class="card"><small>A receber</small><b>' + brl(r.a_receber) + '</b></div></div>' +
-    '<div class="chips">' + chips + '</div><input type="search" id="q" placeholder="Buscar por nome, WhatsApp ou número" value="' + esc(busca) + '"><div style="height:12px"></div>' + lista;
+    '<div class="chips-linha"><div class="chips">' + chips + '</div>' + (pode('pedido_salvar') ? '<a class="btn" id="novoPed" href="#/novo">+ Novo pedido</a>' : '') + '</div><input type="search" id="q" placeholder="Buscar por nome, WhatsApp ou número" value="' + esc(busca) + '"><div style="height:12px"></div>' + lista;
   document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filtro = b.dataset.f; telaPedidos(); });
   let tm; $('#q').oninput = e => { clearTimeout(tm); tm = setTimeout(() => { busca = e.target.value; telaPedidos(); }, 400); };
   const q = $('#q'); if (busca) { q.focus(); q.setSelectionRange(busca.length, busca.length); }

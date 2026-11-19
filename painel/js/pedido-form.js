@@ -15,7 +15,7 @@ const totalPed = () => Math.max(0, subtotal() - (Number(P.desconto) || 0) + (Num
 
 async function telaPedidoForm(id, modo) {
   const orc = modo === 'orcamento';   /* a mesma tela serve para pedido e para orçamento */
-  quadro(id ? '' : (orc ? 'orcamentos' : 'novo'), '<p class="carregando">Carregando...</p>');
+  quadro(id ? '' : (orc ? 'orcamentos' : 'pedidos'), '<p class="carregando">Carregando...</p>');
   try {
     await Promise.all([carregarProdutos(), carregarCatalogo(), carregarClientes()]);
     if (id) { P = orc ? (await api('orcamento', null, '&id=' + id)).orcamento : (await api('pedido', null, '&id=' + id)).pedido; P.modo = orc ? 'orcamento' : 'pedido'; }
@@ -24,7 +24,6 @@ async function telaPedidoForm(id, modo) {
   const opt = (arr, v) => arr.map(x => '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
   $('.wrap').innerHTML =
     '<h1>' + (orc ? (P.id ? 'Editar orçamento ORC-' + numPed(P.id) : 'Novo orçamento') : (P.id ? 'Editar pedido PED-' + numPed(P.id) : 'Novo pedido')) + '</h1>' +
-    (orc ? '<p class="mut">Orçamento não baixa estoque nem entra nas vendas. Quando o cliente aprovar, use o botão "Gerar pedido" na lista de orçamentos.</p>' : '') +
     '<div class="barra"><button class="btn l" id="colar" type="button">Colar pedido do WhatsApp</button></div>' +
     '<div class="card"><h2>Cliente</h2><label>Nome * (digite para buscar ou toque na seta)</label>' +
     '<div class="cli-linha"><input type="text" id="cliente" value="' + esc(P.cliente) + '" autocomplete="off" placeholder="Buscar cliente ou digitar nome"><button class="btn s l" id="cliLista" type="button" aria-label="Ver lista de clientes">&#9662;</button><button class="btn s o" id="cliNovo" type="button" aria-label="Cadastrar novo cliente">+</button></div>' +

@@ -45,15 +45,27 @@ async function api(a, body, q) {
   return j;
 }
 
-function modal(html) {
+let modalSeq = 0;
+/* Janela por cima da tela. Tem barra "Voltar" que acompanha a rolagem e o botão Voltar do celular fecha a janela (sem sair do painel). */
+function modal(html, semVoltar) {
   const f = document.createElement('div');
   f.className = 'mf';
-  f.innerHTML = '<div class="mc">' + html + '</div>';
-  const fechar = () => { f.remove(); document.removeEventListener('keydown', tecla); };
-  const tecla = e => { if (e.key !== 'Escape') return; const todos = document.querySelectorAll('.mf'); if (todos[todos.length - 1] === f) f.fechar(); };
-  f.fechar = fechar;
+  f.innerHTML = '<div class="mc">' + (semVoltar ? '' : '<div class="mvolta"><button type="button" class="btn s l" data-fechar>&larr; Voltar</button></div>') + html + '</div>';
+  const id = ++modalSeq;
+  let aberto = true; const hashAberto = location.hash;
+  const sair = voltou => {
+    if (!aberto) return; aberto = false;
+    f.remove(); document.removeEventListener('keydown', tecla); window.removeEventListener('popstate', pop);
+    /* tira a entrada que a janela pôs no histórico, mas só se a tela não mudou logo em seguida (senão desfaria a navegação) */
+    if (!voltou) setTimeout(() => { if (history.state && history.state.lxlModal === id && location.hash === hashAberto) history.back(); }, 0);
+  };
+  const eTopo = () => { const todos = document.querySelectorAll('.mf'); return todos[todos.length - 1] === f; };
+  const tecla = e => { if (e.key === 'Escape' && eTopo()) f.fechar(); };
+  const pop = () => { if (!(history.state && history.state.lxlModal === id) && eTopo()) sair(true); };
+  f.fechar = () => sair(false);
   f.addEventListener('mousedown', e => { if (e.target === f) f.fechar(); });
   document.addEventListener('keydown', tecla);
+  try { history.pushState({ lxlModal: id }, ''); window.addEventListener('popstate', pop); } catch (e) { /* sem histórico: só os botões fecham */ }
   document.body.appendChild(f);
   f.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => f.fechar()));
   return f;
@@ -62,7 +74,7 @@ function modal(html) {
 function confirmar(titulo, texto, rotulo) {
   return new Promise(res => {
     const m = modal('<h2>' + esc(titulo) + '</h2><p style="margin:4px 0 16px">' + esc(texto) + '</p>' +
-      '<div class="acoes"><button class="btn r" id="cfSim" type="button">' + esc(rotulo || 'Sim, excluir') + '</button><button class="btn l" id="cfNao" type="button">Cancelar</button></div>');
+      '<div class="acoes"><button class="btn r" id="cfSim" type="button">' + esc(rotulo || 'Sim, excluir') + '</button><button class="btn l" id="cfNao" type="button">Cancelar</button></div>', true);
     let feito = false;
     const fim = v => { if (feito) return; feito = true; res(v); };
     const fechar0 = m.fechar; m.fechar = () => { fechar0(); fim(false); };
@@ -74,15 +86,16 @@ function confirmar(titulo, texto, rotulo) {
 
 function quadro(ativo, corpo) {
   /* Cada item do menu: [endereço, chave, ícone, texto, ação da API que o perfil precisa ter para ver o item] */
-  const itens = [['#/pedidos', 'pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/novo', 'novo', '&#10133;', 'Novo', 'pedido_salvar'], ['#/orcamentos', 'orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
+  const itens = [['#/pedidos', 'pedidos', '&#128203;', 'Pedidos', 'pedidos'], ['#/orcamentos', 'orcamentos', '&#128221;', 'Orçamentos', 'orcamentos'],
     ['#/clientes', 'clientes', '&#128100;', 'Clientes', 'clientes'], ['#/estoque', 'estoque', '&#128230;', 'Estoque', 'produto_salvar'], ['#/categorias', 'categorias', '&#128193;', 'Categorias', 'categorias'],
     ['#/calculadora', 'calculadora', '&#129518;', 'Calculadora', 'parametros_salvar'], ['#/relatorios', 'relatorios', '&#128200;', 'Relatórios', 'relatorios'], ['#/ajustes', 'ajustes', '&#9881;', 'Ajustes', 'ajustes']];
   const menu = itens.filter(x => pode(x[4])).map(([h, k, ic, tx]) => '<a href="' + h + '" class="' + (ativo === k ? 'on' : '') + '"><span>' + ic + '</span>' + tx + '</a>').join('');
   app.innerHTML =
-    '<div class="topo"><img src="/natal/imagens/logo-colorida.png" alt="LXL">' +
+    '<div class="topo">' + (/^#\/(editar|nota|orcamento-ver|orcamento-editar|orcamento-novo|novo|cliente|categoria)(\/|$)/.test(location.hash) ? '<button class="voltar" type="button" id="voltaTela" aria-label="Voltar">&larr; Voltar</button>' : '') + '<a class="logo" href="#/inicio" aria-label="Tela inicial"><img src="/natal/imagens/logo-colorida.png" alt="LXL"></a>' +
     '<nav class="menu">' + menu + '</nav>' +
     '<a class="vsite" href="../" target="_blank" rel="noopener">Ver site</a><button id="sair" type="button">Sair</button></div>' +
     '<div class="wrap">' + corpo + '</div>';
+  const vt = $('#voltaTela'); if (vt) vt.onclick = () => { if (history.length > 1) history.back(); else location.hash = '#/inicio'; };
   const mn = $('.topo .menu'), at = $('.topo .menu a.on'); if (mn && at) mn.scrollLeft = at.offsetLeft - (mn.clientWidth - at.offsetWidth) / 2;
   $('#sair').onclick = async () => { await api('logout', {}); csrf = ''; location.hash = ''; iniciar(); };
 }

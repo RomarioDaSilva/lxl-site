@@ -17,7 +17,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .topo .menu a.on{background:#fff;color:var(--g)}
 .topo .menu a span{font-size:15px}
 .topo .vsite{margin-left:auto}.topo .menu{margin-left:6px}
-@media (max-width:760px){.topo{flex-wrap:wrap;row-gap:8px}.topo img{margin-right:auto}.topo .vsite{margin-left:0}.topo .menu{margin-left:0}.topo .menu{order:5;flex:0 0 100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.topo .menu::-webkit-scrollbar{display:none}}
+@media (max-width:760px){.topo{flex-wrap:wrap;row-gap:8px}.topo a.logo{margin-right:auto}.topo .vsite{margin-left:0}.topo .menu{margin-left:0}.topo .menu{order:5;flex:0 0 100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.topo .menu::-webkit-scrollbar{display:none}}
 .topo button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
 .wrap{max-width:900px;margin:0 auto;padding:16px}
 .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
@@ -203,3 +203,40 @@ a.chip{text-decoration:none;color:inherit}
 
 /* fotos extras do produto */
 .fgrade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}.fitem img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:var(--tint)}.facoes{display:flex;gap:4px;margin-top:4px}.facoes .btn{flex:1;min-height:40px;padding:4px 0;touch-action:manipulation}
+
+/* barra Voltar das janelas e das telas internas */
+.mvolta{position:sticky;top:-16px;margin:-16px -16px 10px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line,#e5e5dc);z-index:2}
+.mvolta .btn,.voltar{min-height:44px;touch-action:manipulation}
+.topo .voltar{min-height:44px;font-weight:700}
+.topo a.logo{display:flex;align-items:center}
+/* tela inicial: atalhos em cima, logo grande no espaço que sobra, rodapé embaixo */
+.inicio{display:flex;flex-direction:column;align-items:center;min-height:calc(100vh - 150px);min-height:calc(100dvh - 150px)}
+.inicio-corpo{width:100%;max-width:560px;text-align:center}
+.atalhos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px;text-align:left}
+.atalho{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 14px;background:#fff;border:1px solid var(--line,#dcdccf);border-radius:12px;color:var(--g);font-weight:700;text-decoration:none;touch-action:manipulation}
+.atalho span{font-size:20px}
+.atalho:hover,.atalho:focus-visible{border-color:var(--g)}
+.inicio-marca{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:24px 0}
+.inicio-marca img{width:min(78%,380px);height:auto;opacity:.22;pointer-events:none;user-select:none}
+.inicio-rodape{margin:0;padding:8px 0 4px;font-size:13px;color:var(--mut,#777);text-align:center}
+/* topo no celular: logo à esquerda, "Ver site" e "Sair" alinhados à direita, mesma altura */
+.topo a.logo{margin-right:auto}
+.topo .vsite,.topo #sair{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;touch-action:manipulation}
+.topo .vsite{margin-left:0}
+@media (max-width:760px){.topo{padding:10px 12px}.topo a.logo img{height:40px}.topo .voltar{order:-1}}
+
+/* topo no celular: logo à esquerda, "Ver site" e "Sair" alinhados à direita, mesma altura */
+.topo .vsite{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid rgba(255,255,255,.5);border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-decoration:none}
+.topo button#sair{min-height:40px}
+.topo .voltar{order:-1}
+@media (max-width:760px){.topo{padding:8px 12px}.topo a.logo img{height:30px}}
+
+/* atalhos da tela inicial: quadrados grandes (2 por linha no celular, 3 no computador) */
+.inicio-corpo{max-width:760px}
+.atalhos{grid-template-columns:repeat(2,1fr);gap:12px}
+.atalho{flex-direction:column;justify-content:center;text-align:center;aspect-ratio:1/1;min-height:0;gap:8px;padding:10px;font-size:16px;border-radius:16px}
+.atalho span{font-size:40px;line-height:1}
+@media (min-width:700px){.inicio-corpo{max-width:600px}.atalhos{grid-template-columns:repeat(3,1fr);gap:14px}.atalho{font-size:17px;gap:10px}.atalho span{font-size:44px}.inicio-marca img{width:min(40%,300px)}}
+
+.chips-linha{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.chips-linha .chips{margin:0}.chips-linha .btn{margin-left:auto;min-height:44px;display:inline-flex;align-items:center;text-decoration:none;touch-action:manipulation}
+.chips-linha{margin-bottom:14px}
