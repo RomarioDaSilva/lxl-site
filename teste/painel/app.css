@@ -219,3 +219,8 @@ a.chip{text-decoration:none;color:inherit}
 .inicio-marca{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:24px 0}
 .inicio-marca img{width:min(78%,380px);height:auto;opacity:.22;pointer-events:none;user-select:none}
 .inicio-rodape{margin:0;padding:8px 0 4px;font-size:13px;color:var(--mut,#777);text-align:center}
+/* topo no celular: logo à esquerda, "Ver site" e "Sair" alinhados à direita, mesma altura */
+.topo a.logo{margin-right:auto}
+.topo .vsite,.topo #sair{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.55);border-radius:10px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;touch-action:manipulation}
+.topo .vsite{margin-left:0}
+@media (max-width:760px){.topo{padding:10px 12px}.topo a.logo img{height:40px}.topo .voltar{order:-1}}
