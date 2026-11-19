@@ -28,7 +28,7 @@ cp -a teste/painel/. painel/
 cp -a teste/index.html index.html
 
 # 2) endereços: /teste/ vira / nas páginas HTML. Nas 3 páginas públicas também sai o aviso de "teste" (noindex,nofollow).
-for f in index.html faq/index.html natal/index.html religioso/index.html chaveiros/index.html; do sed -i 's#/teste/#/#g; s#<meta name="robots" content="noindex,nofollow">##' "$f"; done
+for f in index.html faq/index.html natal/index.html religioso/index.html chaveiros/index.html; do sed -i 's#/teste/#/#g; s#<meta name="robots" content="noindex,nofollow">##; s#<meta name="robots" content="noindex">##' "$f"; done
 find natal religioso chaveiros -name '*.html' | while read -r f; do sed -i 's#/teste/#/#g' "$f"; done
 sed -i 's#/teste/#/#g' painel/index.html
 
@@ -37,6 +37,7 @@ python3 scripts/atualizar-versoes.py --producao
 
 # 4) conferências
 RUIM=0
+for f in index.html faq/index.html natal/index.html religioso/index.html chaveiros/index.html; do if grep -q "noindex" "$f"; then echo "ATENÇÃO: $f ficou com noindex (o Google não veria a página)."; RUIM=1; fi; done
 if grep -rln "/teste" index.html faq natal religioso chaveiros painel empresa.js home.js novo.js --include=*.html --include=*.js --include=*.php 2>/dev/null | grep -v "^painel/medir.js"; then echo "ATENÇÃO: sobrou /teste nos arquivos acima."; RUIM=1; fi
 for f in $(find painel -name '*.php'); do php -l "$f" >/dev/null 2>&1 || { echo "ERRO de PHP em $f"; RUIM=1; }; done
 for f in $(find painel/js natal religioso chaveiros home.js novo.js catalogo-novo.js empresa.js -name '*.js'); do node --check "$f" >/dev/null 2>&1 || { echo "ERRO de JavaScript em $f"; RUIM=1; }; done
