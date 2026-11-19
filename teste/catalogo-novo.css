@@ -1,0 +1,116 @@
+/* CATÁLOGOS: VISUAL NOVO (teste). Vem depois do estilo.css e antes do .css de cada catálogo (religioso.css, chaveiros.css), então a paleta de cada um continua valendo.
+   Aqui só tem estilo. Para voltar ao visual antigo, tire a linha <link ... catalogo-novo.css> do index.html do catálogo. */
+:root{
+  --red:#D9734E; --red-d:#B85A38; --green:#2F5D50; --green-d:#1F4036; --gold:#D9734E; --cream:#FAF8F3; --paper:#fff; --ink:#1E1E1C; --muted:#6a645a;
+  --linha:#E9E1D1; --musgo-dd:#142B24; --sombra:0 10px 30px rgba(31,64,54,.10);
+}
+body{background:var(--cream)!important}
+h1,h2,h3{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif!important;font-weight:800;letter-spacing:-.02em}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+
+/* ===== barra do topo (logo + catálogos + WhatsApp) ===== */
+.topo-site{background:rgba(250,248,243,.94);border-bottom:1px solid var(--linha);position:relative;z-index:20}
+.topo-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 16px;flex-wrap:wrap}
+.topo-site .tlogo img{height:36px;width:auto;display:block}
+.topo-links{display:flex;gap:4px;margin-left:8px;flex:1;min-width:0}
+.topo-links a{text-decoration:none;font-weight:700;font-size:.92rem;padding:9px 14px;border-radius:999px;color:var(--ink);white-space:nowrap}
+.topo-links a:hover{background:#F3EEE3}
+.topo-links a[aria-current=page]{color:var(--green-d);background:#F3EEE3}
+.topo-wpp{margin-left:auto;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:var(--green);color:#fff;font-weight:800;font-size:.92rem;text-decoration:none;touch-action:manipulation}
+.topo-wpp:hover{background:var(--green-d)}
+.topo-wpp svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:760px){
+  .topo-links{order:3;flex:0 0 100%;margin:0;overflow-x:auto;scrollbar-width:none}
+  .topo-links::-webkit-scrollbar{display:none}
+  .topo-wpp span{display:none}.topo-wpp{width:44px;padding:0;justify-content:center}
+}
+@media (min-width:761px){.topo-site{position:sticky;top:0}.nav{top:64px!important}}
+
+/* ===== banner de abertura ===== */
+.hero{max-width:1180px;margin:18px auto 0;width:calc(100% - 36px);border-radius:30px!important;overflow:hidden;position:relative;color:var(--ink)!important;text-align:left!important;
+  background:linear-gradient(120deg,#F3EEE3 0%,#F7F1E4 45%,#E9DFC9 100%)!important;box-shadow:var(--sombra);
+  display:grid;grid-template-columns:1fr 340px;align-items:center;column-gap:30px;padding:46px 56px!important}
+.hero::before{content:"";position:absolute;right:-6%;top:-35%;width:50%;aspect-ratio:1;border-radius:50%;background:var(--red);opacity:.92}
+.hero::after{display:none!important}
+.hero::after{display:block!important;content:"";position:absolute;right:20%;bottom:-48%;width:30%;aspect-ratio:1;border-radius:50%;background:var(--green);left:auto;height:auto;background-image:none}
+.neve,.luzes,.bola,.hero .logo-link,.hero .ano{display:none!important}
+.hero > *{position:relative;z-index:1;grid-column:1}
+.hero h1{font-size:clamp(2.2rem,4.4vw,3.4rem)!important;line-height:1.05!important;margin:0 0 12px!important;color:var(--ink)!important;text-shadow:none!important}
+.hero h1 span{animation:none!important;background:none!important;-webkit-text-fill-color:var(--red-d)!important;color:var(--red-d)!important}
+.hero p{margin:0!important;max-width:30rem;font-size:1.05rem!important;opacity:1!important;color:#4a463f}
+.hero .hero-foto{grid-column:2;grid-row:1/span 4;width:min(100%,320px);height:auto;aspect-ratio:1;object-fit:cover;border-radius:50%;border:8px solid #fff;box-shadow:0 22px 50px rgba(20,43,36,.32);justify-self:center}
+#prazo:empty,#selo-mes:empty{display:none}
+.prazo,.selo-mes{display:inline-flex!important;align-items:center;margin-top:14px!important;background:var(--red)!important;color:#fff!important;font-weight:800;font-size:.9rem!important;padding:8px 18px!important;border-radius:999px;box-shadow:none!important;animation:none!important}
+@media (max-width:760px){
+  .hero{width:calc(100% - 24px);margin-top:12px;grid-template-columns:1fr;padding:22px 20px 26px!important;row-gap:0}
+  .hero::before{width:90%;right:-30%;top:-18%}
+  .hero::after{display:none!important}
+  .hero .hero-foto{grid-column:1;grid-row:auto;order:-1;width:min(56%,220px);border-width:6px;margin:0 auto 16px}
+  .hero > *{grid-column:1}
+  .hero h1{font-size:2rem!important}
+}
+
+/* ===== faixa de navegação das seções ===== */
+.nav{background:rgba(250,248,243,.94)!important;border-bottom:1px solid var(--linha)!important;margin-top:16px;z-index:15}
+.nav a{background:#fff!important;border:1px solid var(--linha)!important;color:var(--ink)!important}
+.nav a:hover,.nav a:active{background:var(--green)!important;color:#fff!important;border-color:var(--green)!important}
+.nav a.nav-busca{background:var(--red)!important;color:#fff!important;border-color:var(--red)!important;box-shadow:0 6px 14px rgba(217,115,78,.3)!important}
+
+/* ===== títulos e seções ===== */
+main{max-width:1180px!important}
+.sec-head h2{font-size:clamp(1.5rem,3vw,2rem)!important;color:var(--ink)!important}
+.sec-head h2::before{content:""!important;display:block!important;width:26px;height:3px;border-radius:3px;background:var(--red);margin:0 0 10px!important;font-size:0}
+.sec-head h2::after{display:none!important}
+section:nth-of-type(even) .sec-head h2::before{content:""!important}
+.sec-head p{color:var(--muted)}
+main > #secoes > section{background:transparent!important;box-shadow:none!important;clip-path:none!important;padding:34px 0 10px!important}
+main > #secoes > section::before{display:none!important}
+#como-pedir{background:transparent!important;box-shadow:none!important;clip-path:none!important}
+
+/* ===== cards das peças ===== */
+.card{border-radius:22px!important;border:1px solid var(--linha)!important;box-shadow:0 4px 14px rgba(31,64,54,.06)!important;background:#fff}
+@media(hover:hover){.card:hover{box-shadow:var(--sombra)!important}}
+.foto{background:#F3EEE3!important}
+.tag{background:var(--red)!important;font-size:.68rem!important;padding:4px 11px!important}
+.tag.top{background:var(--green)!important;color:#fff!important;animation:none!important;box-shadow:none!important;text-transform:none;letter-spacing:0}
+.info h3{font-size:.98rem!important;line-height:1.25}
+.preco{color:var(--red-d)!important}
+.entrega{background:#F3EEE3!important;color:#5b4a33!important}
+.entrega.pronta{background:#E4EFE9!important;color:var(--green-d)!important}
+.card .btn{border-radius:999px;min-height:40px;font-size:.82rem}
+.btn-wpp{background:var(--green)!important;color:#fff!important;box-shadow:none!important}
+.btn-wpp:hover{background:var(--green-d)!important}
+.btn-comp{background:#fff!important;color:var(--green-d)!important;border:2px solid var(--green)!important}
+.voltar{border-radius:999px!important;border-color:var(--linha)!important}
+
+/* ===== como pedir ===== */
+.passo{border-radius:22px!important;border:1px solid var(--linha)!important;background:#fff}
+.passo b{background:var(--red)!important}
+.nota{background:#F3EEE3!important;border:1px solid var(--linha)!important;border-radius:16px!important;color:#4a463f!important}
+.link-faq,.link-med{color:var(--green-d)!important}
+
+/* ===== página da peça ===== */
+.gal .foto{border-radius:24px!important;border:1px solid var(--linha)!important}
+.thumbs button{border-radius:14px!important;border-color:var(--linha)!important}
+.thumbs button.on{border-color:var(--red)!important}
+.det-info h1{color:var(--ink)!important;font-size:clamp(1.6rem,3vw,2.2rem)!important}
+.ficha{border-radius:18px!important;border-color:var(--linha)!important}
+.ficha div{border-top-color:#f1ebe0!important}
+.relac h2{color:var(--ink)!important}
+.aviso-mes{background:#F3EEE3!important;border-color:var(--linha)!important;border-radius:14px!important}
+
+/* ===== pedido (barra e janela) ===== */
+.barra-pedido{background:var(--green-d)!important;border-radius:999px!important}
+.barra-pedido .qtd{background:var(--red)!important;color:#fff!important}
+.barra-pedido .ver{background:#fff!important;color:var(--green-d)!important}
+.ped{border-radius:24px 24px 0 0!important}
+@media (min-width:700px){.ped{border-radius:24px!important}}
+.ped-item .sub,.ped-total span:last-child,.ped-rem{color:var(--red-d)!important}
+.ped-qtd button{background:#F3EEE3!important;border-color:var(--linha)!important}
+
+/* ===== rodapé ===== */
+footer{background:var(--musgo-dd)!important;margin-top:70px!important;padding-top:56px!important}
+footer::before{top:0!important;height:38px!important;transform:translateY(-99%);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V22C200 -6 420 -6 640 18s380 18 560 -4V40z' fill='%23142B24'/%3E%3C/svg%3E") bottom/100% 100% no-repeat!important}
+footer .btn-wpp{background:#fff!important;color:var(--green-d)!important}
+footer .btn-wpp:hover{background:#E6D5B8!important}
