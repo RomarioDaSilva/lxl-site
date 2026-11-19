@@ -26,6 +26,9 @@ mkdir -p religioso && cp -a teste/religioso/. religioso/
 mkdir -p chaveiros && cp -a teste/chaveiros/. chaveiros/
 cp -a teste/painel/. painel/
 cp -a teste/index.html index.html
+cp -a teste/404.html 404.html
+# página 404 própria: a Hostinger só usa se o .htaccess apontar para ela
+grep -qs 'ErrorDocument 404' .htaccess || printf '\nErrorDocument 404 /404.html\n' >> .htaccess
 
 # 2) endereços: /teste/ vira / nas páginas HTML. Nas 3 páginas públicas também sai o aviso de "teste" (noindex,nofollow).
 for f in index.html faq/index.html natal/index.html religioso/index.html chaveiros/index.html; do sed -i 's#/teste/#/#g; s#<meta name="robots" content="noindex,nofollow">##; s#<meta name="robots" content="noindex">##' "$f"; done
