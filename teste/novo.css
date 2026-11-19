@@ -192,3 +192,11 @@ svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-l
   .card{flex-basis:72%;min-width:0}
 }
 @media (max-width:420px){.logo img{height:34px}.cats{gap:10px}.cat{font-size:.85rem;padding:10px 4px}.confianca{grid-template-columns:1fr}}
+
+/* kits e empresas */
+.duplo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cx{background:#fff;border:1px solid var(--linha);border-radius:var(--raio);padding:26px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.cx-ic{width:54px;height:54px;border-radius:16px;background:var(--creme);color:var(--terracota-d);display:flex;align-items:center;justify-content:center;font-size:28px}
+.cx h3{font-size:1.25rem;letter-spacing:-.01em}
+.cx p{color:var(--muted);flex:1}
+@media (max-width:760px){.duplo{grid-template-columns:1fr}}
