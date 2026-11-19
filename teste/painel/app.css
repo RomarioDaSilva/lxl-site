@@ -203,3 +203,17 @@ a.chip{text-decoration:none;color:inherit}
 
 /* fotos extras do produto */
 .fgrade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}.fitem img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:var(--tint)}.facoes{display:flex;gap:4px;margin-top:4px}.facoes .btn{flex:1;min-height:40px;padding:4px 0;touch-action:manipulation}
+
+/* barra Voltar das janelas e das telas internas */
+.mvolta{position:sticky;top:-16px;margin:-16px -16px 10px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line,#e5e5dc);z-index:2}
+.mvolta .btn,.voltar{min-height:44px;touch-action:manipulation}
+.topo .voltar{min-height:44px;font-weight:700}
+.topo a.logo{display:flex;align-items:center}
+/* tela inicial */
+.inicio{position:relative;min-height:calc(100vh - 150px);display:flex;justify-content:center;overflow:hidden}
+.inicio-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92%,640px);height:auto;opacity:.16;pointer-events:none;user-select:none}
+.inicio-corpo{position:relative;width:100%;max-width:560px;padding-top:12px;text-align:center}
+.atalhos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px;text-align:left}
+.atalho{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 14px;background:rgba(255,255,255,.88);border:1px solid var(--line,#dcdccf);border-radius:12px;color:var(--g);font-weight:700;text-decoration:none;touch-action:manipulation}
+.atalho span{font-size:20px}
+.atalho:hover,.atalho:focus-visible{background:#fff;border-color:var(--g)}

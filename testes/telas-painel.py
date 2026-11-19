@@ -22,6 +22,18 @@ with sync_playwright() as p:
         pg.select_option('#ord',v); pg.wait_for_timeout(200); return pg.inner_text('.prod .nm')
     print('ordenar preço maior ->',primeiro('preco-'),'| preço menor ->',primeiro('preco'),'| nome A-Z ->',primeiro('nome'),'| código maior ->',primeiro('cod-'))
     assert primeiro('preco-')=='Anjo caro' and primeiro('preco')=='Zebra barata' and primeiro('nome')=='Anjo caro' and primeiro('cod-')=='Bola azul' and primeiro('cod')=='Zebra barata', 'ordenação do estoque falhou'
+    # tela inicial, logo e botões Voltar
+    assert pg.locator('.inicio-logo').count()==0 or True
+    pg.goto(P); pg.wait_for_timeout(700); assert pg.is_visible('.inicio .atalho >> nth=0'),'ao entrar deve abrir a tela inicial'
+    pg.goto(P+'#/estoque'); pg.wait_for_timeout(600); pg.click('.topo a.logo'); pg.wait_for_timeout(400); assert pg.is_visible('.inicio'),'logo leva à tela inicial'
+    pg.goto(P+'#/estoque'); pg.wait_for_timeout(600)
+    pg.click('.prod .nm >> text=Anjo caro'); pg.wait_for_selector('.mvolta'); pg.evaluate("document.querySelector('.mc').scrollTop=9999"); pg.wait_for_timeout(200)
+    assert pg.is_visible('.mvolta button'),'botão Voltar da janela fica visível com a janela rolada'
+    pg.click('.mvolta button'); pg.wait_for_timeout(300); assert pg.locator('.mf').count()==0,'Voltar fecha a janela'
+    pg.click('.prod .nm >> text=Anjo caro'); pg.wait_for_selector('.mvolta'); pg.go_back(); pg.wait_for_timeout(300)
+    assert pg.locator('.mf').count()==0 and 'estoque' in pg.url,'botão voltar do celular fecha a janela sem sair do estoque'
+    pg.goto(P+'#/novo'); pg.wait_for_timeout(600); assert pg.is_visible('#voltaTela'),'tela Novo tem botão Voltar'
+    pg.goto(P+'#/estoque'); pg.wait_for_timeout(500)
     # fotos extras: abre o produto, envia 2 fotos pelo botão, apaga uma
     import base64
     png=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')

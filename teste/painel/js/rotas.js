@@ -15,9 +15,10 @@ function rota() {
     estoque: ['produto_salvar', () => telaEstoque()], ajustes: ['ajustes', () => telaAjustes()], historico: ['historico', () => telaHistorico()], usuarios: ['usuarios', () => telaUsuarios()],
     categorias: ['categorias', () => telaCategorias()], categoria: ['categorias', () => telaCategoria(+h[1])], clientes: ['clientes', () => telaClientes()], cliente: ['cliente', () => telaCliente(+h[1])],
     relatorios: ['relatorios', () => telaRelatorios()], calculadora: ['parametros_salvar', () => telaCalculadora()] };
+  if (h[0] === 'inicio' || h[0] === '') return telaInicio();
   const t = telas[h[0]];
   if (t && pode(t[0])) return t[1]();
-  return telaPedidos();   /* endereço desconhecido ou sem permissão: volta para os pedidos */
+  return telaInicio();   /* endereço desconhecido ou sem permissão: volta para a tela inicial */
 }
 window.addEventListener('hashchange', rota);
 
