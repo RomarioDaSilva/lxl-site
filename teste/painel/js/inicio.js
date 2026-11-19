@@ -44,10 +44,11 @@ async function telaInicio() {
   quadro('inicio', '<p class="carregando">Carregando...</p>');
   const h = new Date(), ini = new Date(h.getFullYear(), h.getMonth(), 1), pa = new Date(h.getFullYear(), h.getMonth() - 1, 1), pf = new Date(h.getFullYear(), h.getMonth(), 0);
   const saud = h.getHours() < 12 ? 'Bom dia' : h.getHours() < 18 ? 'Boa tarde' : 'Boa noite';
-  let ped = null, rel = null, ant = null;
+  let ped = null, rel = null, ant = null, gas = null;
   try { ped = await api('pedidos', null, '&status=todos&q='); } catch (e) { return toast(e.message); }
   if (ehAdmin()) {
     try { [rel, ant] = await Promise.all([api('relatorios', null, '&de=' + isoD(ini) + '&ate=' + isoD(h)), api('relatorios', null, '&de=' + isoD(pa) + '&ate=' + isoD(pf))]); } catch (e) { rel = null; }
+    try { gas = (await api('gastos')).resumo; } catch (e) { gas = null; }
   }
   const r = ped.resumo, ultimos = ped.pedidos.slice(0, 6);
   const cab = '<div class="dash-cab"><div><h1>' + saud + (usuario ? ', ' + esc(usuario) : '') + '</h1><p class="mut">Resumo de ' + esc(h.toLocaleDateString('pt-BR', { month: 'long' })) + ' &middot; ' + esc(EMPRESA.cidade) + '</p></div></div>';
@@ -66,11 +67,12 @@ async function telaInicio() {
     kpi('Pedidos no mês', R.pedidos, delta(A ? pct(R.pedidos, A.pedidos) : null) + '', '#2f6fbf', sp(x => x.n)) +
     kpi('Ticket médio', brl(R.ticket), delta(A ? pct(R.ticket, A.ticket) : null) + '', '#E0784A', []) +
     kpi('A receber', brl(r.a_receber), r.abertos + ' pedido(s) em aberto', '#b7791f', []) + '</div>';
+  const gcard = gas && gas.total > 0 ? (() => { const pc = Math.min(100, Math.round(gas.recebido / gas.total * 100)); return '<a class="card meta" href="#/custos"><h2>Investimento recuperado <b>' + pc + '%</b></h2><div class="prog"><i style="width:' + pc + '%"></i></div><p class="mut" style="font-size:13px;margin:8px 0 0">Recebido ' + brl(gas.recebido) + ' de ' + brl(gas.total) + ' gastos. ' + (gas.recebido >= gas.total ? 'Já deu lucro.' : 'Faltam ' + brl(gas.total - gas.recebido) + '.') + '</p></a>'; })() : '';
   const top = (rel.top_produtos || []).slice(0, 5), mxT = Math.max(1, ...top.map(x => x.v));
   const tops = top.length ? top.map((x, i) => '<li><span class="rk">' + (i + 1) + '</span><span class="tn"><b>' + esc(x.nome) + '</b><i style="width:' + Math.max(6, x.v / mxT * 100) + '%"></i></span><span class="tv">' + brl(x.v) + '<small>' + x.q + ' un.</small></span></li>').join('') : '<li class="vazio">Sem vendas no mês.</li>';
   const baixo = (rel.estoque && rel.estoque.baixo || []).slice(0, 5);
   const est = baixo.length ? '<div class="card"><h2>Estoque baixo</h2>' + baixo.map(x => '<a class="lp" href="#/estoque"><span class="av av-o">' + esc(iniciais(x.nome)) + '</span><span class="lp-t"><b>' + esc(x.nome) + '</b><small>' + esc(x.codigo) + '</small></span><span class="lp-v"><span class="pill novo">' + x.estoque + ' un.</span></span></a>').join('') + '</div>' : '';
-  $('.wrap').innerHTML = cab + kpis +
+  $('.wrap').innerHTML = cab + kpis + gcard +
     '<div class="dash-grade"><div class="card g-area"><h2>Faturamento por dia <small class="mut">neste mês</small></h2>' + graficoArea(dias) + '</div>' +
     '<div class="card g-rosca"><h2>Pedidos por situação</h2>' + rosca(rel.por_status || []) + '</div></div>' +
     '<div class="dash-grade b"><div class="card"><h2>Últimos pedidos <a class="vmais" href="#/pedidos">Ver todos</a></h2>' + (ultimos.map(linhaPedido).join('') || '<div class="vazio">Nenhum pedido ainda.</div>') + '</div>' +

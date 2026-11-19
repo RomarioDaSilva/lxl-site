@@ -39,5 +39,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset(ROTULOS_ACAO[$a])) {
 
 
 /* Cada arquivo de acoes/ cuida de um assunto. Para achar uma ação, procure o nome dela (ex.: pedido_salvar) nessa pasta. */
-foreach (['acesso', 'ajustes', 'usuarios', 'estoque', 'relatorios', 'clientes', 'categorias', 'pedidos', 'orcamentos'] as $arq) require __DIR__ . "/acoes/$arq.php";
+foreach (['acesso', 'ajustes', 'usuarios', 'estoque', 'relatorios', 'clientes', 'categorias', 'pedidos', 'orcamentos', 'gastos'] as $arq) require __DIR__ . "/acoes/$arq.php";
 fail('Ação desconhecida.', 404);

@@ -342,3 +342,12 @@ input[type=search],input[type=text],input[type=number],input[type=tel],input[typ
   .corpo h1{font-size:22px}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* custos */
+.prog{height:12px;border-radius:12px;background:#e3ded2;overflow:hidden}.prog i{display:block;height:100%;border-radius:12px;background:linear-gradient(90deg,var(--g),var(--g3))}
+.barra{display:flex;gap:8px;flex-wrap:wrap}
+.lp-b{width:100%;background:none;border:0;border-top:1px solid var(--line3);text-align:left;font:inherit;cursor:pointer;touch-action:manipulation}.lp-b:first-of-type{border-top:0}
+.lp-v small{font-weight:500;font-size:12px}
+.duas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:860px){.dash-cab{flex-direction:column;align-items:flex-start;gap:10px}}
+.meta{display:block;text-decoration:none;color:inherit;margin-bottom:14px}.meta h2 b{font-size:20px;color:var(--g)}
