@@ -39,7 +39,7 @@ function instalar(): void {
     foreach ([['produtos', 'usa_cores', 'TINYINT DEFAULT 0'], ['produtos', 'codigo_antigo', "VARCHAR(40) DEFAULT ''"], ['produtos', 'link', "VARCHAR(500) DEFAULT ''"], ['itens', 'cor_id', 'INT NULL'], ['itens', 'cor', "VARCHAR(40) DEFAULT ''"],
               ['produtos', 'peso_g', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'tempo_min', 'INT DEFAULT 0'], ['produtos', 'material', "VARCHAR(10) DEFAULT 'PLA'"],
               ['produtos', 'perda_pct', 'DECIMAL(5,2) DEFAULT 10'], ['produtos', 'extras', 'DECIMAL(10,2) DEFAULT 0'],
-              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0'],
+              ['produtos', 'embalagem', 'DECIMAL(10,2) DEFAULT 0.80'], ['produtos', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['produtos', 'preco_kg', 'DECIMAL(10,2) DEFAULT 0'], ['pedidos', 'cliente_id', 'INT NULL'], ['itens', 'tipo', "VARCHAR(40) DEFAULT ''"], ['itens', 'detalhes', "VARCHAR(255) DEFAULT ''"], ['itens', 'custo', 'DECIMAL(10,2) DEFAULT 0'], ['itens', 'faltou', 'INT DEFAULT 0'], ['itens', 'reposto', 'INT DEFAULT 0'],
               ['pedidos', 'pago_valor', 'DECIMAL(10,2) DEFAULT 0'], ['usuarios', 'nome', "VARCHAR(80) DEFAULT ''"], ['usuarios', 'email', "VARCHAR(120) DEFAULT ''"],
               ['usuarios', 'perfil', "VARCHAR(20) DEFAULT 'admin'"], ['usuarios', 'ativo', 'TINYINT DEFAULT 1']] as [$tab, $col, $def]) {
         $id = "coluna:$tab.$col"; if (in_array($id, $feitas, true)) continue;

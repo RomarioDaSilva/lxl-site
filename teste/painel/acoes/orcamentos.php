@@ -111,7 +111,7 @@ case 'orcamento_gerar_pedido': {
         $pid = (int)$db->lastInsertId();
         foreach ($itens as $i) $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco, tipo, detalhes, custo) VALUES (?,?,?,?,?,?,?,?,?,?)')
             ->execute([$pid, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco'], $i['tipo'], $i['detalhes'], $i['custo']]);
-        ajustarEstoque($itens, -1);
+        baixaDoPedido($pid, $itens, 'novo');
         $db->prepare("UPDATE orcamentos SET status = 'aprovado', pedido_id = ? WHERE id = ?")->execute([$pid, $id]);
         $db->commit();
     } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); fail('Não consegui gerar o pedido.', 500); }

@@ -60,7 +60,7 @@ case 'pedido_salvar': {
             $s = $db->prepare('SELECT status FROM pedidos WHERE id = ?'); $s->execute([$id]);
             $velho = $s->fetch();
             if (!$velho) { $db->rollBack(); fail('Pedido não encontrado.', 404); }
-            if ($velho['status'] !== 'cancelado') ajustarEstoque(itensDoPedido($id), +1);
+            if ($velho['status'] !== 'cancelado') ajustarEstoque(itensDoPedido($id), +1, true);   /* volta ao estado de antes do pedido (inclui desfazer a entrada de "pronto") */
             $db->prepare('UPDATE pedidos SET data=?, cliente=?, whatsapp=?, pagamento=?, pago=?, entrega=?, endereco=?, prazo=?, obs=?, desconto=?, frete=?, total=?, status=?, cliente_id=?, pago_valor=? WHERE id=?')->execute([...$campos, $id]);
             if (!souAdmin()) {   /* quem não é admin não vê custo: mantém o custo que já estava gravado em cada item personalizado */
                 $velhos = []; foreach (itensDoPedido($id) as $o) $velhos[$o['descricao']] = (float)$o['custo'];
@@ -74,7 +74,7 @@ case 'pedido_salvar': {
         foreach ($itens as $i) {
             $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco, tipo, detalhes, custo) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute([$id, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco'], $i['tipo'], $i['detalhes'], $i['custo']]);
         }
-        if ($status !== 'cancelado') ajustarEstoque($itens, -1);
+        if ($status !== 'cancelado') baixaDoPedido($id, $itens, $status);
         $db->commit();
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();
@@ -118,8 +118,14 @@ case 'pedido_status': {
     if (!in_array($novo, STATUS, true)) fail('Status inválido.');
     $pago = array_key_exists('pago', $in) ? (empty($in['pago']) ? 0 : 1) : (int)$p['pago'];
     $db->beginTransaction();
-    if ($p['status'] !== 'cancelado' && $novo === 'cancelado') ajustarEstoque(itensDoPedido($id), +1);
-    if ($p['status'] === 'cancelado' && $novo !== 'cancelado') ajustarEstoque(itensDoPedido($id), -1);
+    $ant = $p['status'];
+    if ($ant !== 'cancelado' && $novo === 'cancelado') { ajustarEstoque(itensDoPedido($id), +1); zerarFaltas($id); }   /* peças voltam ao estoque */
+    elseif ($ant === 'cancelado' && $novo !== 'cancelado') baixaDoPedido($id, itensDoPedido($id), $novo);
+    elseif ($ant !== 'cancelado') {
+        $eraP = in_array($ant, STATUS_PRODUZIDO, true); $viraP = in_array($novo, STATUS_PRODUZIDO, true);
+        if ($viraP && !$eraP) creditarProducao($id);        /* ficou pronto: o que faltava entra no estoque */
+        if (!$viraP && $eraP) desfazerProducao($id);        /* voltou para antes de pronto: tira a entrada */
+    }
     $pv = $pago ? (float)$p['total'] : ((int)$p['pago'] ? 0 : (float)($p['pago_valor'] ?? 0));   /* marcou pago: recebeu tudo; desmarcou: zera */
     $db->prepare('UPDATE pedidos SET status = ?, pago = ?, pago_valor = ? WHERE id = ?')->execute([$novo, $pago, $pv, $id]);
     $db->commit();

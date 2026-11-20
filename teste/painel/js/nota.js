@@ -40,11 +40,29 @@ function ligarItens(raiz) {
   raiz.querySelectorAll('.it-f[src]').forEach(im => im.addEventListener('error', () => { im.style.visibility = 'hidden'; }));
   raiz.querySelectorAll('[data-cod]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.cod); toast('Código ' + b.dataset.cod + ' copiado.'); } catch (e) { toast('Código: ' + b.dataset.cod); } });
 }
+/* Mensagem de WhatsApp com o pedido (texto puro, sem a imagem). */
+function msgPedido(p) {
+  const nome = (p.cliente || '').trim().split(/\s+/)[0], sub = p.itens.reduce((t, i) => t + i.preco * i.qtd, 0);
+  const pg = p.pago ? 'pago' : p.pago_valor > 0 ? 'sinal de ' + brl(p.pago_valor) + ' recebido, falta ' + brl(p.saldo) : 'a pagar';
+  return 'Olá' + (nome ? ', ' + nome : '') + '! Segue o resumo do seu pedido *PED-' + numPed(p.id) + '* da LXL Projetos:\n\n' +
+    p.itens.map(i => '• ' + i.qtd + 'x ' + i.descricao + (i.cor ? ' (' + i.cor + ')' : '') + (i.codigo ? ' [' + i.codigo + ']' : '') + ' ' + brl(i.preco * i.qtd)).join('\n') + '\n\n' +
+    (p.desconto || p.frete ? 'Subtotal: ' + brl(sub) + '\n' : '') + (p.desconto ? 'Desconto: -' + brl(p.desconto) + '\n' : '') + (p.frete ? 'Frete: ' + brl(p.frete) + '\n' : '') +
+    '*Total: ' + brl(p.total) + '*\nPagamento: ' + (p.pagamento || 'a combinar') + ' (' + pg + ')\n' +
+    (p.entrega === 'Entrega' ? 'Entrega' + (p.endereco ? ': ' + p.endereco : '') : 'Retirada') + '\n' + (p.prazo ? 'Prazo: ' + p.prazo + '\n' : '') + (p.obs ? '\n' + p.obs + '\n' : '') +
+    '\nQualquer dúvida é só me chamar! Obrigado pela preferência.';
+}
 /* Abre a notinha (imagem) numa janela, com Imprimir, Baixar e Compartilhar. */
 function abrirNota(p, orc) {
   const m = modal('<h2>' + (orc ? 'Orçamento' : 'Comprovante') + ' para enviar <button class="btn s l" data-fechar type="button">Fechar</button></h2>' +
     '<div class="barra"><button class="btn" id="imp" type="button">Imprimir</button><button class="btn o" id="png" type="button">Baixar imagem</button><button class="btn l" id="cmp" type="button">Compartilhar</button></div>' +
-    '<div class="notaarea">' + notaHTML(p, orc) + '</div>');
+    '<div class="notaarea">' + notaHTML(p, orc) + '</div>' +
+    (orc ? '' : '<h2 style="margin-top:16px">Mensagem para o WhatsApp</h2><textarea id="msgP" rows="12"></textarea><div class="acoes"><button class="btn o" id="cpyP" type="button">Copiar mensagem</button><a class="btn l" id="waP" target="_blank" rel="noopener" href="#">' + (foneWa(p.whatsapp) ? 'Abrir no WhatsApp do cliente' : 'Abrir no WhatsApp') + '</a></div>'));
+  if (!orc) {
+    $('#msgP', m).value = msgPedido(p);
+    const lk = () => { $('#waP', m).href = 'https://wa.me/' + foneWa(p.whatsapp) + '?text=' + encodeURIComponent($('#msgP', m).value); };
+    lk(); $('#msgP', m).addEventListener('input', lk);
+    $('#cpyP', m).onclick = async () => { try { await navigator.clipboard.writeText($('#msgP', m).value); toast('Mensagem copiada.'); } catch (e) { $('#msgP', m).select(); toast('Selecionei o texto, é só copiar.'); } };
+  }
   $('#imp', m).onclick = () => window.print();
   ligarImagemNota((orc ? 'orcamento-ORC-' : 'nota-PED-') + numPed(p.id) + '-' + slugNome(p.cliente) + '.png', orc ? 'Orçamento LXL Projetos' : 'Comprovante LXL Projetos');
 }
