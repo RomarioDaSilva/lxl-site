@@ -63,8 +63,10 @@ async function telaOrcamentoVer(id) {
   $('.wrap').innerHTML =
     '<div class="barra"><a class="btn l s" href="#/orcamentos">&larr; Orçamentos</a>' + (o.status === 'aprovado' ? '' : '<a class="btn l s" href="#/orcamento-editar/' + o.id + '">Editar</a>') +
     '<span class="pill ' + (o.status === 'aprovado' ? 'pago' : o.status === 'recusado' ? 'cancelado' : 'apagar') + '" style="align-self:center">' + STATUS_ORC[o.status] + '</span></div>' +
-    '<div class="barra"><button class="btn o" id="png" type="button">Baixar imagem</button><button class="btn l" id="cmp" type="button">Compartilhar imagem</button></div>' +
-    '<div class="notaarea">' + notaHTML(o, true) + '</div>' +
+    '<div class="barra"><button class="btn o" id="bNota" type="button">Nota e compartilhar</button></div>' +
+    '<div class="card"><h2>Itens do orçamento <small class="mut">' + o.itens.length + ' item(ns)</small></h2><div id="itens">' + listaItens(o.itens) + '</div>' +
+    '<div class="pv-tot"><div class="g"><span>Total</span><span>' + brl(o.total) + '</span></div></div>' +
+    '<p class="mut" style="font-size:13px;margin:10px 0 0">Cliente: ' + esc(o.cliente) + (o.prazo ? ' &middot; Prazo: ' + esc(o.prazo) : '') + (o.validade ? ' &middot; Válido até ' + esc(dataBR(o.validade)) : '') + '</p></div>' +
     '<div class="card"><h2>Mensagem para o WhatsApp</h2><textarea id="msg" rows="12"></textarea>' +
     '<div class="acoes"><button class="btn o" id="cpy" type="button">Copiar mensagem</button>' +
     '<a class="btn l" id="wa" target="_blank" rel="noopener" href="#">' + (fone ? 'Abrir no WhatsApp do cliente' : 'Abrir no WhatsApp') + '</a></div></div>';
@@ -72,5 +74,6 @@ async function telaOrcamentoVer(id) {
   const link = () => { $('#wa').href = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent($('#msg').value); };
   link(); $('#msg').addEventListener('input', link);
   $('#cpy').onclick = async () => { try { await navigator.clipboard.writeText($('#msg').value); toast('Mensagem copiada.'); } catch (e) { $('#msg').select(); toast('Selecionei o texto, é só copiar.'); } };
-  ligarImagemNota('orcamento-ORC-' + numPed(o.id) + '-' + slugNome(o.cliente) + '.png', 'Orçamento LXL Projetos');
+  ligarItens($('#itens'));
+  $('#bNota').onclick = () => abrirNota(o, true);
 }

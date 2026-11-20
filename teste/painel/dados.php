@@ -170,14 +170,14 @@ function pedidoOut(array $p, ?array $itens = null): array {
         $r['itens'] = array_map(fn($i) => [
             'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'],
             'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
-            'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
+            'descricao' => $i['descricao'], 'codigo' => (string)($i['codigo'] ?? ''), 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
             'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''), 'custo' => souAdmin() ? (float)($i['custo'] ?? 0) : 0,
         ], $itens);
     }
     return $r;
 }
 function itensDoPedido(int $id): array {
-    $s = db()->prepare('SELECT * FROM itens WHERE pedido_id = ? ORDER BY id');
+    $s = db()->prepare('SELECT i.*, p.codigo AS codigo FROM itens i LEFT JOIN produtos p ON p.id = i.produto_id WHERE i.pedido_id = ? ORDER BY i.id');
     $s->execute([$id]);
     return $s->fetchAll();
 }

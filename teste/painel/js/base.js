@@ -109,7 +109,7 @@ const MENU = [['#/inicio', 'inicio', 'Início', null], ['#/pedidos', 'pedidos', 
   ['#/clientes', 'clientes', 'Clientes', 'clientes'], ['#/estoque', 'estoque', 'Estoque', 'produto_salvar'], ['#/categorias', 'categorias', 'Categorias', 'categorias'],
   ['#/calculadora', 'calculadora', 'Calculadora', 'parametros_salvar'], ['#/relatorios', 'relatorios', 'Relatórios', 'relatorios'], ['#/custos', 'custos', 'Custos', 'gastos'], ['#/ajustes', 'ajustes', 'Ajustes', 'ajustes']];
 const ABAS_FIXAS = ['inicio', 'pedidos', 'estoque', 'clientes'];   /* as 4 abas fixas do celular; o resto fica em "Mais" */
-const SUBTELAS = /^#\/(editar|nota|orcamento-ver|orcamento-editar|orcamento-novo|novo|cliente|categoria)(\/|$)/;
+const SUBTELAS = /^#\/(editar|nota|pedido|orcamento-ver|orcamento-editar|orcamento-novo|novo|cliente|categoria)(\/|$)/;
 
 function quadro(ativo, corpo) {
   const itens = MENU.filter(x => !x[3] || pode(x[3]));
