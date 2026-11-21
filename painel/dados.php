@@ -170,30 +170,85 @@ function pedidoOut(array $p, ?array $itens = null): array {
         $r['itens'] = array_map(fn($i) => [
             'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'],
             'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
-            'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
+            'descricao' => $i['descricao'], 'codigo' => (string)($i['codigo'] ?? ''), 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'],
             'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''), 'custo' => souAdmin() ? (float)($i['custo'] ?? 0) : 0,
         ], $itens);
     }
     return $r;
 }
 function itensDoPedido(int $id): array {
-    $s = db()->prepare('SELECT * FROM itens WHERE pedido_id = ? ORDER BY id');
+    $s = db()->prepare('SELECT i.*, p.codigo AS codigo FROM itens i LEFT JOIN produtos p ON p.id = i.produto_id WHERE i.pedido_id = ? ORDER BY i.id');
     $s->execute([$id]);
     return $s->fetchAll();
 }
-function ajustarEstoque(array $itens, int $sinal): void {
+/* ---------- estoque dos pedidos ----------
+   Ao salvar um pedido, cada peça baixa a quantidade do estoque (pode ficar negativo = "falta produzir").
+   "faltou" = quantas unidades do item o estoque NÃO cobria na hora do pedido (o que precisa ser produzido).
+   Quando o pedido vai para PRONTO (ou ENTREGUE), essas unidades entram no estoque ("reposto") e o saldo volta para onde estava.
+   Se o pedido sair de pronto (voltar para novo/em produção), a entrada é desfeita. Cancelar devolve as peças ao estoque. */
+const STATUS_PRODUZIDO = ['pronto', 'entregue'];
+function ajustarEstoque(array $itens, int $sinal, bool $descontaReposto = false): void {
     $db = db();
     foreach ($itens as $i) {
         if (empty($i['produto_id'])) continue;
-        $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ? AND controla = 1')
-           ->execute([$sinal * (int)$i['qtd'], (int)$i['produto_id']]);
-        if (!empty($i['cor_id'])) {
-            $db->prepare('UPDATE produto_cores SET qtd = qtd + ? WHERE produto_id = ? AND cor_id = ?')
-               ->execute([$sinal * (int)$i['qtd'], (int)$i['produto_id'], (int)$i['cor_id']]);
-        }
+        $q = $sinal * ((int)$i['qtd'] - ($descontaReposto ? (int)($i['reposto'] ?? 0) : 0));
+        $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ? AND controla = 1')->execute([$q, (int)$i['produto_id']]);
+        if (!empty($i['cor_id'])) $db->prepare('UPDATE produto_cores SET qtd = qtd + ? WHERE produto_id = ? AND cor_id = ?')->execute([$q, (int)$i['produto_id'], (int)$i['cor_id']]);
     }
 }
-
+/* quantidade que existe agora em estoque da peça (ou da cor); null = peça sem controle de estoque */
+function estoqueAtual(int $pid, ?int $cor): ?int {
+    $db = db();
+    $s = $db->prepare('SELECT estoque, controla FROM produtos WHERE id = ?'); $s->execute([$pid]); $p = $s->fetch();
+    if (!$p || (int)$p['controla'] !== 1) return null;
+    if ($cor) { $s = $db->prepare('SELECT qtd FROM produto_cores WHERE produto_id = ? AND cor_id = ?'); $s->execute([$pid, $cor]); $v = $s->fetchColumn(); return $v === false ? 0 : (int)$v; }
+    return (int)$p['estoque'];
+}
+/* baixa o estoque dos itens e devolve, para cada item (na mesma ordem), quantas unidades faltavam */
+function baixarEstoque(array $itens): array {
+    $faltas = [];
+    foreach ($itens as $k => $i) {
+        $f = 0;
+        if (!empty($i['produto_id'])) {
+            $antes = estoqueAtual((int)$i['produto_id'], empty($i['cor_id']) ? null : (int)$i['cor_id']);
+            if ($antes !== null) $f = max(0, min((int)$i['qtd'], (int)$i['qtd'] - max(0, $antes)));
+            ajustarEstoque([$i], -1);
+        }
+        $faltas[$k] = $f;
+    }
+    return $faltas;
+}
+/* grava "faltou" nos itens do pedido (ordem do id) */
+function gravarFaltas(int $pedidoId, array $faltas): void {
+    $db = db(); $ids = $db->prepare('SELECT id FROM itens WHERE pedido_id = ? ORDER BY id'); $ids->execute([$pedidoId]);
+    foreach ($ids->fetchAll(PDO::FETCH_COLUMN) as $k => $iid) $db->prepare('UPDATE itens SET faltou = ?, reposto = 0 WHERE id = ?')->execute([(int)($faltas[$k] ?? 0), (int)$iid]);
+}
+function baixaDoPedido(int $pedidoId, array $itens, string $status): void {
+    gravarFaltas($pedidoId, baixarEstoque($itens));
+    if (in_array($status, STATUS_PRODUZIDO, true)) creditarProducao($pedidoId);
+}
+/* pedido ficou pronto: o que faltava entra no estoque */
+function creditarProducao(int $pedidoId): void {
+    $db = db();
+    foreach (itensDoPedido($pedidoId) as $i) {
+        $d = (int)$i['faltou'] - (int)$i['reposto'];
+        if ($d <= 0 || empty($i['produto_id'])) continue;
+        $db->prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ? AND controla = 1')->execute([$d, (int)$i['produto_id']]);
+        if (!empty($i['cor_id'])) $db->prepare('UPDATE produto_cores SET qtd = qtd + ? WHERE produto_id = ? AND cor_id = ?')->execute([$d, (int)$i['produto_id'], (int)$i['cor_id']]);
+        $db->prepare('UPDATE itens SET reposto = faltou WHERE id = ?')->execute([(int)$i['id']]);
+    }
+}
+/* pedido voltou para antes de pronto: tira a entrada */
+function desfazerProducao(int $pedidoId): void {
+    $db = db();
+    foreach (itensDoPedido($pedidoId) as $i) {
+        $r = (int)$i['reposto']; if ($r <= 0 || empty($i['produto_id'])) continue;
+        $db->prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ? AND controla = 1')->execute([$r, (int)$i['produto_id']]);
+        if (!empty($i['cor_id'])) $db->prepare('UPDATE produto_cores SET qtd = qtd - ? WHERE produto_id = ? AND cor_id = ?')->execute([$r, (int)$i['produto_id'], (int)$i['cor_id']]);
+        $db->prepare('UPDATE itens SET reposto = 0 WHERE id = ?')->execute([(int)$i['id']]);
+    }
+}
+function zerarFaltas(int $pedidoId): void { db()->prepare('UPDATE itens SET faltou = 0, reposto = 0 WHERE pedido_id = ?')->execute([$pedidoId]); }
 
 /* Confere os itens de um pedido ou orçamento (peça do estoque, com cor, ou item personalizado) e devolve a lista limpa. */
 function montarItens($lista): array {

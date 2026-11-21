@@ -94,6 +94,7 @@ const IC = {
   categorias: '<path d="M3 6h6l2 2h10v11H3z"/>',
   calculadora: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
   relatorios: '<path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/>',
+  custos: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/>',
   ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
   mais: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
   busca: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
@@ -106,9 +107,9 @@ const svgIc = (k, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" viewBox="0 0 
 /* Cada item do menu: [endereço, chave, nome, ação da API que o perfil precisa ter para ver o item] */
 const MENU = [['#/inicio', 'inicio', 'Início', null], ['#/pedidos', 'pedidos', 'Pedidos', 'pedidos'], ['#/orcamentos', 'orcamentos', 'Orçamentos', 'orcamentos'],
   ['#/clientes', 'clientes', 'Clientes', 'clientes'], ['#/estoque', 'estoque', 'Estoque', 'produto_salvar'], ['#/categorias', 'categorias', 'Categorias', 'categorias'],
-  ['#/calculadora', 'calculadora', 'Calculadora', 'parametros_salvar'], ['#/relatorios', 'relatorios', 'Relatórios', 'relatorios'], ['#/ajustes', 'ajustes', 'Ajustes', 'ajustes']];
+  ['#/calculadora', 'calculadora', 'Calculadora', 'parametros_salvar'], ['#/relatorios', 'relatorios', 'Relatórios', 'relatorios'], ['#/custos', 'custos', 'Custos', 'gastos'], ['#/ajustes', 'ajustes', 'Ajustes', 'ajustes']];
 const ABAS_FIXAS = ['inicio', 'pedidos', 'estoque', 'clientes'];   /* as 4 abas fixas do celular; o resto fica em "Mais" */
-const SUBTELAS = /^#\/(editar|nota|orcamento-ver|orcamento-editar|orcamento-novo|novo|cliente|categoria)(\/|$)/;
+const SUBTELAS = /^#\/(editar|nota|pedido|orcamento-ver|orcamento-editar|orcamento-novo|novo|cliente|categoria)(\/|$)/;
 
 function quadro(ativo, corpo) {
   const itens = MENU.filter(x => !x[3] || pode(x[3]));

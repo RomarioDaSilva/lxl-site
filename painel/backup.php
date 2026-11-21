@@ -6,7 +6,7 @@ declare(strict_types=1);
  * O arquivo baixado tem dados privados e custos: guarde num lugar seguro e nunca coloque no GitHub.
  * Para voltar os dados depois, peça ajuda (o arquivo é um JSON com uma lista de linhas para cada tabela).
  */
-const TABELAS_BACKUP = ['produtos', 'cores', 'produto_cores', 'categorias', 'produto_categorias', 'clientes', 'pedidos', 'itens', 'orcamentos', 'orcamento_itens', 'parametros', 'metricas', 'auditoria'];
+const TABELAS_BACKUP = ['produtos', 'cores', 'produto_cores', 'categorias', 'produto_categorias', 'clientes', 'pedidos', 'itens', 'orcamentos', 'orcamento_itens', 'parametros', 'metricas', 'auditoria', 'gastos'];
 
 function montarBackup(): array {
     $db = db(); $t = [];

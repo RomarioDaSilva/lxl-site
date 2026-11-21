@@ -13,12 +13,12 @@ function orcamentoOut(array $o, ?array $itens = null): array {
           'status' => $o['status'], 'pedido_id' => empty($o['pedido_id']) ? null : (int)$o['pedido_id']];
     if ($itens !== null) $r['itens'] = array_map(fn($i) => [
         'produto_id' => $i['produto_id'] === null ? null : (int)$i['produto_id'], 'cor_id' => empty($i['cor_id']) ? null : (int)$i['cor_id'], 'cor' => (string)($i['cor'] ?? ''),
-        'descricao' => $i['descricao'], 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'], 'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''),
+        'descricao' => $i['descricao'], 'codigo' => (string)($i['codigo'] ?? ''), 'qtd' => (int)$i['qtd'], 'preco' => (float)$i['preco'], 'tipo' => (string)($i['tipo'] ?? ''), 'detalhes' => (string)($i['detalhes'] ?? ''),
         'custo' => souAdmin() ? (float)($i['custo'] ?? 0) : 0], $itens);
     return $r;
 }
 function itensDoOrcamento(int $id): array {
-    $s = db()->prepare('SELECT * FROM orcamento_itens WHERE orcamento_id = ? ORDER BY id'); $s->execute([$id]);
+    $s = db()->prepare('SELECT i.*, p.codigo AS codigo FROM orcamento_itens i LEFT JOIN produtos p ON p.id = i.produto_id WHERE i.orcamento_id = ? ORDER BY i.id'); $s->execute([$id]);
     return $s->fetchAll();
 }
 
@@ -111,7 +111,7 @@ case 'orcamento_gerar_pedido': {
         $pid = (int)$db->lastInsertId();
         foreach ($itens as $i) $db->prepare('INSERT INTO itens (pedido_id, produto_id, cor_id, cor, descricao, qtd, preco, tipo, detalhes, custo) VALUES (?,?,?,?,?,?,?,?,?,?)')
             ->execute([$pid, $i['produto_id'], $i['cor_id'], $i['cor'], $i['descricao'], $i['qtd'], $i['preco'], $i['tipo'], $i['detalhes'], $i['custo']]);
-        ajustarEstoque($itens, -1);
+        baixaDoPedido($pid, $itens, 'novo');
         $db->prepare("UPDATE orcamentos SET status = 'aprovado', pedido_id = ? WHERE id = ?")->execute([$pid, $id]);
         $db->commit();
     } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); fail('Não consegui gerar o pedido.', 500); }
